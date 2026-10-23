@@ -31,6 +31,29 @@ uv run pipelines/run.py run build_database
 ```
 
 
+## Connexion à la base
+
+La base Postgres (copie du dump CLAIR) est partagée et hébergée. Copier `.env.example` en `.env`
+(ignoré par git) et le compléter, puis lancer les scripts avec `uv run --env-file .env …`.
+
+```python
+from democracy_watch.db import connect
+
+with connect() as conn:  # lecture seule par défaut ; connect(read_only=False) pour écrire
+    conn.execute("SELECT count(*) FROM public.amendements").fetchone()
+```
+
+## Logging
+
+```python
+from democracy_watch.log import get_logger
+
+log = get_logger(__name__)
+log.info("%s amendements lus", count)
+```
+
+Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
+
 ## Lancer les precommit-hook localement
 
 [Installer les precommit](https://pre-commit.com/)
