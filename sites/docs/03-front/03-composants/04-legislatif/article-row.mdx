@@ -1,0 +1,60 @@
+---
+title: ArticleRow
+sidebar_label: "ArticleRow"
+sidebar_icon: list
+---
+
+import { ArticleRow } from "@democracy-watch/ui";
+import { amendments, articles, texts } from "@democracy-watch/data";
+
+export const article = {
+  ...articles.find((item) => item.id === "pjl-2436-art-3"),
+  text: texts.find((text) => text.id === "pjl-2436"),
+  amendmentCount: amendments.filter((amendment) => amendment.articleId === "pjl-2436-art-3").length,
+};
+
+## Import
+
+```tsx
+import { ArticleRow } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+    <ArticleRow article={article} href="/textes/pjl-2436/articles/3" />
+  </ul>
+</Preview>
+
+```tsx
+const article = {
+  ...articles.find((item) => item.id === "pjl-2436-art-3"),
+  text: texts.find((text) => text.id === "pjl-2436"),
+  amendmentCount: amendments.filter((amendment) => amendment.articleId === "pjl-2436-art-3").length,
+};
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+  <ArticleRow article={article} href="/textes/pjl-2436/articles/3" />
+</ul>
+```
+
+## Avec une mise en évidence
+
+<Preview>
+  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+    <ArticleRow article={article} href="/textes/pjl-2436/articles/3" highlight={["pesticid", "ecole"]} />
+  </ul>
+</Preview>
+
+```tsx
+const article = {
+  ...articles.find((item) => item.id === "pjl-2436-art-3"),
+  text: texts.find((text) => text.id === "pjl-2436"),
+  amendmentCount: amendments.filter((amendment) => amendment.articleId === "pjl-2436-art-3").length,
+};
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+  <ArticleRow article={article} href="/textes/pjl-2436/articles/3" highlight={["pesticid", "ecole"]} />
+</ul>
+```

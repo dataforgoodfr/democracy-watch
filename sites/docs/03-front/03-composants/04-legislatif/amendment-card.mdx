@@ -1,0 +1,74 @@
+---
+title: AmendmentCard
+sidebar_label: "AmendmentCard"
+sidebar_icon: sticky-note
+---
+
+import { AmendmentCard } from "@democracy-watch/ui";
+import { amendments } from "@democracy-watch/data";
+
+export const byNumber = (number) => amendments.find((item) => item.number === number);
+
+## Import
+
+```tsx
+import { AmendmentCard } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview surface="page">
+  <div style={{ width: 280 }}>
+    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+      <AmendmentCard amendment={byNumber("CE 31")} />
+    </ul>
+  </div>
+</Preview>
+
+```tsx
+const byNumber = (number) => amendments.find((item) => item.number === number);
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+  <AmendmentCard amendment={byNumber("CE 31")} />
+</ul>
+```
+
+## Avec des amendements similaires
+
+<Preview surface="page">
+  <div style={{ width: 280 }}>
+    <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+      <AmendmentCard amendment={byNumber("CE 23")} similar={[byNumber("CE 61"), byNumber("CD 14")]} />
+      <AmendmentCard amendment={byNumber("CD 14")} similarToNumber="CE 23" />
+    </ul>
+  </div>
+</Preview>
+
+```tsx
+const byNumber = (number) => amendments.find((item) => item.number === number);
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+  <AmendmentCard amendment={byNumber("CE 23")} similar={[byNumber("CE 61"), byNumber("CD 14")]} />
+  <AmendmentCard amendment={byNumber("CD 14")} similarToNumber="CE 23" />
+</ul>
+```
+
+## Avec un sous-amendement ou un redépôt
+
+<Preview surface="page">
+  <div style={{ width: 280 }}>
+    <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+      <AmendmentCard amendment={byNumber("CE 310")} parentNumber="CE 23" />
+      <AmendmentCard amendment={byNumber("CD 31")} redepositNumber="CE 23" />
+    </ul>
+  </div>
+</Preview>
+
+```tsx
+const byNumber = (number) => amendments.find((item) => item.number === number);
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+  <AmendmentCard amendment={byNumber("CE 310")} parentNumber="CE 23" />
+  <AmendmentCard amendment={byNumber("CD 31")} redepositNumber="CE 23" />
+</ul>
+```

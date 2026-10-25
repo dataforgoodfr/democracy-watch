@@ -152,7 +152,7 @@ beta.gouv standards expect automated testing:
 
 - The UI library is **Mantine**, themed by `@democracy-watch/theme`. Do **not** add `@codegouvfr/react-dsfr` or the DSFR CSS: the DSFR inspires the foundations (neutrals, statuses, square inputs, focus ring) through our tokens.
 - Never hardcode a color, size or radius: use the semantic CSS variables `var(--dw-…)` generated from `packages/theme/src/tokens.ts`. To add a value, add a token, then run `pnpm --filter @democracy-watch/theme generate`.
-- Reuse the components of `@democracy-watch/ui` before writing new ones; a new component gets a CSS module, an export in `packages/ui/src/index.ts`, a test and a page in the docs (`sites/docs/02-design-system/composants/<nom>.mdx`, modelled on `badge.mdx`).
+- Reuse the components of `@democracy-watch/ui` before writing new ones; a new component gets a CSS module, an export in `packages/ui/src/index.ts`, a test and a page in the docs (`sites/docs/03-front/03-composants/<famille>/<nom>.mdx`, modelled on `badge.mdx`).
 - `sites/web` (Next.js) only does routing: logic goes in `packages/screens` (loader + view), components never import `next/*` (use `Link` / `useNavigation` from `@democracy-watch/ui`).
 - Page state (filters, tabs, view, page) lives in the URL.
 

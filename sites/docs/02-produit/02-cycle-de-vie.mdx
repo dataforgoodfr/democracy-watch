@@ -1,0 +1,35 @@
+---
+title: Cycle de vie d'un amendement
+description: Les étapes d'un amendement, ce que l'utilisateur doit en voir, et ce qui reste à faire.
+sidebar_label: "Cycle de vie d'un amendement"
+sidebar_icon: route
+---
+
+<Mermaid
+  chart={`flowchart LR
+  D["Dépôt<br/>délai : 3e jour ouvrable, 17 h"] --> R{"Recevable ?"}
+  R -- non --> I["Irrecevable<br/>art. 40 / art. 45"]
+  R -- oui --> C["Commission<br/>pour avis / au fond"]
+  C --> S1{"Sort"}
+  S1 -- adopté --> T["Intégré au texte<br/>de la commission"]
+  S1 -- rejeté / retiré / tombé --> RS["Redépôt en séance ?<br/>nouveau numéro, lien probable"]
+  RS --> SP["Séance publique"]
+  T --> SP
+  SP --> S2{"Sort final"}
+  S2 --> N["Navette<br/>Sénat (après V0)"]`}
+/>
+
+| Étape | Ce que l'utilisateur doit voir | Où | État |
+| --- | --- | --- | --- |
+| Dépôt | nouveaux amendements sur ses textes, délai de dépôt | Accueil, kanban « Déposés » | ✅ affichage · ⏳ délai ([DW-30](/roadmap/issues/e5-etre-prevenu/dw-30)) |
+| Recevabilité | irrecevable et motif (art. 40, art. 45) | statut, fiche amendement | ✅ statut · ⏳ motif ([DW-22](/roadmap/issues/e4-comprendre-un-amendement/dw-22)) |
+| Commission | colonne « au fond » / « pour avis », échéance J-n | kanban | ✅ |
+| Sort | adopté, rejeté, tombé, retiré, non soutenu | badges, filtres | ✅ |
+| Sous-amendements | arbre parent → sous-amendements | fiche amendement | ✅ mention · ⏳ arbre ([DW-24](/roadmap/issues/e4-comprendre-un-amendement/dw-24)) |
+| Similaires | groupes ≥ 85 % | kanban (bordure sarcelle) | ✅ maquette · ⏳ calcul réel ([DW-25](/roadmap/issues/e7-donnees-et-api/dw-25)) |
+| Redépôt en séance | « redéposé en … ? à vérifier » | kanban, fiche | ✅ maquette · ⏳ calcul réel ([DW-26](/roadmap/issues/e7-donnees-et-api/dw-26)) |
+| Séance | colonne séance, sort final | kanban, frise | ⏳ données ([DW-15](/roadmap/issues/e7-donnees-et-api/dw-15)) |
+| Sénat | navette | hors V0 | ⏳ ([DW-42](/roadmap/issues/e7-donnees-et-api/dw-42)) |
+
+Le vocabulaire (forclusion, tombé, irrecevable…) est expliqué dans
+[Notions métier](/produit/notions-metier).

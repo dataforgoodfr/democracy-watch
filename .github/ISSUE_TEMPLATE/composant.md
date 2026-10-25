@@ -16,7 +16,7 @@ labels: ["type:feat", "area:ui"]
 - [ ] Clavier et focus, libellés accessibles, jamais la couleur seule
 - [ ] Styles uniquement avec `var(--dw-…)`
 - [ ] Test (Vitest + Testing Library) ; e2e si parcours utilisateur
-- [ ] Documentation : une page `sites/docs/02-design-system/composants/<nom>.mdx` (modèle : `badge.mdx`)
+- [ ] Documentation : une page `sites/docs/03-front/03-composants/<famille>/<nom>.mdx` (modèle : `badge.mdx`)
 
 ## Critères d'acceptation
 

@@ -1,0 +1,74 @@
+---
+title: Architecture
+description: Le monorepo, les packages et la règle d'or — Next.js ne fait que du routage.
+sidebar_label: "Vue d'ensemble"
+sidebar_icon: boxes
+---
+
+## La règle d'or
+
+**Le site Next.js ne fait que du routage.** Une route transmet les paramètres de l'URL à un écran
+de `packages/screens` ; l'écran charge ses données avec les hooks de `@democracy-watch/api`. Toute
+la logique et tout le rendu sont dans des packages, testables sans Next.js.
+
+```tsx
+// sites/web/app/(app)/recherche/page.tsx — une route complète
+const Page = async ({ searchParams }: PageProps<"/recherche">) => <SearchScreen params={await searchParams} />;
+```
+
+## Les packages et leurs dépendances
+
+<Mermaid
+  chart={`flowchart TB
+  web["sites/web<br/>Next.js : routes + Providers"]
+  docs["sites/docs<br/>Zudoku"]
+  screens["packages/screens<br/>un écran par page"]
+  api["packages/api<br/>hooks TanStack Query<br/>HTTP ou mock (DEV_FRONT)"]
+  state["packages/state<br/>Zustand : textes suivis, session"]
+  ui["packages/ui<br/>composants"]
+  data["packages/data<br/>modèle, fixtures, requêtes pures"]
+  theme["packages/theme<br/>tokens + Mantine"]
+  brand["packages/brand<br/>logo, favicons"]
+  srv[("server/ — API FastAPI")]
+  web --> screens
+  web --> api
+  web --> state
+  screens --> api
+  screens --> state
+  screens --> ui
+  api --> data
+  api -. HTTP .-> srv
+  ui --> data
+  ui --> theme
+  ui --> brand
+  docs --> ui`}
+/>
+
+| Package | Contient | Dépend de |
+| --- | --- | --- |
+| `theme` | tokens `--dw-*`, `tokens.css`, thème Mantine, styles globaux | — |
+| `brand` | géométrie du pictogramme, `Logo`, `Picto`, générateur d'assets | — |
+| `data` | types du domaine, données fictives, requêtes pures, interface `Repository` | — |
+| `api` | hooks TanStack Query, `ApiProvider`, dépôt HTTP (API FastAPI) et dépôt mock | data |
+| `state` | état du navigateur avec Zustand : textes suivis, session | — |
+| `ui` | composants génériques et législatifs | theme, brand, data |
+| `screens` | un dossier par écran : `params.ts` (URL) + `XxxScreen.tsx` | api, state, ui, data, theme |
+| `sites/web` | routes Next.js, `Providers` (Mantine, données, routeur), choix du mode | screens, api, state, theme |
+| `sites/docs` | cette documentation (aperçus réels des composants) | ui, theme |
+
+Les packages sont publiés **en TypeScript source** dans le workspace pnpm (pas d'étape de build) ;
+Next.js les transpile (`transpilePackages`).
+
+## Choix techniques
+
+| Sujet | Choix | Pourquoi |
+| --- | --- | --- |
+| Monorepo | pnpm workspaces + catalogue de versions | simple, une version par dépendance |
+| Application | Next.js 16 (App Router) | routage par fichiers, déploiement Docker (Coolify) |
+| Données serveur | **TanStack Query** | cache, états de chargement et d'erreur, rechargement : utilisé par toutes les applications de La Suite numérique (Docs, Drive, Meet) |
+| État client | **Zustand** + `persist` | textes suivis et session dans le navigateur ; choix de La Suite Docs (Meet utilise Valtio, aucune n'utilise Jotai) |
+| Composants | Mantine 8, thémé par les tokens | accessible, complet, facile à thémer |
+| API | FastAPI + Meilisearch + Postgres | RFC du 23 octobre 2026 ([API](/serveur/api)) |
+| Documentation | Zudoku | MDX, recherche, même stack que CLAIR |
+| Qualité | Biome, lefthook, commitlint, ruff | un outil par langage, rapide |
+| Tests | Vitest + Testing Library, Playwright + axe, pytest | voir [Tests](/front/architecture/tests) |

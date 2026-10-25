@@ -4,9 +4,11 @@
   "type": "module",
   "description": "Documentation Zudoku : guide, design system, architecture, serveur, roadmap.",
   "scripts": {
-    "dev": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku dev --port 3002",
-    "build": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku build",
+    "dev": "node scripts/generate-navigation.mjs && node scripts/generate-roadmap.mjs && ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku dev --port 3002",
+    "build": "node scripts/generate-navigation.mjs && node scripts/generate-roadmap.mjs && ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku build",
     "preview": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku preview --port 3002",
+    "docs:nav": "node scripts/generate-navigation.mjs && node scripts/generate-roadmap.mjs",
+    "docs:nav:check": "node scripts/generate-navigation.mjs --check && node scripts/generate-roadmap.mjs --check",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -22,6 +24,8 @@
     "mermaid": "11.17.2",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "style-to-js": "1.1.21",
+    "style-to-object": "1.0.14",
     "zudoku": "0.86.0"
   },
   "devDependencies": {

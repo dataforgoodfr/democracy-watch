@@ -3,16 +3,23 @@ import { trackErrors } from "./support.ts";
 
 const PAGES = [
   { path: "/", title: "Democracy Watch" },
-  { path: "/00-produit/notions-metier", title: "Notions métier à connaître" },
-  { path: "/01-demarrer", title: "Installation" },
-  { path: "/02-design-system", title: "Principes et règles" },
-  { path: "/02-design-system/couleurs", title: "Couleurs" },
-  { path: "/02-design-system/logo", title: "Logo et favicons" },
-  { path: "/03-architecture", title: "Architecture" },
-  { path: "/03-architecture/pages", title: "Pages et écrans" },
-  { path: "/03-architecture/donnees", title: "Données, navigation, connexion" },
-  { path: "/04-serveur/api", title: "API" },
-  { path: "/05-roadmap", title: "Roadmap" },
+  { path: "/produit/notions-metier", title: "Notions métier à connaître" },
+  { path: "/produit/cycle-de-vie", title: "Cycle de vie d'un amendement" },
+  { path: "/accueil/demarrer", title: "Installation" },
+  { path: "/front/design-system", title: "Principes et règles" },
+  { path: "/front/design-system/couleurs", title: "Couleurs" },
+  { path: "/front/design-system/logo", title: "Logo et favicons" },
+  { path: "/front/architecture", title: "Architecture" },
+  { path: "/front/architecture/pages", title: "Pages et écrans" },
+  { path: "/front/architecture/donnees", title: "Données, navigation, connexion" },
+  { path: "/serveur/api", title: "API" },
+  { path: "/data", title: "Données" },
+  { path: "/roadmap", title: "Roadmap" },
+  { path: "/roadmap/suivi-de-projet", title: "Suivi de projet" },
+  { path: "/roadmap/analytics", title: "Analytics (Rybbit)" },
+  { path: "/roadmap/observability", title: "Observabilité (OpenObserve)" },
+  { path: "/roadmap/produit-front", title: "Kanban — Produit et front" },
+  { path: "/roadmap/donnees-api-ops", title: "Kanban — Données, API et ops" },
 ];
 
 for (const { path, title } of PAGES) {
@@ -25,12 +32,31 @@ for (const { path, title } of PAGES) {
 }
 
 test("les schémas Mermaid sont rendus", async ({ page }) => {
-  await page.goto("/03-architecture/donnees");
+  await page.goto("/front/architecture/donnees");
   await expect(page.locator(".dw-mermaid svg").first()).toBeVisible();
 });
 
 test("les nuanciers sont lus depuis les tokens", async ({ page }) => {
-  await page.goto("/02-design-system/couleurs");
+  await page.goto("/front/design-system/couleurs");
   await expect(page.getByText("--dw-fond-action")).toBeVisible();
   await expect(page.getByText("#17322E").first()).toBeVisible();
+});
+
+test("les deux Kanban ont les sept colonnes", async ({ page }) => {
+  for (const path of ["/roadmap/produit-front", "/roadmap/donnees-api-ops"]) {
+    await page.goto(path);
+    for (const column of [
+      "Backlog",
+      "Not Started",
+      "To Implement",
+      "In Progress",
+      "In Testing",
+      "In Review",
+      "Done",
+    ]) {
+      await expect(
+        page.getByRole("region", { name: new RegExp(`^${column} — \\d+$`) }),
+      ).toBeVisible();
+    }
+  }
 });

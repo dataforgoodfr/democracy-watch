@@ -1,0 +1,163 @@
+---
+title: Pages et écrans
+description: Les routes de l'application, la structure de chaque écran et sa maquette.
+sidebar_label: "Pages et écrans"
+sidebar_icon: layout-dashboard
+---
+
+## Routes
+
+| URL | Écran (`packages/screens`) | Maquette | État |
+| --- | --- | --- | --- |
+| `/connexion` | `LoginScreen` | prompt § Connexion | ✅ V0 (sans authentification réelle) |
+| `/` | `HomeScreen` | — | ✅ V0 simple |
+| `/recherche?q=…` | `SearchScreen` | V0 · 1 Recherche élargie | ✅ |
+| `/textes` | `MyTextsScreen` | — | ✅ V0 simple |
+| `/textes/ajouter` | `AddTextsScreen` | V0 · 2 Ajouter des textes | ✅ |
+| `/textes/[textId]` | `TextScreen` | — | ✅ sommaire des articles |
+| `/textes/[textId]/articles/[article]` | `ArticleScreen` | V0 · 5 Article par avancement | ✅ |
+| `/amendements` | `FollowedAmendmentsScreen` | Mes amendements suivis | ✅ |
+| `/amendements/[id]` | `AmendmentScreen` | — | ⏳ fiche amendement |
+
+Toutes les pages connectées partagent le même cadre, `AppLayout` (route `app/(app)/layout.tsx`).
+La connexion est hors de ce cadre (`app/(public)/`).
+
+## Cadre commun
+
+<Mermaid
+  chart={`flowchart TB
+  subgraph AppShell
+    direction TB
+    H["Header (fond jaune clair)<br/>Logo · GlobalSearch · bouton Rechercher"]
+    N["Navigation principale<br/>Accueil · Mes textes de loi (n) · Mes amendements suivis (n)"]
+    subgraph Main["main#contenu"]
+      PH["PageHeader : Breadcrumb · H1 · badges · actions"]
+      C["Contenu de l'écran"]
+    end
+    F["Pied de page"]
+  end
+  H --> N --> Main --> F`}
+/>
+
+## Recherche élargie — `/recherche`
+
+<Mermaid
+  chart={`flowchart LR
+  subgraph Page
+    direction TB
+    T["PageHeader : « 128 résultats pour … »"]
+    P["Pills : Tout · Textes · Articles · Amendements"]
+    subgraph Corps[" "]
+      direction LR
+      FP["FilterPanel<br/>Mes textes · Étape · Commission · Groupe"]
+      subgraph Résultats
+        direction TB
+        S1["SectionHeader Textes de loi → LegislativeTextCard ×n"]
+        S2["SectionHeader Articles → ArticleRow ×n"]
+        S3["SectionHeader Amendements → AmendmentRow ×n"]
+      end
+    end
+  end
+  T --> P --> Corps`}
+/>
+
+## Ajouter des textes à l'étude — `/textes/ajouter`
+
+<Mermaid
+  chart={`flowchart LR
+  subgraph Gauche["Card"]
+    direction TB
+    Q["Filtre texte + Pills (En cours d'examen, PJL, PPL…)"]
+    TT["TextsTable (sélection)"]
+    PG["Compteur · Pagination"]
+  end
+  subgraph Droite["Panneau « Ma sélection »"]
+    direction TB
+    SEL["Textes choisis (supprimables)"]
+    ART["Articles à suivre"]
+    AL["M'alerter quand…"]
+    TH["Ranger dans ma thématique"]
+    CTA["Ajouter n textes à mon étude"]
+  end
+  Q --> TT --> PG
+  SEL --> ART --> AL --> TH --> CTA`}
+/>
+
+## Article — `/textes/[id]/articles/[n]`
+
+<Mermaid
+  chart={`flowchart TB
+  PH["PageHeader : Article 3 · Produits phytosanitaires · badges · ★ Suivi"]
+  R["Recherche dans les amendements"]
+  V["ViewSwitcher (Liste · Avancement · Groupe) · Switch « Regrouper les similaires »"]
+  subgraph Avancement["Vue avancement"]
+    direction LR
+    D["StageColumn<br/>Déposés"]
+    CF["StageColumn<br/>Commission au fond<br/>(prochaine échéance)"]
+    CA["StageColumn<br/>Commission pour avis"]
+    SP["StageColumn<br/>Séance publique"]
+    SE["StageColumn<br/>Sénat (hors V0)"]
+  end
+  L["Legend"]
+  PH --> R --> V --> Avancement --> L`}
+/>
+
+Chaque colonne contient des `AmendmentCard` : bordure sarcelle si l'amendement appartient à un
+groupe de similaires, ligne « ↪ redéposé en … ? à vérifier » pour un lien probable.
+
+## Mes amendements suivis — `/amendements`
+
+<Mermaid
+  chart={`flowchart LR
+  subgraph Filtres["FilterPanel (accordéons)"]
+    direction TB
+    F1["Texte de loi"]
+    F2["Groupe parlementaire"]
+    F3["Statut / sort"]
+    F4["Étape législative"]
+  end
+  subgraph Liste
+    direction TB
+    Q["Recherche plein texte"]
+    A["AmendmentRow ×n"]
+  end
+  Filtres --- Liste`}
+/>
+
+## Connexion — `/connexion`
+
+<Mermaid
+  chart={`flowchart LR
+  subgraph Marque["Colonne marque (jaune clair)"]
+    direction TB
+    LG["Logo"]
+    TI["« Gardez un œil sur vos amendements »"]
+    BE["3 bénéfices + icônes"]
+  end
+  subgraph Formulaire
+    direction TB
+    E["E-mail · Mot de passe"]
+    O["Rester connecté · Mot de passe oublié"]
+    B["Se connecter"]
+    M["ou : lien magique par e-mail"]
+    I["Créer un compte"]
+  end
+  Marque --- Formulaire`}
+/>
+
+## Maquettes et écrans réels
+
+<Captures
+  items={[
+    { src: "/maquettes/v0-1-recherche-elargie.png", caption: "Maquette — Recherche élargie" },
+    { src: "/captures/recherche.png", caption: "Application — Recherche élargie" },
+    { src: "/maquettes/v0-2-ajouter-des-textes.png", caption: "Maquette — Ajouter des textes" },
+    { src: "/captures/ajouter.png", caption: "Application — Ajouter des textes" },
+    { src: "/maquettes/v0-5-article-avancement.png", caption: "Maquette — Article par avancement" },
+    { src: "/captures/article.png", caption: "Application — Article par avancement" },
+    { src: "/maquettes/v0-mes-amendements-suivis.png", caption: "Maquette — Mes amendements suivis" },
+    { src: "/captures/amendements.png", caption: "Application — Mes amendements suivis" },
+    { src: "/captures/connexion.png", caption: "Application — Connexion" },
+    { src: "/captures/home.png", caption: "Application — Accueil" },
+  ]}
+/>

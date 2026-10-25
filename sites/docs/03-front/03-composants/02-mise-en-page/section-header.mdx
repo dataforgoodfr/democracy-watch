@@ -1,0 +1,65 @@
+---
+title: SectionHeader
+sidebar_label: "SectionHeader"
+sidebar_icon: heading-2
+---
+
+import { Link, SectionHeader } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { SectionHeader } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <SectionHeader title="Échéances à venir" />
+</Preview>
+
+```tsx
+<SectionHeader title="Échéances à venir" />
+```
+
+## Avec un compteur
+
+<Preview>
+  <SectionHeader title="Amendements" count={42} />
+</Preview>
+
+```tsx
+<SectionHeader title="Amendements" count={42} />
+```
+
+## Avec une action
+
+<Preview>
+  <SectionHeader
+    title="Textes de loi"
+    count={3}
+    action={<Link href="/recherche?onglet=textes">Voir les 3 →</Link>}
+  />
+</Preview>
+
+```tsx
+<SectionHeader
+  title="Textes de loi"
+  count={3}
+  action={<Link href="/recherche?onglet=textes">Voir les 3 →</Link>}
+/>
+```
+
+## Avec un identifiant d'ancre
+
+<Preview>
+  <section aria-labelledby="derniers">
+    <SectionHeader id="derniers" title="Derniers amendements déposés" />
+  </section>
+</Preview>
+
+```tsx
+<section aria-labelledby="derniers">
+  <SectionHeader id="derniers" title="Derniers amendements déposés" />
+</section>
+```

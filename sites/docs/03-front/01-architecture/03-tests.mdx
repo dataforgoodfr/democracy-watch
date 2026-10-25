@@ -1,0 +1,36 @@
+---
+title: Tests
+description: Ce qui est testé, où, et comment lancer les tests.
+sidebar_label: "Tests"
+sidebar_icon: flask-conical
+---
+
+<Mermaid
+  chart={`flowchart TB
+  E2E["E2E — Playwright + axe<br/>e2e/*.spec.ts<br/>toutes les routes, parcours clés, accessibilité, mobile"]
+  SCR["Écrans — Vitest + Testing Library<br/>packages/screens/src/*.test.tsx<br/>API mock, état client, interactions, URL produites"]
+  CMP["Composants — Vitest + Testing Library<br/>packages/ui/src/*.test.tsx"]
+  UNIT["Unitaires — Vitest<br/>data (requêtes), api (conversion, HTTP, hooks), state (stores), theme, brand"]
+  PY["Python — pytest<br/>server/tests"]
+  E2E --> SCR --> CMP --> UNIT`}
+/>
+
+| Niveau | Commande | Exemples de vérifications |
+| --- | --- | --- |
+| Unitaires | `pnpm test` | la recherche « pesticides écoles » retrouve les bons textes ; conversion des réponses de l'API (sorts, groupes, étapes) ; dépôt HTTP avec un `fetch` simulé ; persistance des textes suivis et de la session ; contrastes du styleguide |
+| Composants | `pnpm test` | l'onglet actif porte `aria-current` ; la recherche globale envoie vers `/recherche?q=…` ; un amendement similaire est signalé comme calculé |
+| Écrans | `pnpm test` | sélectionner un texte l'ajoute aux textes suivis avec ses préférences ; l'article 3 répartit 8 amendements par étape ; sans session, renvoi vers la connexion ; redirection externe refusée |
+| E2E | `pnpm build && pnpm test:e2e` | chaque route répond, sans erreur console, **sans violation axe grave** ; cycle complet connexion → sélection → suivi → kanban, conservé après rechargement ; une page par composant de la doc |
+| Python | `cd server && uv run pytest` | filtres Meilisearch de l'exemple de la RFC ; recherche groupée et fédérée ; 404, validation des paramètres, `/health` dégradé ; OpenAPI |
+
+## Écrire un test
+
+- **Tester ce que voit l'utilisateur** : rôles et libellés accessibles (`getByRole`), pas les
+  classes CSS.
+- Pour un composant ou un écran, utiliser `renderWithProviders` (`@democracy-watch/ui/test-utils`) :
+  il fournit le thème et une navigation simulée dont on lit les URL visitées.
+- Pour un écran, utiliser `renderScreen` (`packages/screens/src/test-utils.tsx`) : API en mode
+  mock sans latence, textes suivis et session choisis par le test.
+
+La CI (`.github/workflows/ci.yaml`) lance lint, types, tests unitaires, build, e2e et pytest à
+chaque pull request.

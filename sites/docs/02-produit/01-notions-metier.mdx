@@ -1,0 +1,87 @@
+---
+title: Notions métier à connaître
+description: Le vocabulaire de l'Assemblée nationale indispensable pour comprendre les données et l'interface.
+sidebar_label: "Notions métier (AN)"
+sidebar_icon: book-open
+---
+
+Ces notions conditionnent directement le modèle de données (`packages/data`) et les libellés de
+l'interface.
+
+## Lecture
+
+Une **lecture** est l'examen complet d'un texte par une chambre : **commission**, puis **séance
+publique**, puis vote sur l'ensemble. La frise d'une page décrit une seule lecture, de J−60 à J0.
+
+## Forclusion
+
+La perte d'un droit par le seul écoulement d'un délai. Passé l'heure limite de dépôt,
+l'amendement n'est plus recevable. Ce n'est **pas un rejet** : personne ne l'examine, personne ne
+décide, aucun vote n'a lieu. L'irrecevabilité est automatique et sans recours.
+
+Délai : en principe **le 3e jour ouvrable précédant la discussion, à 17 h**. Le Gouvernement et la
+commission y échappent : c'est une asymétrie structurante.
+
+## Types de textes
+
+| Sigle | Signification |
+| --- | --- |
+| PJL | Projet de loi (déposé par le Gouvernement) |
+| PPL | Proposition de loi (déposée par des parlementaires) |
+| PLF | Projet de loi de finances |
+| PLFSS | Projet de loi de financement de la Sécurité sociale |
+
+## États (sorts) d'un amendement
+
+| État | Ce que cela veut dire |
+| --- | --- |
+| **Adopté** | A reçu un vote favorable. |
+| **Rejeté** | A reçu un vote défavorable. |
+| **Retiré** | Retiré par ses auteurs. |
+| **Tombé** | Un amendement incompatible a été adopté avant lui, ou l'article visé a été supprimé ou réécrit. Il n'est pas mis aux voix : il disparaît sans être examiné. |
+| **Non soutenu** | Aucun des signataires n'était présent pour le défendre. |
+| **Irrecevable** | Jugé irrecevable par le ou la présidente de commission ou de l'assemblée (voir ci-dessous). |
+
+Motifs d'irrecevabilité :
+
+1. **Irrecevabilité financière (art. 40 de la Constitution)** : création ou aggravation d'une charge
+   publique. Prononcée par le président de la commission des finances.
+2. **Cavalier législatif (art. 45)** : absence de lien, même indirect, avec le texte déposé.
+   Prononcé par le président de la commission, ou par le président de l'assemblée en séance.
+
+## Trois types d'amendements : la cible change tout
+
+| | Amendement de commission | Amendement de séance | Sous-amendement |
+| --- | --- | --- | --- |
+| **Vise** | le texte déposé (projet ou proposition initial) | le texte adopté par la commission | un autre amendement |
+| **Devant qui** | la commission | l'hémicycle (577 députés) | selon le stade |
+| **Si adopté** | il est absorbé dans le texte de la commission | il modifie le texte qui sera voté | il modifie l'amendement, qui est ensuite voté |
+
+- Une fois la commission close, **le texte est réécrit**. Un amendement de commission rejeté puis
+  redéposé en séance doit souvent être réécrit lui aussi : l'alinéa qu'il visait n'existe plus ou a
+  changé de numéro.
+- Un amendement de commission adopté **disparaît en tant qu'amendement et devient du texte**. Il
+  n'est pas revoté en séance : il *est* le texte que la séance discute.
+- Les amendements de séance ont une **série de numéros distincte**. Un amendement redéposé en séance
+  reçoit un numéro neuf, sans lien avec son numéro de commission.
+- Le **sous-amendement** amende un amendement, pas le texte. Il ne peut exister que si l'amendement
+  visé est déjà déposé : c'est mécaniquement la dernière voie ouverte après la forclusion. Il ne peut
+  pas contredire l'amendement qu'il vise (le supprimer ou l'inverser le rend irrecevable) : on
+  sous-amende pour ajuster, pas pour annuler.
+
+## Ce que cela implique pour les données
+
+Trois populations à distinguer explicitement ; les champs existent dans les données de l'AN :
+
+- **Commission ou séance** : `codeEtape`, `prefixeOrganeExamen`, et le rattachement à
+  `etapeLegislativeRefUid`.
+- **Sous-amendement** : identifiable sans ambiguïté, `amendementParentRefUid` est renseigné. Côté
+  parent, la collection `sousAmendements` donne l'arbre.
+- **Aucun lien** n'existe entre un amendement de commission et sa reprise en séance : numéros
+  différents, UID différents, aucun champ de chaînage.
+
+:::note{title="Conséquence dans l'interface"}
+Le rapprochement commission → séance est **calculé** par Democracy Watch. Il est toujours affiché
+comme un **lien probable, à vérifier** (« ↪ redéposé en CE 23 ? »), jamais comme un fait officiel.
+Dans le code : `Amendment.redepositedAs.certainty` et `Amendment.parentId`.
+:::

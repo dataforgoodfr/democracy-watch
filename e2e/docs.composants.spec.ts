@@ -1,20 +1,25 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
+// Même calcul d'URL que la navigation générée (préfixes d'ordre retirés).
+import { routeFromRelPath } from "../sites/docs/scripts/routes.mjs";
 import { trackErrors } from "./support.ts";
 
-const dir = new URL("../sites/docs/02-design-system/composants/", import.meta.url);
-const slugs = readdirSync(dir)
+const docs = new URL("../sites/docs/", import.meta.url);
+const pages = readdirSync(new URL("03-front/03-composants/", docs), {
+  recursive: true,
+  encoding: "utf8",
+})
   .filter((file) => file.endsWith(".mdx") && file !== "index.mdx")
-  .map((file) => file.replace(/\.mdx$/, ""));
+  .map((file) => routeFromRelPath(`03-front/03-composants/${file}`));
 
 test("il y a une page par composant", () => {
-  expect(slugs.length).toBeGreaterThanOrEqual(30);
+  expect(pages.length).toBeGreaterThanOrEqual(32);
 });
 
-for (const slug of slugs) {
-  test(`composant ${slug} : aperçus rendus, un bloc de code par aperçu`, async ({ page }) => {
+for (const path of pages) {
+  test(`composant ${path} : aperçus rendus, un bloc de code par aperçu`, async ({ page }) => {
     const errors = trackErrors(page);
-    await page.goto(`/02-design-system/composants/${slug}`);
+    await page.goto(path);
     await expect(page.getByRole("heading", { level: 2, name: /Import/ })).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: /Utilisation de base/ }),

@@ -1,0 +1,47 @@
+---
+title: EmptyState
+sidebar_label: "EmptyState"
+sidebar_icon: inbox
+---
+
+import { EmptyState } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { EmptyState } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <EmptyState>Aucun amendement à cette étape.</EmptyState>
+</Preview>
+
+```tsx
+<EmptyState>Aucun amendement à cette étape.</EmptyState>
+```
+
+## Avec un titre
+
+<Preview>
+  <EmptyState title="Aucun résultat">
+    Aucun amendement de M. Garnier (RN) ne correspond à ces filtres.
+  </EmptyState>
+</Preview>
+
+```tsx
+<EmptyState title="Aucun résultat">
+  Aucun amendement de M. Garnier (RN) ne correspond à ces filtres.
+</EmptyState>
+```
+
+## Avec un titre seul
+
+<Preview>
+  <EmptyState title="Examen au Sénat non couvert en V0" />
+</Preview>
+
+```tsx
+<EmptyState title="Examen au Sénat non couvert en V0" />
+```

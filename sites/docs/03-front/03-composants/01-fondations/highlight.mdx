@@ -1,0 +1,39 @@
+---
+title: Highlight
+sidebar_label: "Highlight"
+sidebar_icon: highlighter
+---
+
+import { Highlight } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { Highlight } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <Highlight text="Projet de loi d'orientation pour la transition agricole" stems={["agricol"]} />
+</Preview>
+
+```tsx
+<Highlight text="Projet de loi d'orientation pour la transition agricole" stems={["agricol"]} />
+```
+
+## Avec plusieurs racines
+
+<Preview>
+  <Highlight
+    text="Remplace « peut » par « doit » : la restriction des pesticides près des écoles devient obligatoire."
+    stems={["pesticid", "ecole"]}
+  />
+</Preview>
+
+```tsx
+<Highlight
+  text="Remplace « peut » par « doit » : la restriction des pesticides près des écoles devient obligatoire."
+  stems={["pesticid", "ecole"]}
+/>
+```

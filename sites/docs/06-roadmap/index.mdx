@@ -1,0 +1,32 @@
+---
+title: Roadmap
+description: Proposition de roadmap — suivre le cycle de vie d'un amendement — découpée en épiques et en tickets.
+sidebar_label: "Vue d'ensemble"
+sidebar_icon: map
+---
+
+:::info{title="Proposition"}
+À valider avec l'équipe produit et design (voir la [RFC méthode de travail](/produit/methode-de-travail)).
+:::
+
+**Objectif : permettre à une association de suivre le
+[cycle de vie d'un amendement](/produit/cycle-de-vie)**, de son dépôt à son sort final, en sachant
+toujours ce qui est officiel et ce qui est déduit. Échéance : **V0 le 7 novembre 2026**.
+
+## Épiques
+
+Le travail est découpé en 10 épiques, rattachées aux issues chapeau GitHub quand elles existent.
+Chaque ticket a sa fiche (menu **Issues**) et sa carte dans un Kanban.
+
+<Epics />
+
+<FeatureGrid cols={2}>
+  <FeatureCard icon="🗂️" title="Produit et front" description="Kanban des épiques E1 → E6." href="/roadmap/produit-front" />
+  <FeatureCard icon="🛠️" title="Données, API et ops" description="Kanban des épiques E7 → E10." href="/roadmap/donnees-api-ops" />
+</FeatureGrid>
+
+Après la V0, deux chantiers ont leur propre dossier de contexte et de tickets :
+[Analytics](/roadmap/analytics) (mesure d'audience avec Rybbit) et
+[Observabilité](/roadmap/observability) (logs, métriques et traces avec OpenObserve).
+
+Rattachement aux issues GitHub existantes, labels et GitHub Project : [Suivi de projet](/roadmap/suivi-de-projet).

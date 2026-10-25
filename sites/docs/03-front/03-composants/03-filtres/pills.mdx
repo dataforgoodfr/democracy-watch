@@ -1,0 +1,115 @@
+---
+title: Pills
+sidebar_label: "Pills"
+sidebar_icon: pill
+---
+
+import { Pills } from "@democracy-watch/ui";
+
+export const types = [
+  { value: "tout", label: "Tout" },
+  { value: "textes", label: "Textes" },
+  { value: "amendements", label: "Amendements" },
+  { value: "deputes", label: "Députés" },
+];
+
+export const typesAvecCompteurs = [
+  { value: "tout", label: "Tout", count: 128 },
+  { value: "textes", label: "Textes", count: 12 },
+  { value: "amendements", label: "Amendements", count: 104 },
+  { value: "deputes", label: "Députés", count: 12 },
+];
+
+export const natures = [
+  { value: "pjl", label: "PJL" },
+  { value: "ppl", label: "PPL" },
+  { value: "commission", label: "Commission au fond" },
+  { value: "seance", label: "Séance publique" },
+];
+
+## Import
+
+```tsx
+import { Pills } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <Pills
+    label="Type de résultat"
+    items={types}
+    active={["tout"]}
+    onSelect={() => {}}
+  />
+</Preview>
+
+```tsx
+const types = [
+  { value: "tout", label: "Tout" },
+  { value: "textes", label: "Textes" },
+  { value: "amendements", label: "Amendements" },
+  { value: "deputes", label: "Députés" },
+];
+
+<Pills
+  label="Type de résultat"
+  items={types}
+  active={["tout"]}
+  onSelect={() => {}}
+/>
+```
+
+## Avec des compteurs
+
+<Preview>
+  <Pills
+    label="Type de résultat"
+    items={typesAvecCompteurs}
+    active={["amendements"]}
+    onSelect={() => {}}
+  />
+</Preview>
+
+```tsx
+const typesAvecCompteurs = [
+  { value: "tout", label: "Tout", count: 128 },
+  { value: "textes", label: "Textes", count: 12 },
+  { value: "amendements", label: "Amendements", count: 104 },
+  { value: "deputes", label: "Députés", count: 12 },
+];
+
+<Pills
+  label="Type de résultat"
+  items={typesAvecCompteurs}
+  active={["amendements"]}
+  onSelect={() => {}}
+/>
+```
+
+## Avec plusieurs filtres actifs
+
+<Preview>
+  <Pills
+    label="Filtres"
+    items={natures}
+    active={["pjl", "commission"]}
+    onSelect={() => {}}
+  />
+</Preview>
+
+```tsx
+const natures = [
+  { value: "pjl", label: "PJL" },
+  { value: "ppl", label: "PPL" },
+  { value: "commission", label: "Commission au fond" },
+  { value: "seance", label: "Séance publique" },
+];
+
+<Pills
+  label="Filtres"
+  items={natures}
+  active={["pjl", "commission"]}
+  onSelect={() => {}}
+/>
+```

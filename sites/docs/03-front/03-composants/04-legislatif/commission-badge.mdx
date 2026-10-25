@@ -1,0 +1,39 @@
+---
+title: CommissionBadge
+sidebar_label: "CommissionBadge"
+sidebar_icon: landmark
+---
+
+import { CommissionBadge } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { CommissionBadge } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <CommissionBadge label="Affaires économiques" />
+</Preview>
+
+```tsx
+<CommissionBadge label="Affaires économiques" />
+```
+
+## Avec une échéance
+
+<Preview>
+  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+    <CommissionBadge label="Commission au fond" deadline={1} />
+    <CommissionBadge label="Commission au fond" deadline={0} />
+    <CommissionBadge label="Commission au fond" deadline={-2} />
+  </div>
+</Preview>
+
+```tsx
+<CommissionBadge label="Commission au fond" deadline={1} />
+<CommissionBadge label="Commission au fond" deadline={0} />
+<CommissionBadge label="Commission au fond" deadline={-2} />
+```

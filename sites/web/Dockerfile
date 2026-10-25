@@ -5,6 +5,8 @@
 FROM node:22-slim AS build
 WORKDIR /repo
 RUN corepack enable
+# Pas de hooks git dans l'image (ni dépôt git ni binaire `git`) : lefthook les ignore si CI est défini.
+ENV CI=true
 ENV NEXT_TELEMETRY_DISABLED=1
 # URL publique (balises de partage, metadataBase). Fournie par Coolify au build.
 ARG SITE_URL

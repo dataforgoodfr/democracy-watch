@@ -1,0 +1,81 @@
+---
+title: Composants
+sidebar_label: "Vue d'ensemble"
+sidebar_icon: layout-grid
+---
+
+Les composants s'importent depuis `@democracy-watch/ui` (et `@democracy-watch/brand` pour la marque). Ils s'appuient sur Mantine et sur les tokens `--dw-*`, et ne dépendent pas de Next.js.
+
+## Fondations
+
+<FeatureGrid>
+  <FeatureCard title="Badge" description="@democracy-watch/ui" href="/front/composants/fondations/badge" />
+  <FeatureCard title="Card" description="@democracy-watch/ui" href="/front/composants/fondations/card" />
+  <FeatureCard title="EmptyState" description="@democracy-watch/ui" href="/front/composants/fondations/empty-state" />
+  <FeatureCard title="Highlight" description="@democracy-watch/ui" href="/front/composants/fondations/highlight" />
+  <FeatureCard title="Link" description="@democracy-watch/ui" href="/front/composants/fondations/link" />
+  <FeatureCard title="LoadingState" description="@democracy-watch/ui" href="/front/composants/fondations/loading-state" />
+  <FeatureCard title="ErrorState" description="@democracy-watch/ui" href="/front/composants/fondations/error-state" />
+</FeatureGrid>
+
+⏳ Prévus : `Toast`, `Modal`, `Drawer`.
+
+## Mise en page
+
+<FeatureGrid>
+  <FeatureCard title="AppShell" description="@democracy-watch/ui" href="/front/composants/mise-en-page/app-shell" />
+  <FeatureCard title="GlobalSearch" description="@democracy-watch/ui" href="/front/composants/mise-en-page/global-search" />
+  <FeatureCard title="PageHeader" description="@democracy-watch/ui" href="/front/composants/mise-en-page/page-header" />
+  <FeatureCard title="Breadcrumb" description="@democracy-watch/ui" href="/front/composants/mise-en-page/breadcrumb" />
+  <FeatureCard title="SectionHeader" description="@democracy-watch/ui" href="/front/composants/mise-en-page/section-header" />
+</FeatureGrid>
+
+⏳ Prévus : `MobileNavigation`, `AccountMenu`, `NotificationButton`.
+
+## Filtres
+
+<FeatureGrid>
+  <FeatureCard title="FilterPanel" description="@democracy-watch/ui" href="/front/composants/filtres/filter-panel" />
+  <FeatureCard title="Pills" description="@democracy-watch/ui" href="/front/composants/filtres/pills" />
+  <FeatureCard title="ViewSwitcher" description="@democracy-watch/ui" href="/front/composants/filtres/view-switcher" />
+</FeatureGrid>
+
+⏳ Prévus : `MobileFilterDrawer`, `SortMenu`, `DateRangeFilter`.
+
+## Législatif
+
+<FeatureGrid>
+  <FeatureCard title="TextTypeBadge" description="@democracy-watch/ui" href="/front/composants/legislatif/text-type-badge" />
+  <FeatureCard title="CommissionBadge" description="@democracy-watch/ui" href="/front/composants/legislatif/commission-badge" />
+  <FeatureCard title="AmendmentStatusBadge" description="@democracy-watch/ui" href="/front/composants/legislatif/amendment-status-badge" />
+  <FeatureCard title="StudyBadge" description="@democracy-watch/ui" href="/front/composants/legislatif/study-badge" />
+  <FeatureCard title="SourceBadge" description="@democracy-watch/ui" href="/front/composants/legislatif/source-badge" />
+  <FeatureCard title="GroupDot" description="@democracy-watch/ui" href="/front/composants/legislatif/group-dot" />
+  <FeatureCard title="AuthorLine" description="@democracy-watch/ui" href="/front/composants/legislatif/author-line" />
+  <FeatureCard title="LegalQuote" description="@democracy-watch/ui" href="/front/composants/legislatif/legal-quote" />
+  <FeatureCard title="LegislativeTextCard" description="@democracy-watch/ui" href="/front/composants/legislatif/legislative-text-card" />
+  <FeatureCard title="ArticleRow" description="@democracy-watch/ui" href="/front/composants/legislatif/article-row" />
+  <FeatureCard title="AmendmentRow" description="@democracy-watch/ui" href="/front/composants/legislatif/amendment-row" />
+  <FeatureCard title="AmendmentCard" description="@democracy-watch/ui" href="/front/composants/legislatif/amendment-card" />
+  <FeatureCard title="StageColumn" description="@democracy-watch/ui" href="/front/composants/legislatif/stage-column" />
+  <FeatureCard title="Legend" description="@democracy-watch/ui" href="/front/composants/legislatif/legend" />
+  <FeatureCard title="TextsTable" description="@democracy-watch/ui" href="/front/composants/legislatif/texts-table" />
+</FeatureGrid>
+
+⏳ Prévus : `ProvenanceLabel`, `ConfidenceIndicator`, `OfficialSourceLink`.
+
+⏳ Prévus : `LegislativeTimeline`, `ArticleSummaryNavigation`, `BeforeAfterComparison`.
+
+## Marque
+
+<FeatureGrid>
+  <FeatureCard title="Logo" description="@democracy-watch/brand" href="/front/composants/marque/logo" />
+  <FeatureCard title="Picto" description="@democracy-watch/brand" href="/front/composants/marque/picto" />
+</FeatureGrid>
+
+## Ajouter un composant
+
+1. Créer le fichier dans le bon dossier de `packages/ui/src` (`core`, `layout`, `filters`, `legislative`) avec son `*.module.css`, qui n'utilise que des `var(--dw-…)`.
+2. L'exporter dans `packages/ui/src/index.ts`.
+3. Le tester dans `packages/ui/src/components.test.tsx`.
+4. Lui créer une page dans le dossier de sa famille (`03-front/03-composants/<famille>/<nom>.mdx`), sur le modèle de [Badge](/front/composants/fondations/badge) : Import, Utilisation de base, variantes « Avec … », chacune avec un aperçu `<Preview>` et le code. Le frontmatter porte `sidebar_label` et `sidebar_icon` ; le menu se met à jour au prochain `dev` ou `build`.

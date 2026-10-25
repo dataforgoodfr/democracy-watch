@@ -1,0 +1,61 @@
+---
+title: Observabilité (OpenObserve)
+description: Logs, métriques et traces de l'API et du site dans OpenObserve auto-hébergé, via OpenTelemetry — contexte, proposition et tickets.
+sidebar_label: "Contexte et proposition"
+sidebar_icon: telescope
+---
+
+:::info{title="Proposition"}
+Rien n'est encore décidé ni déployé. Épique **E10**, tickets DW-60 → DW-66, sur le
+[Kanban Données, API et ops](/roadmap/donnees-api-ops). DW-60 et DW-61 sont utiles dès la mise en ligne de l'API.
+:::
+
+## Contexte
+
+Une fois l'API et le site en ligne, il faut **savoir quand ça casse et pourquoi** : une erreur 500
+de l'API, une recherche Meilisearch lente, une synchronisation des données qui échoue la nuit.
+Aujourd'hui, l'API écrit ses logs sur la sortie standard (`server/democracy_watch/log.py`), lisibles
+seulement dans Coolify, sans recherche, historique ni alerte.
+
+## Proposition : OpenObserve + OpenTelemetry
+
+[OpenObserve](https://github.com/openobserve/openobserve) stocke **logs, métriques et traces dans
+un seul service** (un binaire, stockage disque ou S3), avec tableaux de bord et alertes intégrés.
+On instrumente avec **OpenTelemetry**, le standard ouvert : changer de backend plus tard ne touche pas au code.
+
+| Option | Pour | Contre |
+| --- | --- | --- |
+| **OpenObserve** (proposé) | Un seul service pour tout, léger, alertes incluses | Moins répandu que Grafana |
+| Grafana + Prometheus + Loki + Tempo | Standard de fait | Quatre services à exploiter pour une petite équipe |
+| Logs Coolify seuls | Rien à faire | Ni recherche, ni historique, ni alerte |
+
+## Architecture
+
+```text
+server/ (FastAPI)  ── OpenTelemetry Python : traces, logs JSON, métriques ──┐
+sites/web (Next.js) ── instrumentation.ts (OpenTelemetry Node, côté serveur) ┼──► OpenObserve (Coolify)
+job de synchronisation PG → Meilisearch ── durée, volumes, échecs ───────────┘        │
+                                                                    tableaux de bord + alertes
+```
+
+- Envoi **direct en OTLP** vers OpenObserve ; un OpenTelemetry Collector ne sera ajouté que si un besoin le justifie (échantillonnage, plusieurs destinations).
+- Chaque requête porte un **identifiant de corrélation** présent dans les logs et les traces.
+- **Aucune donnée personnelle dans la télémétrie** : pas d'e-mail, de jeton ni de corps de requête ; les identifiants de traces ne servent jamais à identifier un utilisateur.
+- Séparation par environnement (`staging`, `production`) et rétention courte (proposition : 30 jours).
+
+## Signaux et alertes proposés
+
+| Tableau de bord | Signaux | Alerte |
+| --- | --- | --- |
+| API | requêtes/s, taux d'erreur, latence p50/p95, endpoints lents | erreurs 5xx > 2 % sur 5 min |
+| Recherche | latence Meilisearch, recherches sans résultat | p95 > 1 s |
+| Synchronisation | dernière exécution, durée, documents indexés, échecs | aucune synchro réussie depuis 24 h |
+| Infrastructure | CPU, mémoire, disque des services | disque > 85 % |
+
+Seuls les signaux réellement collectés ont un panneau : on n'affiche pas de graphique vide.
+
+## Points ouverts
+
+- Qui reçoit les alertes, et par quel canal (e-mail, Mattermost/Slack Data for Good) ?
+- Erreurs navigateur (RUM) : utiles, mais à cadrer côté vie privée ([DW-63](/roadmap/observability/dw-63)).
+- Stockage : disque du serveur Coolify ou S3 compatible ?

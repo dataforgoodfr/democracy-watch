@@ -1,0 +1,73 @@
+---
+title: Analytics (Rybbit)
+description: Mesurer l'usage de Democracy Watch avec Rybbit auto-hébergé, sans cookie ni service tiers — contexte, proposition et tickets.
+sidebar_label: "Contexte et proposition"
+sidebar_icon: compass
+---
+
+:::info{title="Proposition"}
+Rien n'est encore décidé ni déployé. Épique **E9**, tickets DW-50 → DW-56, sur le
+[Kanban Données, API et ops](/roadmap/donnees-api-ops). À faire **après la V0**.
+:::
+
+## Contexte
+
+Après la V0, on doit savoir **si les associations utilisent vraiment le service** : quels textes
+elles suivent, si elles ouvrent le Kanban, si elles reviennent. Aujourd'hui, on ne mesure rien.
+
+Contraintes :
+
+- **pas de service tiers ni de cookie publicitaire** : tout est auto-hébergé sur Coolify, comme le reste ;
+- **aucune donnée personnelle** : pas d'e-mail, pas d'identifiant de compte, pas de contenu saisi ;
+- **sobre à exploiter** : une petite équipe bénévole doit pouvoir le maintenir.
+
+## Proposition : Rybbit
+
+[Rybbit](https://github.com/rybbit-io/rybbit) est un outil d'audience open source, sans cookie,
+avec pages vues, événements personnalisés, entonnoirs et rétention.
+
+| Outil | Pour | Contre |
+| --- | --- | --- |
+| **Rybbit** (proposé) | Sans cookie, événements et entonnoirs inclus, interface simple | Plus jeune, nécessite ClickHouse + PostgreSQL |
+| Umami | Très léger (PostgreSQL seul), mûr | Entonnoirs et rétention plus limités |
+| Matomo | Référence du secteur public, fonctionnalités complètes | Lourd (PHP + MariaDB), plus long à exploiter |
+
+Une seule solution est retenue : on ne fait pas tourner trois outils d'audience en parallèle.
+Le choix est validé dans [DW-50](/roadmap/analytics/dw-50) ; si Rybbit est écarté, seul
+l'adaptateur de `packages/analytics` change.
+
+## Architecture
+
+```text
+sites/web (Next.js)
+   ├── layout : script Rybbit (pages vues, navigation App Router)
+   └── écrans → packages/analytics : track("texte_suivi", { … })   // catalogue typé
+                       │  (no-op en DEV_FRONT et dans les tests)
+                       ▼
+            Rybbit (Coolify) : ClickHouse + PostgreSQL
+                       ▼
+            Tableaux de bord produit (adoption, entonnoir, rétention)
+```
+
+- `packages/analytics` expose **un catalogue d'événements typé** : un nom d'événement inconnu ou
+  une propriété en trop ne compile pas. Les écrans n'appellent jamais Rybbit directement.
+- Pas de `next/*` dans le package : le script est posé par le layout de `sites/web`.
+- Mesure d'audience et observabilité restent **séparées** : voir [Observabilité](/roadmap/observability).
+
+## Événements V1 proposés
+
+| Événement | Propriétés | Question à laquelle il répond |
+| --- | --- | --- |
+| `texte_suivi` / `texte_plus_suivi` | `texteId` | Quels textes intéressent les associations ? |
+| `recherche` | `nbResultats` (jamais la saisie) | La recherche trouve-t-elle quelque chose ? |
+| `kanban_filtre` | `filtre` (nom, pas la valeur libre) | Quels filtres servent vraiment ? |
+| `amendement_ouvert` | `amendementId`, `depuis` | Le Kanban mène-t-il au détail ? |
+| `connexion` | — | Combien d'utilisateurs reviennent ? |
+
+Les identifiants de textes et d'amendements sont publics (données parlementaires).
+
+## Points ouverts
+
+- Cadre CNIL : l'exemption de consentement pour la mesure d'audience est-elle applicable telle quelle ? ([DW-50](/roadmap/analytics/dw-50))
+- Qui consulte les tableaux de bord, et à quel rythme ?
+- Durée de conservation des données (proposition : 13 mois).

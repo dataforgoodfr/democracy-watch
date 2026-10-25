@@ -5,8 +5,11 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Providers } from "./providers.tsx";
 
+/** URL publique (images de partage, liens absolus). */
+const siteUrl = () => process.env.SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   title: { default: "Democracy Watch", template: "%s · Democracy Watch" },
   description: "Veille législative pour les associations, ONG et équipes de plaidoyer.",
   icons: {

@@ -1,0 +1,43 @@
+---
+title: AuthorLine
+sidebar_label: "AuthorLine"
+sidebar_icon: user
+---
+
+import { AuthorLine } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { AuthorLine } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <AuthorLine amendment={{ author: { name: "M. Faure", group: "DEM" }, cosignatories: 0 }} />
+</Preview>
+
+```tsx
+<AuthorLine amendment={{ author: { name: "M. Faure", group: "DEM" }, cosignatories: 0 }} />
+```
+
+## Avec des cosignataires
+
+<Preview>
+  <AuthorLine amendment={{ author: { name: "M. Garnier", group: "RN" }, cosignatories: 3 }} />
+</Preview>
+
+```tsx
+<AuthorLine amendment={{ author: { name: "M. Garnier", group: "RN" }, cosignatories: 3 }} />
+```
+
+## Avec un seul cosignataire
+
+<Preview>
+  <AuthorLine amendment={{ author: { name: "Mme Lucas", group: "SOC" }, cosignatories: 1 }} />
+</Preview>
+
+```tsx
+<AuthorLine amendment={{ author: { name: "Mme Lucas", group: "SOC" }, cosignatories: 1 }} />
+```

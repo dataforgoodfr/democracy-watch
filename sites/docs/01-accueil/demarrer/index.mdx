@@ -1,0 +1,66 @@
+---
+title: Installation
+description: Installer le dépôt et lancer l'application, la documentation et les tests.
+sidebar_label: "Installation"
+sidebar_icon: terminal
+---
+
+## Prérequis
+
+- **Node.js 22** (voir `.nvmrc`) et **pnpm** (`corepack enable`).
+- **uv** pour la partie Python (`server/`), si vous y touchez.
+
+## Installer et lancer
+
+```bash
+git clone git@github.com:dataforgoodfr/democracy-watch.git
+cd democracy-watch
+pnpm install          # installe aussi les hooks git (lefthook)
+
+pnpm dev              # application → http://localhost:3000
+pnpm dev:docs         # documentation → http://localhost:3002
+```
+
+En développement, l'application tourne en mode **DEV_FRONT** : données fictives reprises des
+maquettes, aucune API ni base nécessaire. Connectez-vous avec n'importe quel e-mail (session de
+démonstration), puis ajoutez des textes à suivre.
+
+Pour brancher l'API locale :
+
+```bash
+cd server && uv sync && uv run --env-file .env uvicorn democracy_watch.api.main:app --port 8000
+NEXT_PUBLIC_API_MODE=API NEXT_PUBLIC_API_URL=http://localhost:8000 pnpm dev
+```
+
+## Commandes du quotidien
+
+| Tâche | Commande |
+| --- | --- |
+| Lint et format (Biome) | `pnpm check` · corriger : `pnpm fix` |
+| Types | `pnpm typecheck` |
+| Tests unitaires et composants (Vitest) | `pnpm test` |
+| Construire l'app et la doc | `pnpm build` |
+| Tests de bout en bout (Playwright, après `pnpm build`) | `pnpm test:e2e` |
+| Régénérer logos, favicons, image OG | `pnpm brand` |
+| API Python et ses tests | `cd server && uv run pytest` |
+| Régénérer `tokens.css` après un changement de token | `pnpm --filter @democracy-watch/theme generate` |
+
+## Organisation du dépôt
+
+```text
+democracy-watch/
+├── packages/          # tout le code front, en packages
+│   ├── theme/         # tokens du styleguide (--dw-*) + thème Mantine
+│   ├── brand/         # pictogramme, logo, favicons, image OG
+│   ├── data/          # modèle du domaine, données fictives, requêtes pures
+│   ├── api/           # hooks TanStack Query, client de l'API, mode mock (DEV_FRONT)
+│   ├── state/         # état du navigateur (Zustand) : textes suivis, session
+│   ├── ui/            # composants (génériques et législatifs)
+│   └── screens/       # écrans : une vue par page
+├── sites/
+│   ├── web/           # application Next.js — ne fait que du routage
+│   └── docs/          # cette documentation (Zudoku)
+├── server/            # Python : API FastAPI, base Postgres
+├── e2e/               # tests Playwright
+└── d4g-utils/         # outils Data for Good (synchronisés, ne pas déplacer)
+```

@@ -20,19 +20,18 @@ pnpm dev:docs     # documentation → http://localhost:3002
 pnpm test         # tests
 ```
 
-Toute la documentation (produit, installation, design system, architecture, API, roadmap et
-issues à venir) est dans [`sites/docs`](sites/docs) — lancez `pnpm dev:docs`.
+Toute la documentation (produit, front, serveur, données, roadmap et tickets) est dans
+[`sites/docs`](sites/docs) — lancez `pnpm dev:docs`.
 
 ## Le dépôt
 
-| Dossier                        | Contenu                                                                |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| [`packages/`](packages)        | le code front, en packages : `theme`, `brand`, `data`, `ui`, `screens` |
-| [`sites/web`](sites/web)       | l'application Next.js (uniquement du routage)                          |
-| [`sites/docs`](sites/docs)     | la documentation (Zudoku)                                              |
-| [`server/`](server)            | Python : base Postgres, scripts de données                             |
-| [`e2e/`](e2e)                  | tests de bout en bout (Playwright)                                     |
-| [`PLAN-TODO.md`](PLAN-TODO.md) | la roadmap, découpée en tickets                                        |
+| Dossier                    | Contenu                                                                                 |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| [`packages/`](packages)    | le code front, en packages : `theme`, `brand`, `data`, `api`, `state`, `ui`, `screens` |
+| [`sites/web`](sites/web)   | l'application Next.js (uniquement du routage)                                           |
+| [`sites/docs`](sites/docs) | la documentation (Zudoku), dont la roadmap et les tickets                               |
+| [`server/`](server)        | Python : API FastAPI, accès à la base Postgres (copie du dump CLAIR)                    |
+| [`e2e/`](e2e)              | tests de bout en bout (Playwright)                                                      |
 
 ## Contribuer
 

@@ -1,0 +1,56 @@
+---
+title: Principes et règles
+description: D'où viennent les valeurs visuelles, comment elles sont appliquées, et comment les écarts des maquettes ont été tranchés.
+sidebar_label: "Principes et règles"
+sidebar_icon: list-checks
+---
+
+## Une seule source de vérité
+
+Le styleguide Figma (« Styleguide V1 — Fondations ») est traduit **une fois** en tokens dans
+[`packages/theme/src/tokens.ts`](https://github.com/dataforgoodfr/democracy-watch/blob/main/packages/theme/src/tokens.ts).
+Tout le reste en dérive :
+
+<Mermaid
+  chart={`flowchart LR
+  FIG["Figma<br/>Styleguide V1"] --> TOK["packages/theme<br/>tokens.ts"]
+  TOK -->|pnpm generate| CSS["tokens.css<br/>variables --dw-*"]
+  TOK --> MAN["thème Mantine"]
+  TOK --> DOC["cette documentation<br/>(nuanciers, thème Zudoku)"]
+  TOK --> BR["packages/brand<br/>logo, favicons, OG"]
+  CSS --> UI["composants<br/>packages/ui"]
+  MAN --> UI`}
+/>
+
+- En code, on utilise les **tokens sémantiques** (`var(--dw-fond-action)`), jamais un hex.
+- Un test vérifie que `tokens.css` est à jour et que les contrastes annoncés sont respectés.
+- La base est le **DSFR** (structure, neutres, statuts, focus), aux couleurs de marque de
+  Democracy Watch.
+- La librairie de composants est **Mantine**, thémée par ces tokens.
+
+## Règles de standardisation
+
+Les wireframes ont été dessinés avant le styleguide. **Le styleguide fait foi** ; voici chaque
+écart et la règle appliquée dans le code et dans cette doc :
+
+<StandardizationTable />
+
+<Captures
+  items={[
+    { src: "/maquettes/styleguide-fondations.png", caption: "Styleguide V1 — Fondations (Figma)" },
+    { src: "/maquettes/v0-5-article-avancement.png", caption: "Wireframe « V0 · 5 » (avant standardisation)" },
+    { src: "/captures/article.png", caption: "Le même écran dans l'application (après standardisation)" },
+  ]}
+/>
+
+## Règles d'usage
+
+- **Couleur d'alerte avec parcimonie** : elle signale une information réellement actionnable
+  (échéance proche, amendement menaçant).
+- **Jamais la couleur seule** : toujours un libellé, une icône ou une forme (badges en toutes
+  lettres, sigle à côté de chaque pastille de groupe).
+- **Peu d'ombres** : on sépare par des bordures ; l'ombre est réservée à ce qui passe au-dessus
+  du contenu (menus, modales).
+- **Focus clavier DSFR** (`2px solid #0A76F6`, décalage 2 px) : jamais supprimé, jamais modifié.
+- **Provenance explicite** : « texte exact », « reconstitué automatiquement », « à vérifier »,
+  « lien certain », « lien probable ».

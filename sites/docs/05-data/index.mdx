@@ -1,0 +1,36 @@
+---
+title: Données
+description: Pour la V0, les données de Democracy Watch sont une copie du dump CLAIR ; son schéma est documenté sur docs.clair.vote.
+sidebar_label: "Vue d'ensemble"
+sidebar_icon: database
+---
+
+:::info{title="V0 : une copie du dump CLAIR"}
+Pour la V0, Democracy Watch ne collecte pas ses propres données : la base Postgres est une
+**copie du dump [CLAIR](https://clair.vote)**. Le schéma, les tables et leur provenance sont
+documentés sur **[docs.clair.vote](https://docs.clair.vote)**.
+:::
+
+## Ce que contient le dump
+
+Dossiers législatifs, textes, articles, amendements, parlementaires, groupes et scrutins de la
+XVIIe législature (Assemblée nationale). Le détail des tables et des colonnes est sur
+[docs.clair.vote](https://docs.clair.vote) : c'est la référence, on ne le recopie pas ici.
+
+## Comment Democracy Watch l'utilise
+
+```text
+dump CLAIR ──copie──► Postgres (Coolify) ──synchro──► Meilisearch
+                          │                             │
+                          └──── fiches ──► API FastAPI ◄── recherche
+```
+
+- **Postgres** : copie du dump, en lecture seule par défaut (`server/democracy_watch/db.py`).
+- **Meilisearch** : index de recherche alimentés depuis Postgres.
+- **API** : lit les deux et sert le front — voir [Serveur › API](/serveur/api).
+
+## Après la V0
+
+Les besoins propres à Democracy Watch (historique des sorts, liens probables entre amendements
+redéposés, alertes) seront documentés ici au fur et à mesure. Les tickets correspondants sont dans
+l'épique [E7 · Données et API](/roadmap/donnees-api-ops).

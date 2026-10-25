@@ -1,0 +1,41 @@
+---
+title: ErrorState
+sidebar_label: "ErrorState"
+sidebar_icon: triangle-alert
+---
+
+import { ErrorState } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { ErrorState } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <ErrorState />
+</Preview>
+
+```tsx
+<ErrorState />
+```
+
+## Avec « Réessayer »
+
+<Preview>
+  <ErrorState
+    title="Recherche indisponible"
+    message="Le moteur de recherche n'a pas répondu."
+    onRetry={() => {}}
+  />
+</Preview>
+
+```tsx
+<ErrorState
+  title="Recherche indisponible"
+  message="Le moteur de recherche n'a pas répondu."
+  onRetry={() => {}}
+/>
+```

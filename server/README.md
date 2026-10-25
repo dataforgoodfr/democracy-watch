@@ -1,7 +1,7 @@
 # server — Python
 
-Scripts et services Python de Democracy Watch : accès à la base Postgres (copie du dump CLAIR),
-logging, futurs traitements de données.
+Python de Democracy Watch : API FastAPI (`democracy_watch/api`), accès à la base Postgres (copie du
+dump CLAIR, schéma sur [docs.clair.vote](https://docs.clair.vote)), logging.
 
 ## Installation
 
@@ -26,6 +26,8 @@ with connect() as conn:  # lecture seule par défaut ; connect(read_only=False) 
     log.info("%s amendements", count)
 ```
 
+Lancer l'API : `uv run --env-file .env uvicorn democracy_watch.api.main:app --reload --port 8000`
+(détails dans la doc, « Serveur › API »).
 Lancer un script avec les variables du `.env` : `uv run --env-file .env python -m …`.
 Niveau de log : `DW_LOG_LEVEL` (INFO par défaut).
 

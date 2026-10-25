@@ -3,8 +3,10 @@ import type { ZudokuConfig } from "zudoku";
 import {
   Captures,
   ColorSwatches,
+  Epics,
   FeatureCard,
   FeatureGrid,
+  Kanban,
   Mermaid,
   Preview,
   RadiusScale,
@@ -98,8 +100,10 @@ const config: ZudokuConfig = {
     components: {
       Captures,
       ColorSwatches,
+      Epics,
       FeatureCard,
       FeatureGrid,
+      Kanban,
       Mermaid,
       Preview,
       RadiusScale,

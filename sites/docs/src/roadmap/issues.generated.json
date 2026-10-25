@@ -1,0 +1,771 @@
+[
+  {
+    "id": "DW-01",
+    "title": "Labels, milestones et GitHub Project (cette roadmap)",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-01"
+  },
+  {
+    "id": "DW-02",
+    "title": "Trancher la RFC méthode de travail (cycles, comités)",
+    "epic": "E1",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "path": "/roadmap/issues/e1-produit-et-design/dw-02"
+  },
+  {
+    "id": "DW-03",
+    "title": "Choisir le logo parmi les 16 propositions",
+    "epic": "E1",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "github": 5,
+    "path": "/roadmap/issues/e1-produit-et-design/dw-03"
+  },
+  {
+    "id": "DW-04",
+    "title": "Valider les couleurs de groupes « proposition »",
+    "epic": "E1",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "github": 5,
+    "path": "/roadmap/issues/e1-produit-et-design/dw-04"
+  },
+  {
+    "id": "DW-05",
+    "title": "Reporter la nouvelle itération des maquettes",
+    "epic": "E1",
+    "status": "In Progress",
+    "size": "M",
+    "v0": true,
+    "github": 6,
+    "path": "/roadmap/issues/e1-produit-et-design/dw-05"
+  },
+  {
+    "id": "DW-06",
+    "title": "Projet Coolify et accès",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "dependsOn": [
+      "#23"
+    ],
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-06"
+  },
+  {
+    "id": "DW-07",
+    "title": "Déployer l'application et la doc (docker-compose)",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "dependsOn": [
+      "DW-06"
+    ],
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-07"
+  },
+  {
+    "id": "DW-08",
+    "title": "Domaines, SITE_URL, favicons et image de partage",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "dependsOn": [
+      "DW-07"
+    ],
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-08"
+  },
+  {
+    "id": "DW-09",
+    "title": "Protéger main : CI obligatoire, revue requise",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-09"
+  },
+  {
+    "id": "DW-10",
+    "title": "Documenter les index Meilisearch réels",
+    "epic": "E7",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "github": 26,
+    "dependsOn": [
+      "DW-12"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-10"
+  },
+  {
+    "id": "DW-11",
+    "title": "Image Docker de l'API, service dans docker-compose",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 26,
+    "dependsOn": [
+      "DW-06"
+    ],
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-11"
+  },
+  {
+    "id": "DW-12",
+    "title": "Script Postgres → Meilisearch, index alimentés",
+    "epic": "E7",
+    "status": "In Progress",
+    "size": "M",
+    "v0": true,
+    "github": 21,
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-12"
+  },
+  {
+    "id": "DW-13",
+    "title": "GET /api/dossiers?etat=en_cours (catalogue)",
+    "epic": "E7",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 26,
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-13"
+  },
+  {
+    "id": "DW-14",
+    "title": "GET /api/commissions",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "S",
+    "github": 26,
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-14"
+  },
+  {
+    "id": "DW-15",
+    "title": "Exposer l'étape d'examen des amendements",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "M",
+    "github": 26,
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-15"
+  },
+  {
+    "id": "DW-16",
+    "title": "Préproduction en mode API",
+    "epic": "E7",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "github": 26,
+    "dependsOn": [
+      "DW-07",
+      "DW-11",
+      "DW-12"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-16"
+  },
+  {
+    "id": "DW-17",
+    "title": "Tests d'intégration de l'API sur une base de test",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "M",
+    "github": 26,
+    "dependsOn": [
+      "DW-11"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-17"
+  },
+  {
+    "id": "DW-18",
+    "title": "Kanban : filtres Type, Groupe et Tri (maquette V0·5)",
+    "epic": "E3",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 15,
+    "path": "/roadmap/issues/e3-kanban-des-amendements/dw-18"
+  },
+  {
+    "id": "DW-19",
+    "title": "Vue « groupe parlementaire » : synthèse des sorts",
+    "epic": "E3",
+    "status": "Backlog",
+    "size": "M",
+    "github": 15,
+    "path": "/roadmap/issues/e3-kanban-des-amendements/dw-19"
+  },
+  {
+    "id": "DW-20",
+    "title": "« Je choisis » : suivre seulement certains articles",
+    "epic": "E2",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 14,
+    "path": "/roadmap/issues/e2-suivre-des-textes/dw-20"
+  },
+  {
+    "id": "DW-21",
+    "title": "Mobile : colonnes empilées, filtres dans un tiroir",
+    "epic": "E3",
+    "status": "Backlog",
+    "size": "L",
+    "github": 15,
+    "path": "/roadmap/issues/e3-kanban-des-amendements/dw-21"
+  },
+  {
+    "id": "DW-22",
+    "title": "Fiche amendement : dispositif exact, auteurs, motif, source",
+    "epic": "E4",
+    "status": "Not Started",
+    "size": "L",
+    "v0": true,
+    "github": 16,
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/dw-22"
+  },
+  {
+    "id": "DW-23",
+    "title": "Frise du parcours d'un amendement",
+    "epic": "E4",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 16,
+    "dependsOn": [
+      "DW-22"
+    ],
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/dw-23"
+  },
+  {
+    "id": "DW-24",
+    "title": "Arbre amendement parent → sous-amendements",
+    "epic": "E4",
+    "status": "Backlog",
+    "size": "M",
+    "github": 16,
+    "dependsOn": [
+      "DW-22"
+    ],
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/dw-24"
+  },
+  {
+    "id": "DW-25",
+    "title": "Amendements similaires (≥ 85 %) calculés côté serveur",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "#22"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-25"
+  },
+  {
+    "id": "DW-26",
+    "title": "Rapprochement commission → séance (lien probable)",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-25"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-26"
+  },
+  {
+    "id": "DW-27",
+    "title": "Libellés de provenance (exact, reconstitué, probable…)",
+    "epic": "E4",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "github": 16,
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/dw-27"
+  },
+  {
+    "id": "DW-28",
+    "title": "Notions métier en info-bulles",
+    "epic": "E4",
+    "status": "Backlog",
+    "size": "S",
+    "github": 16,
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/dw-28"
+  },
+  {
+    "id": "DW-29",
+    "title": "« Nouveau depuis votre dernière visite »",
+    "epic": "E5",
+    "status": "Backlog",
+    "size": "M",
+    "github": 13,
+    "path": "/roadmap/issues/e5-etre-prevenu/dw-29"
+  },
+  {
+    "id": "DW-30",
+    "title": "Délai de dépôt (3e jour ouvrable, 17 h) calculé",
+    "epic": "E5",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-15"
+    ],
+    "path": "/roadmap/issues/e5-etre-prevenu/dw-30"
+  },
+  {
+    "id": "DW-31",
+    "title": "Alertes dans l'application",
+    "epic": "E5",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-29"
+    ],
+    "path": "/roadmap/issues/e5-etre-prevenu/dw-31"
+  },
+  {
+    "id": "DW-32",
+    "title": "Alertes par e-mail",
+    "epic": "E5",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-33"
+    ],
+    "path": "/roadmap/issues/e5-etre-prevenu/dw-32"
+  },
+  {
+    "id": "DW-33",
+    "title": "Authentification : lien magique et mot de passe",
+    "epic": "E6",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-11"
+    ],
+    "path": "/roadmap/issues/e6-comptes-et-ouverture/dw-33"
+  },
+  {
+    "id": "DW-34",
+    "title": "Organisations : membres, invitations",
+    "epic": "E6",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-33"
+    ],
+    "path": "/roadmap/issues/e6-comptes-et-ouverture/dw-34"
+  },
+  {
+    "id": "DW-35",
+    "title": "Transférer les textes suivis vers le compte",
+    "epic": "E6",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-33"
+    ],
+    "path": "/roadmap/issues/e6-comptes-et-ouverture/dw-35"
+  },
+  {
+    "id": "DW-36",
+    "title": "Inscription en étapes",
+    "epic": "E6",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-34"
+    ],
+    "path": "/roadmap/issues/e6-comptes-et-ouverture/dw-36"
+  },
+  {
+    "id": "DW-37",
+    "title": "Fiche texte : frise législative, commissions, lien AN",
+    "epic": "E2",
+    "status": "Backlog",
+    "size": "M",
+    "github": 14,
+    "path": "/roadmap/issues/e2-suivre-des-textes/dw-37"
+  },
+  {
+    "id": "DW-38",
+    "title": "Accueil : activité récente, articles menacés",
+    "epic": "E5",
+    "status": "Backlog",
+    "size": "M",
+    "github": 13,
+    "dependsOn": [
+      "DW-29"
+    ],
+    "path": "/roadmap/issues/e5-etre-prevenu/dw-38"
+  },
+  {
+    "id": "DW-39",
+    "title": "Landing publique (sans compte)",
+    "epic": "E6",
+    "status": "Backlog",
+    "size": "L",
+    "path": "/roadmap/issues/e6-comptes-et-ouverture/dw-39"
+  },
+  {
+    "id": "DW-40",
+    "title": "Recette accessibilité RGAA",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "M",
+    "v0": true,
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-40"
+  },
+  {
+    "id": "DW-41",
+    "title": "Tests e2e en mode API (contrat front ↔ API)",
+    "epic": "E8",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-16"
+    ],
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-41"
+  },
+  {
+    "id": "DW-42",
+    "title": "Couverture du Sénat (navette)",
+    "epic": "E7",
+    "status": "Backlog",
+    "size": "L",
+    "dependsOn": [
+      "DW-15"
+    ],
+    "path": "/roadmap/issues/e7-donnees-et-api/dw-42"
+  },
+  {
+    "id": "DW-43",
+    "title": "Décider de l'hébergement du front",
+    "epic": "E8",
+    "status": "Not Started",
+    "size": "S",
+    "v0": true,
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/dw-43"
+  },
+  {
+    "id": "DW-50",
+    "title": "Choisir l'outil d'audience et valider le cadre CNIL",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "S",
+    "path": "/roadmap/analytics/dw-50"
+  },
+  {
+    "id": "DW-51",
+    "title": "Déployer Rybbit sur Coolify",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-06",
+      "DW-50"
+    ],
+    "path": "/roadmap/analytics/dw-51"
+  },
+  {
+    "id": "DW-52",
+    "title": "Package analytics : catalogue d'événements typé",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-50"
+    ],
+    "path": "/roadmap/analytics/dw-52"
+  },
+  {
+    "id": "DW-53",
+    "title": "Mesurer les pages vues du site",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-51",
+      "DW-52"
+    ],
+    "path": "/roadmap/analytics/dw-53"
+  },
+  {
+    "id": "DW-54",
+    "title": "Événements métier V1",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-52",
+      "DW-53"
+    ],
+    "path": "/roadmap/analytics/dw-54"
+  },
+  {
+    "id": "DW-55",
+    "title": "Tableaux de bord produit",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-54"
+    ],
+    "path": "/roadmap/analytics/dw-55"
+  },
+  {
+    "id": "DW-56",
+    "title": "Page « Mesure d'audience » et droit d'opposition",
+    "epic": "E9",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-50",
+      "DW-53"
+    ],
+    "path": "/roadmap/analytics/dw-56"
+  },
+  {
+    "id": "DW-60",
+    "title": "Déployer OpenObserve sur Coolify",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-06"
+    ],
+    "path": "/roadmap/observability/dw-60"
+  },
+  {
+    "id": "DW-61",
+    "title": "Instrumenter l'API FastAPI (OpenTelemetry)",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-60",
+      "DW-11"
+    ],
+    "path": "/roadmap/observability/dw-61"
+  },
+  {
+    "id": "DW-62",
+    "title": "Instrumenter le site Next.js côté serveur",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-60",
+      "DW-07"
+    ],
+    "path": "/roadmap/observability/dw-62"
+  },
+  {
+    "id": "DW-63",
+    "title": "Erreurs côté navigateur (RUM) — à cadrer",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-62"
+    ],
+    "path": "/roadmap/observability/dw-63"
+  },
+  {
+    "id": "DW-64",
+    "title": "Suivre la synchronisation des données",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-61"
+    ],
+    "path": "/roadmap/observability/dw-64"
+  },
+  {
+    "id": "DW-65",
+    "title": "Tableaux de bord et alertes",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "M",
+    "dependsOn": [
+      "DW-61",
+      "DW-64"
+    ],
+    "path": "/roadmap/observability/dw-65"
+  },
+  {
+    "id": "DW-66",
+    "title": "Superviser les services d'audience et d'observabilité",
+    "epic": "E10",
+    "status": "Backlog",
+    "size": "S",
+    "dependsOn": [
+      "DW-60",
+      "DW-51"
+    ],
+    "path": "/roadmap/observability/dw-66"
+  },
+  {
+    "id": "#2",
+    "title": "Caler les interviews (1re vague)",
+    "epic": "E1",
+    "status": "Done",
+    "github": 2,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-02"
+  },
+  {
+    "id": "#3",
+    "title": "Caler les interviews",
+    "epic": "E1",
+    "status": "Not Started",
+    "github": 3,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-03"
+  },
+  {
+    "id": "#4",
+    "title": "Faire la synthèse des interviews",
+    "epic": "E1",
+    "status": "Not Started",
+    "github": 4,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-04"
+  },
+  {
+    "id": "#7",
+    "title": "Interview FNE — 01/10/2026",
+    "epic": "E1",
+    "status": "Done",
+    "github": 7,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-07"
+  },
+  {
+    "id": "#9",
+    "title": "Exploration des données AN",
+    "epic": "E7",
+    "status": "Done",
+    "github": 9,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-09"
+  },
+  {
+    "id": "#10",
+    "title": "Tester l'infra des sources (AN, Tricoteuses, Eliasse, CLAIR)",
+    "epic": "E7",
+    "status": "Done",
+    "github": 10,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-10"
+  },
+  {
+    "id": "#11",
+    "title": "Récupération des données (textes, articles, amendements)",
+    "epic": "E7",
+    "status": "Done",
+    "github": 11,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-11"
+  },
+  {
+    "id": "#13",
+    "title": "Page d'accueil : échéances, derniers amendements",
+    "epic": "E2",
+    "status": "In Review",
+    "github": 13,
+    "note": "Première version sur feature/setup-front",
+    "path": "/roadmap/issues/e2-suivre-des-textes/gh-13"
+  },
+  {
+    "id": "#14",
+    "title": "Section « Textes de loi » : sélection, suivi, mes textes, fiche texte",
+    "epic": "E2",
+    "status": "In Review",
+    "github": 14,
+    "note": "Première version sur feature/setup-front (données fictives)",
+    "path": "/roadmap/issues/e2-suivre-des-textes/gh-14"
+  },
+  {
+    "id": "#15",
+    "title": "Section « Articles » : vue avancement (kanban), liste, groupes",
+    "epic": "E3",
+    "status": "In Review",
+    "github": 15,
+    "note": "Première version sur feature/setup-front",
+    "path": "/roadmap/issues/e3-kanban-des-amendements/gh-15"
+  },
+  {
+    "id": "#16",
+    "title": "Section « Amendements » : amendements suivis, filtres",
+    "epic": "E4",
+    "status": "In Review",
+    "github": 16,
+    "note": "Première version sur feature/setup-front",
+    "path": "/roadmap/issues/e4-comprendre-un-amendement/gh-16"
+  },
+  {
+    "id": "#17",
+    "title": "Interview Emmaüs",
+    "epic": "E1",
+    "status": "Done",
+    "github": 17,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-17"
+  },
+  {
+    "id": "#18",
+    "title": "Interview Oxfam",
+    "epic": "E1",
+    "status": "Not Started",
+    "github": 18,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-18"
+  },
+  {
+    "id": "#19",
+    "title": "Interview QuotaClimat",
+    "epic": "E1",
+    "status": "Not Started",
+    "github": 19,
+    "path": "/roadmap/issues/e1-produit-et-design/gh-19"
+  },
+  {
+    "id": "#20",
+    "title": "Ingérer les données de clair.vote dans Postgres",
+    "epic": "E7",
+    "status": "Done",
+    "github": 20,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-20"
+  },
+  {
+    "id": "#22",
+    "title": "Proposer un système d'extraction des vecteurs",
+    "epic": "E7",
+    "status": "In Progress",
+    "github": 22,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-22"
+  },
+  {
+    "id": "#23",
+    "title": "Créer les comptes Vaultwarden des tech leads",
+    "epic": "E8",
+    "status": "In Progress",
+    "github": 23,
+    "path": "/roadmap/issues/e8-ops-qualite-et-deploiement/gh-23"
+  },
+  {
+    "id": "#24",
+    "title": "Ajouter discussion identique, discussion commune à la base",
+    "epic": "E7",
+    "status": "Done",
+    "github": 24,
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-24"
+  },
+  {
+    "id": "#26",
+    "title": "API endpoints V0 (FastAPI, RFC)",
+    "epic": "E7",
+    "status": "In Review",
+    "github": 26,
+    "note": "Implémentée et testée avec doublures sur feature/setup-front",
+    "path": "/roadmap/issues/e7-donnees-et-api/gh-26"
+  }
+]

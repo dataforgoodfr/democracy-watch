@@ -5,6 +5,8 @@
 FROM node:22-slim AS build
 WORKDIR /repo
 RUN corepack enable
+# Pas de hooks git dans l'image (ni dépôt git ni binaire `git`) : lefthook les ignore si CI est défini.
+ENV CI=true
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@democracy-watch/docs..." \
   && pnpm --filter @democracy-watch/docs build

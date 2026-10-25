@@ -1,6 +1,8 @@
 ---
 title: Serveur Python
 description: Le dossier server/ — API FastAPI, accès à la base Postgres et scripts de données.
+sidebar_label: "Vue d'ensemble"
+sidebar_icon: boxes
 ---
 
 Tout le Python du projet est dans `server/`, géré avec [uv](https://docs.astral.sh/uv/).
@@ -42,7 +44,7 @@ with connect() as conn:  # lecture seule par défaut ; connect(read_only=False) 
 ## L'API
 
 <FeatureGrid cols={2}>
-  <FeatureCard icon="⚡" title="API" description="Architecture, endpoints de la RFC, configuration, écarts connus." href="/04-serveur/api" />
+  <FeatureCard icon="⚡" title="API" description="Architecture, endpoints de la RFC, configuration, écarts connus." href="/serveur/api" />
 </FeatureGrid>
 
 Conventions : skill `dinum-python` (typage, imports, sécurité, tests), `ruff` via pre-commit.

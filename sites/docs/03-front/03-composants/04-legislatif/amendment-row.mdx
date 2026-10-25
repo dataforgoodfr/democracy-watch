@@ -1,0 +1,64 @@
+---
+title: AmendmentRow
+sidebar_label: "AmendmentRow"
+sidebar_icon: list-ordered
+---
+
+import { AmendmentRow } from "@democracy-watch/ui";
+import { amendments, articles, texts } from "@democracy-watch/data";
+
+export const toResult = (number) => {
+  const amendment = amendments.find((item) => item.number === number);
+  return {
+    ...amendment,
+    text: texts.find((text) => text.id === amendment.textId),
+    article: articles.find((article) => article.id === amendment.articleId) ?? null,
+  };
+};
+
+export const ce31 = toResult("CE 31");
+
+## Import
+
+```tsx
+import { AmendmentRow } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+    <AmendmentRow amendment={ce31} />
+  </ul>
+</Preview>
+
+```tsx
+const toResult = (number) => {
+  const amendment = amendments.find((item) => item.number === number);
+  return {
+    ...amendment,
+    text: texts.find((text) => text.id === amendment.textId),
+    article: articles.find((article) => article.id === amendment.articleId) ?? null,
+  };
+};
+
+const ce31 = toResult("CE 31");
+
+<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+  <AmendmentRow amendment={ce31} />
+</ul>
+```
+
+## Avec des termes surlignés
+
+<Preview>
+  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+    <AmendmentRow amendment={ce31} highlight={["pesticide", "ecole"]} />
+  </ul>
+</Preview>
+
+```tsx
+<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+  <AmendmentRow amendment={ce31} highlight={["pesticide", "ecole"]} />
+</ul>
+```

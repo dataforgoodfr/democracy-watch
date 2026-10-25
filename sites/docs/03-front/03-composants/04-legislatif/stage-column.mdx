@@ -1,0 +1,111 @@
+---
+title: StageColumn
+sidebar_label: "StageColumn"
+sidebar_icon: columns-3
+---
+
+import { amendments } from "@democracy-watch/data";
+import { AmendmentCard, StageColumn } from "@democracy-watch/ui";
+
+export const cd14 = amendments.find((a) => a.id === "cd-14");
+export const cd31 = amendments.find((a) => a.id === "cd-31");
+export const ce23 = amendments.find((a) => a.id === "ce-23");
+export const ce31 = amendments.find((a) => a.id === "ce-31");
+export const ce12 = amendments.find((a) => a.id === "ce-12");
+
+## Import
+
+```tsx
+import { StageColumn } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview surface="page">
+  <div style={{ width: 300 }}>
+    <StageColumn title="Commission saisie pour avis" subtitle="Développement durable" count={2}>
+      <AmendmentCard amendment={cd14} />
+      <AmendmentCard amendment={cd31} />
+    </StageColumn>
+  </div>
+</Preview>
+
+```tsx
+const cd14 = amendments.find((a) => a.id === "cd-14");
+const cd31 = amendments.find((a) => a.id === "cd-31");
+
+<StageColumn title="Commission saisie pour avis" subtitle="Développement durable" count={2}>
+  <AmendmentCard amendment={cd14} />
+  <AmendmentCard amendment={cd31} />
+</StageColumn>
+```
+
+## Avec un état vide
+
+<Preview surface="page">
+  <div style={{ width: 300 }}>
+    <StageColumn
+      title="Séance publique"
+      subtitle="Assemblée nationale"
+      count={0}
+      emptyText="Aucun amendement déposé pour l'instant."
+    />
+  </div>
+</Preview>
+
+```tsx
+<StageColumn
+  title="Séance publique"
+  subtitle="Assemblée nationale"
+  count={0}
+  emptyText="Aucun amendement déposé pour l'instant."
+/>
+```
+
+## Avec une échéance
+
+<Preview surface="page">
+  <div style={{ width: 300 }}>
+    <StageColumn
+      title="Commission au fond"
+      subtitle="Affaires économiques · 21 oct."
+      count={3}
+      upcoming
+      outcomes={{ pending: 1, adopted: 1, rejected: 1 }}
+    >
+      <AmendmentCard amendment={ce23} />
+      <AmendmentCard amendment={ce31} />
+      <AmendmentCard amendment={ce12} />
+    </StageColumn>
+  </div>
+</Preview>
+
+```tsx
+const ce23 = amendments.find((a) => a.id === "ce-23");
+const ce31 = amendments.find((a) => a.id === "ce-31");
+const ce12 = amendments.find((a) => a.id === "ce-12");
+
+<StageColumn
+  title="Commission au fond"
+  subtitle="Affaires économiques · 21 oct."
+  count={3}
+  upcoming
+  outcomes={{ pending: 1, adopted: 1, rejected: 1 }}
+>
+  <AmendmentCard amendment={ce23} />
+  <AmendmentCard amendment={ce31} />
+  <AmendmentCard amendment={ce12} />
+</StageColumn>
+```
+
+## Avec un état hors périmètre
+
+<Preview surface="page">
+  <div style={{ width: 300 }}>
+    <StageColumn title="Sénat" subtitle="Hors périmètre en V0" count={0} disabled />
+  </div>
+</Preview>
+
+```tsx
+<StageColumn title="Sénat" subtitle="Hors périmètre en V0" count={0} disabled />
+```
