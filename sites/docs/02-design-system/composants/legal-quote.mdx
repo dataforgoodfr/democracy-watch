@@ -1,0 +1,45 @@
+---
+title: LegalQuote
+---
+
+import { LegalQuote } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { LegalQuote } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <LegalQuote
+    text="…l'utilisation des pesticides est interdite à moins de vingt mètres des écoles et des établissements accueillant des enfants…"
+    reference="Art. 3, al. 4"
+  />
+</Preview>
+
+```tsx
+<LegalQuote
+  text="…l'utilisation des pesticides est interdite à moins de vingt mètres des écoles et des établissements accueillant des enfants…"
+  reference="Art. 3, al. 4"
+/>
+```
+
+## Avec des termes surlignés
+
+<Preview>
+  <LegalQuote
+    text="…l'utilisation des pesticides est interdite à moins de vingt mètres des écoles et des établissements accueillant des enfants…"
+    reference="Art. 3, al. 4"
+    highlight={["pesticid", "ecole"]}
+  />
+</Preview>
+
+```tsx
+<LegalQuote
+  text="…l'utilisation des pesticides est interdite à moins de vingt mètres des écoles et des établissements accueillant des enfants…"
+  reference="Art. 3, al. 4"
+  highlight={["pesticid", "ecole"]}
+/>
+```

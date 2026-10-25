@@ -1,0 +1,48 @@
+---
+title: Serveur Python
+description: Le dossier server/ — API FastAPI, accès à la base Postgres et scripts de données.
+---
+
+Tout le Python du projet est dans `server/`, géré avec [uv](https://docs.astral.sh/uv/).
+
+```bash
+cd server
+uv sync
+cp .env.example .env    # variables PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
+uv run pytest
+```
+
+```text
+server/
+├── democracy_watch/
+│   ├── db.py          # connexion Postgres (lecture seule par défaut)
+│   ├── log.py         # logger du projet (DW_LOG_LEVEL)
+│   └── api/           # API FastAPI — voir la page « API »
+├── tests/             # pytest (API testée avec des doublures, sans base)
+├── pyproject.toml
+└── uv.lock
+```
+
+## La base
+
+La base Postgres est une **copie du dump [CLAIR](https://clair.vote)**, partagée et hébergée
+(Coolify) : dossiers législatifs, articles, amendements, parlementaires, groupes, scrutins.
+
+```python
+from democracy_watch.db import connect
+from democracy_watch.log import get_logger
+
+log = get_logger(__name__)
+
+with connect() as conn:  # lecture seule par défaut ; connect(read_only=False) pour écrire
+    n = conn.execute("SELECT count(*) AS n FROM public.amendements").fetchone()["n"]
+    log.info("%s amendements", n)
+```
+
+## L'API
+
+<FeatureGrid cols={2}>
+  <FeatureCard icon="⚡" title="API" description="Architecture, endpoints de la RFC, configuration, écarts connus." href="/04-serveur/api" />
+</FeatureGrid>
+
+Conventions : skill `dinum-python` (typage, imports, sécurité, tests), `ruff` via pre-commit.

@@ -1,0 +1,23 @@
+{
+  "name": "@democracy-watch/state",
+  "private": true,
+  "type": "module",
+  "description": "État client persistant (Zustand) : textes suivis et session. Stocké dans le navigateur.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zustand": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

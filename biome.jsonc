@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    // Non lintés : fichiers générés (SVG, public/, tokens.css), contenus rédigés (Markdown, MDX) et YAML
+    // (dont les workflows synchronisés par Data for Good).
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.next",
+      "!**/next-env.d.ts",
+      "!server",
+      "!**/public",
+      "!**/*.svg",
+      "!**/*.md",
+      "!**/*.mdx",
+      "!**/*.yml",
+      "!**/*.yaml",
+      "!packages/theme/src/tokens.css"
+    ]
+  },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "javascript": { "formatter": { "quoteStyle": "double" } },
+  "css": { "parser": { "cssModules": true } },
+  "linter": {
+    "rules": {
+      "style": {
+        "useImportType": "error",
+        "noNonNullAssertion": "error"
+      },
+      "suspicious": { "noExplicitAny": "error" }
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+}

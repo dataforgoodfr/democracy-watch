@@ -1,0 +1,77 @@
+---
+title: Breadcrumb
+---
+
+import { Breadcrumb } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { Breadcrumb } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <Breadcrumb
+    items={[
+      { href: "/textes", label: "Textes" },
+      { label: "PJL n° 2436" },
+    ]}
+  />
+</Preview>
+
+```tsx
+<Breadcrumb
+  items={[
+    { href: "/textes", label: "Textes" },
+    { label: "PJL n° 2436" },
+  ]}
+/>
+```
+
+## Avec plusieurs niveaux
+
+<Preview>
+  <Breadcrumb
+    items={[
+      { href: "/textes", label: "Textes" },
+      { href: "/textes/2436", label: "PJL n° 2436" },
+      { href: "/textes/2436/amendements", label: "Amendements" },
+      { label: "CE 23" },
+    ]}
+  />
+</Preview>
+
+```tsx
+<Breadcrumb
+  items={[
+    { href: "/textes", label: "Textes" },
+    { href: "/textes/2436", label: "PJL n° 2436" },
+    { href: "/textes/2436/amendements", label: "Amendements" },
+    { label: "CE 23" },
+  ]}
+/>
+```
+
+## Avec un niveau sans lien
+
+<Preview>
+  <Breadcrumb
+    items={[
+      { href: "/textes", label: "Textes" },
+      { label: "Commission des affaires économiques" },
+      { label: "CE 31" },
+    ]}
+  />
+</Preview>
+
+```tsx
+<Breadcrumb
+  items={[
+    { href: "/textes", label: "Textes" },
+    { label: "Commission des affaires économiques" },
+    { label: "CE 31" },
+  ]}
+/>
+```

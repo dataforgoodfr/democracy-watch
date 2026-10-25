@@ -1,0 +1,29 @@
+---
+title: Typographie
+description: Archivo pour l'interface, Spectral pour le texte juridique.
+---
+
+| Famille | Usage | Token |
+| --- | --- | --- |
+| **Archivo** 400 / 500 / 700 | interface : titres, textes, boutons, données | `--dw-police-interface` |
+| **Spectral** 400 / italique | contenu juridique : alinéas, citations, dispositifs | `--dw-police-loi` |
+| **Archivo ExtraBold Italic** 800 | logo uniquement (vectorisé dans les SVG) | — |
+
+Les polices sont auto-hébergées (`@fontsource`) et chargées par `@democracy-watch/theme/styles.css`.
+
+## Échelle
+
+Valeurs en px, desktop ; les titres réduisent sous 768 px. Éviter tout texte fonctionnel sous 12 px.
+
+<TypeScale />
+
+## Contenu juridique
+
+Deux classes globales, à utiliser pour tout extrait de loi :
+
+```html
+<p class="dw-loi">1° L'article L. 253-1 est complété par un alinéa ainsi rédigé :</p>
+<blockquote class="dw-loi--citation">« La restriction devient obligatoire. »</blockquote>
+```
+
+Le composant `LegalQuote` les applique automatiquement.

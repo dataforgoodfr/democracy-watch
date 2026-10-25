@@ -1,65 +1,39 @@
-# Template DataForGood
+<div align="center">
 
-This file will become your README and also the index of your
-documentation.
+<img src="./packages/brand/assets/logo.svg" width="320" alt="Democracy Watch">
 
-# Contributing
+**Veille législative pour les associations, ONG et équipes de plaidoyer.**
 
+Un projet [Data for Good](https://dataforgood.fr) · Licence MIT
 
-## Installation
+</div>
 
-- [Installation de Python](#installation-de-python)
+Democracy Watch permet de suivre des textes de loi, leurs articles et leurs amendements : qui les
+porte, où ils en sont dans le parcours parlementaire, et ce qu'ils changent concrètement.
 
-Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
-
-Une fois installé, il suffit de lancer la commande suivante pour installer la version de Python adéquate, créer un environnement virtuel et installer les dépendances du projet.
-
-```bash
-uv sync
-```
-
-A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement activé lorsque vous ouvrirez le projet. Sinon, il suffit de l'activer manuellement avec la commande suivante :
+## Démarrer
 
 ```bash
-source .venv/bin/activate
+corepack enable && pnpm install
+pnpm dev          # application → http://localhost:3000
+pnpm dev:docs     # documentation → http://localhost:3002
+pnpm test         # tests
 ```
 
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
+Toute la documentation (produit, installation, design system, architecture, API, roadmap et
+issues à venir) est dans [`sites/docs`](sites/docs) — lancez `pnpm dev:docs`.
 
-```bash
-uv run pipelines/run.py run build_database
-```
+## Le dépôt
 
+| Dossier                        | Contenu                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| [`packages/`](packages)        | le code front, en packages : `theme`, `brand`, `data`, `ui`, `screens` |
+| [`sites/web`](sites/web)       | l'application Next.js (uniquement du routage)                          |
+| [`sites/docs`](sites/docs)     | la documentation (Zudoku)                                              |
+| [`server/`](server)            | Python : base Postgres, scripts de données                             |
+| [`e2e/`](e2e)                  | tests de bout en bout (Playwright)                                     |
+| [`PLAN-TODO.md`](PLAN-TODO.md) | la roadmap, découpée en tickets                                        |
 
-## Connexion à la base
+## Contribuer
 
-La base Postgres (copie du dump CLAIR) est partagée et hébergée. Copier `.env.example` en `.env`
-(ignoré par git) et le compléter, puis lancer les scripts avec `uv run --env-file .env …`.
-
-```python
-from democracy_watch.db import connect
-
-with connect() as conn:  # lecture seule par défaut ; connect(read_only=False) pour écrire
-    conn.execute("SELECT count(*) FROM public.amendements").fetchone()
-```
-
-## Logging
-
-```python
-from democracy_watch.log import get_logger
-
-log = get_logger(__name__)
-log.info("%s amendements lus", count)
-```
-
-Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
-
-## Lancer les precommit-hook localement
-
-[Installer les precommit](https://pre-commit.com/)
-
-    pre-commit run --all-files
-
-## Utiliser Tox pour tester votre code
-
-    tox -vv
+Voir [CONTRIBUTING.md](CONTRIBUTING.md).

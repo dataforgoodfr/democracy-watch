@@ -1,0 +1,30 @@
+# Déploiement Coolify (ressource « Docker Compose » branchée sur le dépôt GitHub).
+#   Base Directory : /        Docker Compose Location : /docker-compose.yml
+# Les variables SERVICE_FQDN_* / SERVICE_URL_* sont générées par Coolify : il crée un domaine
+# par service et route le trafic vers le port indiqué en suffixe. Domaines modifiables ensuite
+# dans l'onglet « Domains » de chaque service.
+# Pas de `ports:` ici : le proxy de Coolify route le trafic (ports exposés = proxy contourné).
+#
+# En local (Docker requis) :
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+#   → web sur http://localhost:3000, docs sur http://localhost:3002
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: sites/web/Dockerfile
+      args:
+        SITE_URL: ${SERVICE_URL_WEB_3000:-http://localhost:3000}
+    environment:
+      - SERVICE_FQDN_WEB_3000
+      - SITE_URL=${SERVICE_URL_WEB_3000:-http://localhost:3000}
+    restart: unless-stopped
+
+  docs:
+    build:
+      context: .
+      dockerfile: sites/docs/Dockerfile
+    environment:
+      - SERVICE_FQDN_DOCS_80
+    restart: unless-stopped

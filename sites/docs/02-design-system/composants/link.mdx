@@ -1,0 +1,47 @@
+---
+title: Link
+---
+
+import { Link, NavigationProvider } from "@democracy-watch/ui";
+
+export const navigation = {
+  Link: (props) => <a {...props} style={{ fontWeight: 700 }} />,
+  navigate: () => {},
+  pathname: "/textes/pjl-2436",
+};
+
+## Import
+
+```tsx
+import { Link } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <Link href="/textes/pjl-2436">Projet de loi d'orientation pour la transition agricole</Link>
+</Preview>
+
+```tsx
+<Link href="/textes/pjl-2436">Projet de loi d'orientation pour la transition agricole</Link>
+```
+
+## Avec un adaptateur de routage
+
+<Preview>
+  <NavigationProvider value={navigation}>
+    <Link href="/textes/pjl-2436/amendements/ce-23">CE 23</Link>
+  </NavigationProvider>
+</Preview>
+
+```tsx
+const navigation = {
+  Link: (props) => <a {...props} style={{ fontWeight: 700 }} />,
+  navigate: () => {},
+  pathname: "/textes/pjl-2436",
+};
+
+<NavigationProvider value={navigation}>
+  <Link href="/textes/pjl-2436/amendements/ce-23">CE 23</Link>
+</NavigationProvider>
+```

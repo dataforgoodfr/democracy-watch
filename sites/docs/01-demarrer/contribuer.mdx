@@ -1,0 +1,62 @@
+---
+title: Contribuer
+description: Branches, commits, revue de code et standards d'ingénierie (DINUM React et Python).
+---
+
+## Le cycle d'une contribution
+
+1. Prendre une issue sur le [GitHub Project](https://github.com/dataforgoodfr/democracy-watch) (ou en créer une).
+2. Créer une branche depuis `main` : `feat/recherche-filtres`, `fix/badge-contraste`…
+3. Commiter en **Conventional Commits** (vérifié par commitlint au moment du commit).
+4. Ouvrir une pull request : description, captures pour un changement visuel, tests.
+5. La CI doit passer : `pnpm check`, `pnpm typecheck`, `pnpm test`, build, e2e.
+
+## Messages de commit
+
+Format `type(scope): sujet`, en français ou en anglais, à l'impératif.
+
+| Type | Usage |
+| --- | --- |
+| `feat` | nouvelle fonctionnalité |
+| `fix` | correction de bug |
+| `docs` | documentation |
+| `refactor` | réécriture sans changement de comportement |
+| `test` | tests |
+| `chore` | outillage, dépendances |
+
+Le **scope** est la partie du dépôt touchée : `api`, `state`, `brand`, `theme`, `ui`, `data`, `screens`, `web`,
+`docs`, `server`, `e2e`, `ci`, `deps`, `repo`.
+
+```text
+feat(ui): ajouter le badge de commission avec échéance
+fix(screens): conserver la sélection lors du changement de page
+```
+
+## Règles de code
+
+- **Une seule source de vérité** pour le visuel : les tokens de `packages/theme`. Pas de couleur
+  en dur dans un composant : `var(--dw-…)`.
+- **Next.js ne fait que du routage** : une route transmet ses paramètres à un écran de
+  `packages/screens`, qui charge ses données avec les hooks de `@democracy-watch/api`.
+- **L'état de la page vit dans l'URL** (filtres, onglets, vue) : partageable, compatible retour
+  arrière.
+- **Six états à prévoir** pour tout composant de données : initial, chargement, succès, vide,
+  erreur, désactivé.
+- **Accessibilité** : label visible pour chaque champ, focus jamais supprimé, la couleur n'est
+  jamais la seule information.
+- TypeScript strict, pas de `any`, imports avec extension (`./Badge.tsx`).
+
+## Standards DINUM
+
+Le dépôt applique les standards de la DINUM, de beta.gouv.fr et de La Suite numérique. Ils sont
+décrits sous forme de *skills* pour les agents IA et les humains :
+
+- [`.agents/skills/dinum-react`](https://github.com/dataforgoodfr/democracy-watch/tree/main/.agents/skills/dinum-react) — React, TypeScript, accessibilité RGAA, tests.
+- [`.agents/skills/dinum-python`](https://github.com/dataforgoodfr/democracy-watch/tree/main/.agents/skills/dinum-python) — Python, typage, sécurité, pytest.
+
+Ordre de priorité des règles : demande explicite > `AGENTS.md` > configuration du dépôt >
+conventions du projet > standards DINUM > bonnes pratiques génériques.
+
+Références : [Handbook La Suite](https://suitenumerique.gitbook.io/handbook) ·
+[Mémo dev RGAA (DesignGouv)](https://design.numerique.gouv.fr/outils/memo-dev/) ·
+[Standards beta.gouv.fr](https://standards.beta.gouv.fr/standards).

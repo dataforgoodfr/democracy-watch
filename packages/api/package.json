@@ -1,0 +1,24 @@
+{
+  "name": "@democracy-watch/api",
+  "private": true,
+  "type": "module",
+  "description": "Accès aux données côté front : hooks TanStack Query, client de l'API FastAPI, mode mock (DEV_FRONT).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@democracy-watch/data": "workspace:*",
+    "@tanstack/react-query": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

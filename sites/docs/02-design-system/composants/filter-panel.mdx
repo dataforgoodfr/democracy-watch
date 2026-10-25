@@ -1,0 +1,148 @@
+---
+title: FilterPanel
+---
+
+import { FilterPanel } from "@democracy-watch/ui";
+import { parliamentaryGroups } from "@democracy-watch/theme";
+
+export const groups = [
+  {
+    id: "type",
+    label: "Type de texte",
+    options: [
+      { value: "pjl", label: "Projet de loi", checked: true },
+      { value: "ppl", label: "Proposition de loi", checked: false },
+    ],
+  },
+  {
+    id: "commission",
+    label: "Commission au fond",
+    options: [
+      { value: "eco", label: "Affaires économiques", checked: true },
+      { value: "lois", label: "Lois", checked: false },
+      { value: "fin", label: "Finances", checked: false },
+    ],
+  },
+];
+
+export const groupesPolitiques = [
+  {
+    id: "groupe",
+    label: "Groupe politique",
+    options: [
+      { value: "RN", label: "RN", checked: true, color: parliamentaryGroups.RN.color },
+      { value: "LFI", label: "LFI", checked: false, color: parliamentaryGroups.LFI.color },
+      { value: "ECO", label: "ECO", checked: false, color: parliamentaryGroups.ECO.color },
+      { value: "DEM", label: "DEM", checked: true, color: parliamentaryGroups.DEM.color },
+    ],
+  },
+];
+
+## Import
+
+```tsx
+import { FilterPanel } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <div style={{ maxWidth: 280 }}>
+    <FilterPanel groups={groups} onToggle={() => {}} onReset={() => {}} />
+  </div>
+</Preview>
+
+```tsx
+const groups = [
+  {
+    id: "type",
+    label: "Type de texte",
+    options: [
+      { value: "pjl", label: "Projet de loi", checked: true },
+      { value: "ppl", label: "Proposition de loi", checked: false },
+    ],
+  },
+  {
+    id: "commission",
+    label: "Commission au fond",
+    options: [
+      { value: "eco", label: "Affaires économiques", checked: true },
+      { value: "lois", label: "Lois", checked: false },
+      { value: "fin", label: "Finances", checked: false },
+    ],
+  },
+];
+
+<FilterPanel groups={groups} onToggle={() => {}} onReset={() => {}} />
+```
+
+## En accordéon
+
+<Preview>
+  <div style={{ maxWidth: 280 }}>
+    <FilterPanel
+      variant="accordion"
+      title="Affiner les amendements"
+      groups={groups}
+      onToggle={() => {}}
+      onReset={() => {}}
+    />
+  </div>
+</Preview>
+
+```tsx
+const groups = [
+  {
+    id: "type",
+    label: "Type de texte",
+    options: [
+      { value: "pjl", label: "Projet de loi", checked: true },
+      { value: "ppl", label: "Proposition de loi", checked: false },
+    ],
+  },
+  {
+    id: "commission",
+    label: "Commission au fond",
+    options: [
+      { value: "eco", label: "Affaires économiques", checked: true },
+      { value: "lois", label: "Lois", checked: false },
+      { value: "fin", label: "Finances", checked: false },
+    ],
+  },
+];
+
+<FilterPanel
+  variant="accordion"
+  title="Affiner les amendements"
+  groups={groups}
+  onToggle={() => {}}
+  onReset={() => {}}
+/>
+```
+
+## Avec des pastilles de couleur
+
+<Preview>
+  <div style={{ maxWidth: 280 }}>
+    <FilterPanel groups={groupesPolitiques} onToggle={() => {}} onReset={() => {}} />
+  </div>
+</Preview>
+
+```tsx
+import { parliamentaryGroups } from "@democracy-watch/theme";
+
+const groupesPolitiques = [
+  {
+    id: "groupe",
+    label: "Groupe politique",
+    options: [
+      { value: "RN", label: "RN", checked: true, color: parliamentaryGroups.RN.color },
+      { value: "LFI", label: "LFI", checked: false, color: parliamentaryGroups.LFI.color },
+      { value: "ECO", label: "ECO", checked: false, color: parliamentaryGroups.ECO.color },
+      { value: "DEM", label: "DEM", checked: true, color: parliamentaryGroups.DEM.color },
+    ],
+  },
+];
+
+<FilterPanel groups={groupesPolitiques} onToggle={() => {}} onReset={() => {}} />
+```

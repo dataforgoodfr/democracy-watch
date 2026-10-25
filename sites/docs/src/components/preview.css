@@ -1,0 +1,85 @@
+/*
+ * Styles chargés pour les aperçus de composants. On importe les variables Mantine, ses classes
+ * globales et le CSS des seuls composants utilisés — pas « baseline », qui stylise body.
+ * Versions non « layer » : les classes Mantine doivent l'emporter sur le reset CSS de la doc.
+ */
+@import "@mantine/core/styles/default-css-variables.css";
+@import "@mantine/core/styles/global.css";
+@import "@mantine/core/styles/UnstyledButton.css";
+@import "@mantine/core/styles/VisuallyHidden.css";
+@import "@mantine/core/styles/Paper.css";
+@import "@mantine/core/styles/Group.css";
+@import "@mantine/core/styles/Stack.css";
+@import "@mantine/core/styles/Flex.css";
+@import "@mantine/core/styles/Loader.css";
+@import "@mantine/core/styles/Button.css";
+@import "@mantine/core/styles/CloseButton.css";
+@import "@mantine/core/styles/Input.css";
+@import "@mantine/core/styles/InlineInput.css";
+@import "@mantine/core/styles/PasswordInput.css";
+@import "@mantine/core/styles/Checkbox.css";
+@import "@mantine/core/styles/CheckboxIndicator.css";
+@import "@mantine/core/styles/Switch.css";
+@import "@mantine/core/styles/Combobox.css";
+@import "@mantine/core/styles/Popover.css";
+@import "@mantine/core/styles/ScrollArea.css";
+@import "@mantine/core/styles/FloatingIndicator.css";
+@import "@mantine/core/styles/SegmentedControl.css";
+@import "@mantine/core/styles/Accordion.css";
+@import "@mantine/core/styles/Table.css";
+@import "@mantine/core/styles/Pagination.css";
+@import "@mantine/core/styles/Alert.css";
+@import "@mantine/core/styles/Divider.css";
+@import "@mantine/core/styles/Skeleton.css";
+@import "@democracy-watch/theme/tokens.css";
+@import "@democracy-watch/theme/classes.css";
+@import "@fontsource/archivo/400.css";
+@import "@fontsource/archivo/500.css";
+@import "@fontsource/archivo/700.css";
+@import "@fontsource/archivo/800-italic.css";
+
+.dw-preview {
+  margin: 1rem 0 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--dw-fond-surface);
+  color: var(--dw-texte-defaut);
+  font-family: var(--dw-police-interface);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.dw-preview[data-surface="page"] {
+  background: var(--dw-fond-page);
+}
+
+.dw-preview *,
+.dw-preview *::before,
+.dw-preview *::after {
+  box-sizing: border-box;
+}
+
+/* Règles globales de l'application (theme/styles.css), limitées à l'aperçu. `:where` garde une
+   spécificité nulle : les styles des composants priment toujours. */
+:where(.dw-preview) a {
+  color: var(--dw-texte-action);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:where(.dw-preview) :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--dw-texte-titre);
+  font-weight: 700;
+}
+
+/* Le cadre de l'application occupe la hauteur de l'aperçu, pas celle de la fenêtre. */
+.dw-preview {
+  --dw-shell-hauteur-min: 0;
+}
+
+.dw-preview :focus-visible {
+  outline: var(--dw-focus-outline);
+  outline-offset: var(--dw-focus-offset);
+}

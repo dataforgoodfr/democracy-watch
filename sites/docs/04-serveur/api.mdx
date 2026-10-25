@@ -1,0 +1,188 @@
+---
+title: API
+description: Architecture de l'API FastAPI, endpoints (RFC du 23 octobre 2026), configuration et branchement du front.
+---
+
+:::info{title="Origine"}
+Cette page reprend la **RFC « Proposition de endpoints pour l'API »** (clôture le vendredi 23 octobre
+2026) et documente son implémentation dans `server/democracy_watch/api/`.
+:::
+
+## Motivation
+
+Il faut un petit serveur pour servir les pages de Democracy Watch : une **recherche** sur les
+textes, articles et amendements (Meilisearch), et des **fiches** lues dans Postgres (copie du dump
+CLAIR). Langage : **Python**, bibliothèque : **FastAPI**.
+
+## Architecture
+
+<Mermaid
+  chart={`flowchart LR
+  subgraph Front["sites/web"]
+    H["hooks TanStack Query<br/>@democracy-watch/api"]
+  end
+  subgraph API["server/democracy_watch/api"]
+    R["routers/<br/>search · legislatif · health"]
+    S["search.py<br/>paramètres → multi-search"]
+    P["repository.py<br/>requêtes SQL"]
+    C["config.py · deps.py"]
+  end
+  M[("Meilisearch<br/>dossiers · amendements-2 · articles")]
+  PG[("Postgres<br/>dump CLAIR")]
+  H -- HTTP GET --> R
+  R --> S --> M
+  R --> P --> PG
+  C -.-> R`}
+/>
+
+| Fichier | Rôle |
+| --- | --- |
+| `main.py` | crée l'application, CORS (GET uniquement), branche les routes |
+| `config.py` | paramètres lus dans l'environnement (`Settings.from_env`) |
+| `deps.py` | dépendances FastAPI : moteur de recherche, dépôt Postgres (une connexion en lecture seule par requête), sonde de santé |
+| `search.py` | **fonctions pures** : paramètres de `/api/search` → requête `POST /multi-search` de Meilisearch, puis normalisation de la réponse |
+| `repository.py` | requêtes SQL sur les tables du dump CLAIR |
+| `schemas.py` | schémas Pydantic des réponses (OpenAPI générée automatiquement sur `/docs`) |
+| `routers/` | une route = valider les paramètres, appeler le service, renvoyer le schéma |
+
+Les dépendances (moteur, dépôt) sont injectées : les tests les remplacent par des doublures, sans
+base ni Meilisearch (`server/tests/test_api_*.py`).
+
+## Endpoints
+
+| Méthode | Route | Rôle |
+| --- | --- | --- |
+| GET | `/api/search` | Recherche générique : `q`, `types=amendements,dossiers,articles`, `mode=federated\|grouped`, `semantic_ratio`, filtres communs (`legislature`, `dossier_uid`, `texte_ref`…), `limit` |
+| GET | `/api/dossiers/{dossier_uid}` | Fiche d'un projet de loi et de ses textes |
+| GET | `/api/textes/{texte_ref}/articles` | Articles d'un texte |
+| GET | `/api/textes/{texte_ref}/amendements` | **Ajout à la RFC** : amendements d'un texte, filtre `article` — alimente la vue « avancement » (kanban) |
+| GET | `/api/amendements/{uid}` | Un amendement |
+| GET | `/health` | État de Postgres et de Meilisearch (`503` si l'un est indisponible) |
+
+### `GET /api/search`
+
+Appelle directement Meilisearch.
+
+| Paramètre | Rôle |
+| --- | --- |
+| `types` | index dans lesquels chercher (répétable) |
+| `semantic_ratio` | proportion entre recherche sémantique et textuelle (0 à 1) ; appliqué aux index qui ont un embedder (amendements) |
+| `mode` | `grouped` : un tableau de résultats par index ; `federated` : tous les résultats dans un même tableau, classés par pertinence (les dossiers pèsent 1,5) |
+| `legislature`, `dossier_uid`, `texte_ref` | filtres « égal à » |
+| `groupe_politique`, `sort` | filtres « l'un de » (répétables) |
+| `date_min`, `date_max` | période de dépôt |
+| `facets` | distributions à calculer (`groupe_politique`, `sort`…) |
+| `order` | tri, ex. `date_depot:desc` |
+| `page`, `limit` | pagination (`limit` plafonné à 100) |
+
+Un filtre que l'index ne connaît pas n'est pas envoyé à cet index (ex. `sort` pour les dossiers).
+
+```http
+GET /api/search
+  ?q=retraites
+  &types=amendements&types=dossiers
+  &semantic_ratio=0.5
+  &legislature=17
+  &dossier_uid=DLR5L17N12345
+  &groupe_politique=RN&groupe_politique=LFI-NFP
+  &sort=Adopté&sort=Rejeté
+  &date_min=2025-01-01&date_max=2025-06-30
+  &facets=groupe_politique&facets=sort
+  &order=date_depot:desc
+  &page=1&limit=20
+```
+
+Côté serveur, la requête envoyée à Meilisearch (tableau extérieur = ET, sous-tableau = OU) :
+
+```python
+queries = [
+    {
+        "indexUid": "amendements-2",
+        "q": "retraites",
+        "filter": [
+            "legislature = 17",
+            'dossier_uid = "DLR5L17N12345"',
+            ['groupe_politique = "RN"', 'groupe_politique = "LFI-NFP"'],
+            ['sort = "Adopté"', 'sort = "Rejeté"'],
+            "date_depot >= 1735689600",
+            "date_depot <= 1751327999",
+        ],
+        "facets": ["groupe_politique", "sort"],
+        "hybrid": {"embedder": "hf-t4", "semanticRatio": 0.5},
+        "attributesToHighlight": ["dispositif", "expose"],
+        "highlightPreTag": "<mark>",
+        "highlightPostTag": "</mark>",
+        "sort": ["date_depot:desc"],
+        "page": 1,
+        "hitsPerPage": 20,
+    },
+    # … une requête par type demandé
+]
+res = client.multi_search(queries, federation=None)  # federation={"limit", "offset"} en mode federated
+```
+
+Réponse (mode `grouped`) :
+
+```json
+{
+  "mode": "grouped",
+  "page": 1,
+  "results": {
+    "amendements": { "hits": [], "total": 0, "facets": { "sort": { "Adopté": 12 } } },
+    "dossiers": { "hits": [], "total": 0, "facets": {} }
+  }
+}
+```
+
+### Fiches (Postgres)
+
+| Route | Tables lues |
+| --- | --- |
+| `/api/dossiers/{uid}` | `dossiers_legislatifs`, `dossier_commissions` + `commissions` (rôle fond / avis), références de textes vues dans `textes_articles` et `amendements` |
+| `/api/textes/{ref}/articles` | `textes_articles` (ordre de lecture) |
+| `/api/textes/{ref}/amendements` | `amendements` + nombre de cosignataires (`"_AmendementCosignataires"`) |
+| `/api/amendements/{uid}` | idem, un seul amendement |
+
+Les schémas exacts sont dans l'OpenAPI : lancer l'API puis ouvrir `/docs`.
+
+## Configuration
+
+| Variable | Défaut | Rôle |
+| --- | --- | --- |
+| `DATABASE_URL` / `PG*` | — | connexion Postgres (voir `server/.env.example`) |
+| `MEILI_URL` | `http://localhost:7700` | Meilisearch |
+| `MEILI_KEY` | — | clé de recherche |
+| `MEILI_EMBEDDER` | `hf-t4` | embedder de la recherche hybride |
+| `MEILI_INDEX_AMENDEMENTS` / `_DOSSIERS` / `_ARTICLES` | `amendements-2` / `dossiers` / `articles` | noms des index |
+| `API_CORS_ORIGINS` | `http://localhost:3000` | origines du front autorisées (séparées par des virgules) |
+
+```bash
+cd server
+uv sync
+uv run --env-file .env uvicorn democracy_watch.api.main:app --reload --port 8000
+# → http://localhost:8000/docs
+uv run pytest
+```
+
+## Côté front
+
+Le front ne parle à l'API qu'à travers `@democracy-watch/api` : `createHttpRepository` convertit
+les réponses vers le modèle du front, et les écrans utilisent les hooks TanStack Query. Pour
+brancher l'API, construire le site avec :
+
+```bash
+NEXT_PUBLIC_API_MODE=API NEXT_PUBLIC_API_URL=https://api.exemple.fr pnpm --filter @democracy-watch/web build
+```
+
+Voir [Données, navigation, connexion](/03-architecture/donnees).
+
+## Écarts connus (à traiter)
+
+| Écart | Conséquence aujourd'hui | Piste |
+| --- | --- | --- |
+| Pas de catalogue de textes « en cours d'examen » | « Ajouter des textes » passe par `/api/search?types=dossiers` | `GET /api/dossiers?etat=en_cours` |
+| Pas de liste des commissions | noms de commission affichés depuis les fiches de dossier | `GET /api/commissions` |
+| Étape d'examen d'un amendement non stockée | déduite du préfixe du numéro (CE, CD… ; numéro seul = séance) | exposer `codeEtape` / `prefixeOrganeExamen` |
+| Résumés en langage clair absents | début du dispositif officiel affiché | enrichissement (IA) côté données |
+| Lien commission → séance inexistant dans les données | pas de « redéposé en… ? » en mode API | calcul de similarité côté serveur |
+| Champs des documents Meilisearch supposés identiques aux schémas de l'API (+ `dossier_uid`, `dossier_titre`) | à vérifier sur les index réels | documenter les index |

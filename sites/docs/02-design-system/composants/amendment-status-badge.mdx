@@ -1,0 +1,45 @@
+---
+title: AmendmentStatusBadge
+---
+
+import { AmendmentStatusBadge } from "@democracy-watch/ui";
+
+## Import
+
+```tsx
+import { AmendmentStatusBadge } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <AmendmentStatusBadge status="adopte" />
+</Preview>
+
+```tsx
+<AmendmentStatusBadge status="adopte" />
+```
+
+## Avec un statut
+
+<Preview>
+  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+    <AmendmentStatusBadge status="en-attente" />
+    <AmendmentStatusBadge status="adopte" />
+    <AmendmentStatusBadge status="rejete" />
+    <AmendmentStatusBadge status="tombe" />
+    <AmendmentStatusBadge status="retire" />
+    <AmendmentStatusBadge status="non-soutenu" />
+    <AmendmentStatusBadge status="irrecevable" />
+  </div>
+</Preview>
+
+```tsx
+<AmendmentStatusBadge status="en-attente" />
+<AmendmentStatusBadge status="adopte" />
+<AmendmentStatusBadge status="rejete" />
+<AmendmentStatusBadge status="tombe" />
+<AmendmentStatusBadge status="retire" />
+<AmendmentStatusBadge status="non-soutenu" />
+<AmendmentStatusBadge status="irrecevable" />
+```

@@ -1,0 +1,72 @@
+---
+title: TextsTable
+---
+
+import { commissions, texts } from "@democracy-watch/data";
+import { TextsTable } from "@democracy-watch/ui";
+
+export const commissionName = (id) => commissions.find((c) => c.id === id)?.name ?? id;
+
+## Import
+
+```tsx
+import { TextsTable } from "@democracy-watch/ui";
+```
+
+## Utilisation de base
+
+<Preview>
+  <TextsTable texts={texts} commissionName={commissionName} selected={[]} onToggle={() => {}} />
+</Preview>
+
+```tsx
+const commissionName = (id) => commissions.find((c) => c.id === id)?.name ?? id;
+
+<TextsTable texts={texts} commissionName={commissionName} selected={[]} onToggle={() => {}} />
+```
+
+## Avec une sélection
+
+<Preview>
+  <TextsTable
+    texts={texts}
+    commissionName={commissionName}
+    selected={["ppl-2511", "plf-2400"]}
+    onToggle={() => {}}
+  />
+</Preview>
+
+```tsx
+const commissionName = (id) => commissions.find((c) => c.id === id)?.name ?? id;
+
+<TextsTable
+  texts={texts}
+  commissionName={commissionName}
+  selected={["ppl-2511", "plf-2400"]}
+  onToggle={() => {}}
+/>
+```
+
+## Avec des textes déjà suivis
+
+<Preview>
+  <TextsTable
+    texts={texts}
+    commissionName={commissionName}
+    selected={[]}
+    followedIds={["pjl-2436"]}
+    onToggle={() => {}}
+  />
+</Preview>
+
+```tsx
+const commissionName = (id) => commissions.find((c) => c.id === id)?.name ?? id;
+
+<TextsTable
+  texts={texts}
+  commissionName={commissionName}
+  selected={[]}
+  followedIds={["pjl-2436"]}
+  onToggle={() => {}}
+/>
+```

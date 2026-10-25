@@ -1,0 +1,35 @@
+{
+  "name": "@democracy-watch/docs",
+  "private": true,
+  "type": "module",
+  "description": "Documentation Zudoku : guide, design system, architecture, serveur, roadmap.",
+  "scripts": {
+    "dev": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku dev --port 3002",
+    "build": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku build",
+    "preview": "ZUDOKU_DISABLE_UPDATE_CHECK=1 zudoku preview --port 3002",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@democracy-watch/brand": "workspace:*",
+    "@democracy-watch/data": "workspace:*",
+    "@democracy-watch/theme": "workspace:*",
+    "@democracy-watch/ui": "workspace:*",
+    "@fontsource/archivo": "5.3.0",
+    "@fontsource/spectral": "5.3.0",
+    "@mantine/core": "catalog:",
+    "@mantine/hooks": "catalog:",
+    "@tabler/icons-react": "catalog:",
+    "mermaid": "11.17.2",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zudoku": "0.86.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "pagefind": "1.5.2",
+    "typescript": "catalog:",
+    "vite": "8.1.5"
+  }
+}

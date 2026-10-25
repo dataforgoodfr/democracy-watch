@@ -1,0 +1,8 @@
+# Ports pour tester les images en local (ignoré par Coolify).
+services:
+  web:
+    ports:
+      - "3000:3000"
+  docs:
+    ports:
+      - "3002:80"

@@ -1,0 +1,111 @@
+.panel {
+  background: var(--dw-fond-surface);
+  border: var(--dw-trait-defaut);
+  border-radius: var(--dw-rayon-md);
+  padding: var(--dw-espacement-6v) var(--dw-espacement-4v);
+}
+
+.panel[data-variant="accordion"] {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--dw-espacement-4v);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--dw-texte-lg-taille);
+  font-weight: 500;
+}
+
+.reset {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--dw-texte-action);
+  font: inherit;
+  font-size: var(--dw-texte-sm-taille);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.group {
+  border: 0;
+  margin: 0 0 var(--dw-espacement-6v);
+  padding: 0;
+}
+
+.legend {
+  margin-bottom: var(--dw-espacement-3v);
+  font-weight: 700;
+  font-size: var(--dw-texte-sm-taille);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dw-espacement-3v);
+}
+
+.withDot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dw-espacement-2v);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--dw-rayon-pilule);
+}
+
+.accordionControl {
+  background: var(--dw-jaune-50);
+  color: var(--dw-texte-action);
+}
+
+.pills {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dw-espacement-2v);
+}
+
+.pill {
+  border: 0;
+  border-radius: var(--dw-rayon-pilule);
+  padding: var(--dw-espacement-1v) var(--dw-espacement-3v);
+  background: var(--dw-fond-neutre);
+  color: var(--dw-texte-defaut);
+  font: inherit;
+  font-size: var(--dw-texte-sm-taille);
+  cursor: pointer;
+}
+
+.pill:hover {
+  background: var(--dw-bordure-defaut);
+}
+
+.pill[aria-pressed="true"] {
+  background: var(--dw-fond-action);
+  color: var(--dw-fond-surface);
+}
+
+.segmented {
+  background: var(--dw-fond-surface);
+  border: var(--dw-trait-defaut);
+}
+
+.segmentLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dw-espacement-1v);
+}

@@ -1,10 +1,13 @@
+# Hooks Python (server/). Les hooks JS/TS sont gérés par lefthook (voir lefthook.yml).
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.14
     hooks:
       - id: ruff-check
         args: [--fix]
+        files: ^server/
       - id: ruff-format
+        files: ^server/
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:

@@ -1,0 +1,32 @@
+{
+  "name": "@democracy-watch/ui",
+  "private": true,
+  "type": "module",
+  "description": "Composants d'interface : génériques (layout, filtres, badges) et législatifs (textes, articles, amendements).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./test-utils": "./src/test-utils.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@democracy-watch/brand": "workspace:*",
+    "@democracy-watch/data": "workspace:*",
+    "@democracy-watch/theme": "workspace:*",
+    "@tabler/icons-react": "catalog:"
+  },
+  "peerDependencies": {
+    "@mantine/core": "*",
+    "@mantine/hooks": "*",
+    "react": "*"
+  },
+  "devDependencies": {
+    "@mantine/core": "catalog:",
+    "@mantine/hooks": "catalog:",
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

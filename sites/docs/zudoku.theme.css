@@ -1,0 +1,97 @@
+/* Ajustements de la documentation. Les couleurs viennent de zudoku.config.tsx (tokens). */
+/* Archivo est chargée par zudoku.config.tsx ; Spectral sert aux aperçus de la typographie juridique. */
+@import "@fontsource/spectral/400.css";
+@import "@fontsource/spectral/400-italic.css";
+
+.dw-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.dw-feature {
+  display: block;
+  height: 100%;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-decoration: none;
+  transition: border-color 150ms;
+}
+
+.dw-feature:hover {
+  border-color: var(--primary);
+}
+
+.dw-feature h3 {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.dw-feature p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.dw-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 2rem;
+}
+
+.dw-swatch {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+}
+
+.dw-swatch > div:first-child {
+  height: 64px;
+}
+
+.dw-swatch > div:last-child {
+  padding: 0.5rem 0.75rem;
+}
+
+.dw-swatch code {
+  font-size: 0.75rem;
+}
+
+.dw-mermaid {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.dw-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.dw-captures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.dw-captures figure {
+  margin: 0;
+}
+
+.dw-captures img {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.dw-captures figcaption {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}

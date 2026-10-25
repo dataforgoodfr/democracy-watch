@@ -1,0 +1,37 @@
+{
+  "name": "@democracy-watch/screens",
+  "private": true,
+  "type": "module",
+  "description": "Écrans de l'application : une vue par page, qui charge ses données via les hooks de @democracy-watch/api. Indépendant de Next.js.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@democracy-watch/api": "workspace:*",
+    "@democracy-watch/brand": "workspace:*",
+    "@democracy-watch/data": "workspace:*",
+    "@democracy-watch/state": "workspace:*",
+    "@democracy-watch/theme": "workspace:*",
+    "@democracy-watch/ui": "workspace:*",
+    "@tabler/icons-react": "catalog:",
+    "@tanstack/react-query": "catalog:"
+  },
+  "peerDependencies": {
+    "@mantine/core": "*",
+    "@mantine/hooks": "*",
+    "react": "*"
+  },
+  "devDependencies": {
+    "@mantine/core": "catalog:",
+    "@mantine/hooks": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

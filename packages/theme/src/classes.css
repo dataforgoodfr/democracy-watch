@@ -1,0 +1,31 @@
+/*
+ * Classes utilitaires Democracy Watch. Aucune règle sur des éléments (body, h1, a…) :
+ * ce fichier peut être chargé dans n'importe quel site (application, documentation).
+ */
+
+/* Contenu juridique : alinéas et citations en Spectral. */
+.dw-loi {
+  font-family: var(--dw-police-loi);
+  font-size: var(--dw-texte-loi-taille);
+  line-height: var(--dw-texte-loi-interligne);
+}
+
+.dw-loi--citation {
+  font-family: var(--dw-police-loi);
+  font-size: var(--dw-texte-citation-taille);
+  line-height: var(--dw-texte-citation-interligne);
+  font-style: italic;
+}
+
+/* Masqué visuellement, lu par les lecteurs d'écran. */
+.dw-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

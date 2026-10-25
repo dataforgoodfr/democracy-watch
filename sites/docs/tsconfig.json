@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["zudoku/client", "node"]
+  },
+  "include": ["src", "zudoku.config.tsx", "zudoku.navigation.ts", "vite.config.ts"]
+}

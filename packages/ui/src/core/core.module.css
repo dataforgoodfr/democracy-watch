@@ -1,0 +1,96 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dw-espacement-1v);
+  padding: 0 var(--dw-espacement-2v);
+  border-radius: var(--dw-rayon-sm);
+  font-size: var(--dw-texte-badge-taille);
+  line-height: var(--dw-texte-badge-interligne);
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: var(--dw-fond-neutre);
+  color: var(--dw-texte-defaut);
+}
+
+.badge[data-size="md"] {
+  padding: 2px var(--dw-espacement-3v);
+}
+
+.badge[data-tone="info"] {
+  background: var(--dw-statut-info-fond);
+  color: var(--dw-statut-info);
+}
+
+.badge[data-tone="succes"] {
+  background: var(--dw-statut-succes-fond);
+  color: var(--dw-statut-succes);
+}
+
+.badge[data-tone="erreur"] {
+  background: var(--dw-statut-erreur-fond);
+  color: var(--dw-statut-erreur);
+}
+
+.badge[data-tone="avertissement"] {
+  background: var(--dw-statut-avertissement-fond);
+  color: var(--dw-statut-avertissement);
+}
+
+.badge[data-tone="marque"] {
+  background: var(--dw-fond-marque-accent);
+  color: var(--dw-texte-action);
+}
+
+.badge[data-tone="action"] {
+  background: var(--dw-fond-action);
+  color: var(--dw-fond-surface);
+}
+
+.highlight {
+  background: none;
+  color: var(--dw-texte-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.empty {
+  padding: var(--dw-espacement-4v);
+  border: 1px dashed var(--dw-bordure-defaut);
+  border-radius: var(--dw-rayon-md);
+  color: var(--dw-texte-mention);
+  font-size: var(--dw-texte-sm-taille);
+  line-height: var(--dw-texte-sm-interligne);
+}
+
+.emptyTitle {
+  margin: 0 0 var(--dw-espacement-1v);
+  color: var(--dw-texte-defaut);
+  font-weight: 700;
+}
+
+.card {
+  background: var(--dw-fond-surface);
+  border: var(--dw-trait-defaut);
+  border-radius: var(--dw-rayon-md);
+  padding: var(--dw-espacement-6v);
+}
+
+.card[data-panel] {
+  border-radius: var(--dw-rayon-lg);
+}
+
+.card[data-padding="sm"] {
+  padding: var(--dw-espacement-4v);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dw-espacement-3v);
+}
+
+.errorMessage {
+  margin: 0 0 var(--dw-espacement-3v);
+}

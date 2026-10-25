@@ -1,0 +1,52 @@
+/*
+ * Styles globaux Democracy Watch. À importer une fois par site, après les styles Mantine :
+ *   import "@mantine/core/styles.css";
+ *   import "@democracy-watch/theme/styles.css";
+ */
+@import "@fontsource/archivo/400.css";
+@import "@fontsource/archivo/500.css";
+@import "@fontsource/archivo/700.css";
+@import "@fontsource/archivo/800-italic.css";
+@import "@fontsource/spectral/400.css";
+@import "@fontsource/spectral/400-italic.css";
+@import "./tokens.css";
+@import "./classes.css";
+
+body {
+  background: var(--dw-fond-page);
+  color: var(--dw-texte-defaut);
+  font-family: var(--dw-police-interface);
+}
+
+a {
+  color: var(--dw-texte-action);
+  text-underline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--dw-texte-titre);
+}
+
+/* Focus clavier DSFR : jamais supprimé, jamais modifié. `!important` l'emporte sur les styles de Mantine. */
+/* biome-ignore-start lint/complexity/noImportantStyles: le focus DSFR doit primer sur tout autre style. */
+:focus-visible {
+  outline: var(--dw-focus-outline) !important;
+  outline-offset: var(--dw-focus-offset) !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: fin du focus DSFR. */
+
+/* biome-ignore-start lint/complexity/noImportantStyles: les préférences d'accessibilité priment. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: fin des préférences d'accessibilité. */
