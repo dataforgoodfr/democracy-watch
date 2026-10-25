@@ -1,0 +1,15 @@
+{
+  "name": "@democracy-watch/data",
+  "private": true,
+  "type": "module",
+  "description": "Modèle du domaine (textes, articles, amendements), données fictives V0 et dépôt de données.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
