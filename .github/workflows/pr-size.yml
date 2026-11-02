@@ -1,0 +1,45 @@
+# Avertit (sans bloquer) quand une PR est trop grosse pour être relue sérieusement.
+# pull_request_target : le workflow tourne avec le code de main et ne checkout jamais
+# celui de la PR, il ne fait qu'appeler l'API GitHub.
+name: Taille de PR
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+env:
+  MAX_LINES: 400
+  LABEL: grosse-pr
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compter les lignes modifiées
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # Lockfiles exclus : ils gonflent le diff sans demander de relecture
+          lines=$(gh api --paginate "repos/$REPO/pulls/$PR/files" \
+            --jq '.[] | select(.filename | test("(^|/)uv\\.lock$|package-lock\\.json$") | not) | .additions + .deletions' \
+            | awk '{s+=$1} END {print s+0}')
+          echo "Lignes modifiées (hors lockfiles) : $lines"
+
+          if [ "$lines" -le "$MAX_LINES" ]; then
+            gh pr edit "$PR" -R "$REPO" --remove-label "$LABEL" 2>/dev/null || true
+            exit 0
+          fi
+
+          echo "::warning::PR de $lines lignes (seuil : $MAX_LINES). Pense à la découper."
+          already=$(gh pr view "$PR" -R "$REPO" --json labels --jq "any(.labels[]; .name == \"$LABEL\")")
+          gh label create "$LABEL" -R "$REPO" --color d93f0b \
+            --description "PR au-delà de $MAX_LINES lignes" 2>/dev/null || true
+          gh pr edit "$PR" -R "$REPO" --add-label "$LABEL"
+          if [ "$already" != "true" ]; then
+            gh pr comment "$PR" -R "$REPO" --body "⚠️ Cette PR modifie **$lines lignes** (hors lockfiles), au-delà du seuil de $MAX_LINES. Une grosse PR est difficile à relire sérieusement : si possible, découpe-la en PR plus petites et indépendantes. Si elle doit rester ainsi, explique pourquoi dans la description."
+          fi

@@ -1,0 +1,31 @@
+# CI : lint, types, secrets et tests sur chaque PR et sur main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.14"
+
+      - name: Installer les dépendances
+        run: uv sync --locked --dev
+
+      - name: pre-commit (ruff, ty, secrets, hygiène)
+        # no-commit-to-branch n'a pas de sens en CI (le push sur main arrive après merge)
+        run: SKIP=no-commit-to-branch uv run pre-commit run --all-files --show-diff-on-failure
+
+      - name: Tests
+        run: uv run pytest -q
