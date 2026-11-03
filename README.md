@@ -1,35 +1,19 @@
-# Template DataForGood
+# Democracy Watch
 
-This file will become your README and also the index of your
-documentation.
+Outil Data For Good pour aider les chargés de plaidoyer associatifs à suivre le travail
+parlementaire : textes, articles, amendements, groupes et votes.
 
-# Contributing
-
+Pour contribuer, lire [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Installation
 
-- [Installation de Python](#installation-de-python)
-
-Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
-
-Une fois installé, il suffit de lancer la commande suivante pour installer la version de Python adéquate, créer un environnement virtuel et installer les dépendances du projet.
+Prérequis : [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uv sync
+uv sync                        # Python, venv et dépendances
+uv run pre-commit install      # lance les vérifications à chaque commit
+uv run pytest                  # tests
 ```
-
-A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement activé lorsque vous ouvrirez le projet. Sinon, il suffit de l'activer manuellement avec la commande suivante :
-
-```bash
-source .venv/bin/activate
-```
-
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
-
-```bash
-uv run pipelines/run.py run build_database
-```
-
 
 ## Connexion à la base
 
@@ -54,12 +38,11 @@ log.info("%s amendements lus", count)
 
 Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
 
-## Lancer les precommit-hook localement
+## Vérifications
 
-[Installer les precommit](https://pre-commit.com/)
+`pre-commit` tourne à chaque commit et en CI : ruff (lint et format), ty (types),
+detect-secrets, et des contrôles d'hygiène (gros fichiers, clés privées, commit sur `main`…).
 
-    pre-commit run --all-files
-
-## Utiliser Tox pour tester votre code
-
-    tox -vv
+```bash
+uv run pre-commit run --all-files
+```

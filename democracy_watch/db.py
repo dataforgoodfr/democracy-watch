@@ -17,7 +17,10 @@ from psycopg.rows import dict_row
 def connect(read_only=True):
     """Connexion psycopg dont les lignes sont des dicts."""
     conn = psycopg.connect(
-        os.environ.get("DATABASE_URL", ""), connect_timeout=15, row_factory=dict_row
+        os.environ.get("DATABASE_URL", ""),
+        connect_timeout=15,
+        # faux positif de ty sur les génériques de psycopg (pyright l'accepte)
+        row_factory=dict_row,  # ty: ignore[invalid-argument-type]
     )
     conn.read_only = read_only
     return conn
