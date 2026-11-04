@@ -1,0 +1,80 @@
+# Constantes des scripts de sync/ (lu par sync/config.py).
+# Les secrets restent dans l'environnement : MEILI_URL, MEILI_KEY, HF_TOKEN, DATABASE_URL / PG*.
+
+# Valeurs par défaut des options en ligne de commande.
+defaults:
+  index: amendements-2
+  legislatures: [17]
+
+meili:
+  task_timeout_ms: 3600000   # attente max d'une tâche Meilisearch
+  task_interval_ms: 200      # intervalle de sondage d'une tâche
+  # Taille max d'une requête : le proxy devant l'instance hébergée renvoie 413 au-delà de sa limite.
+  # Surchargeable par la variable MEILI_MAX_BATCH_BYTES.
+  max_batch_bytes: 900000
+  documents_page_size: 10000 # pagination de get_documents (--reconcile)
+
+sync:
+  margin_days: 1             # recouvrement sous le filigrane (updated_at >= filigrane - marge)
+  max_delete_ratio: 0.05     # garde-fou --reconcile : part max de l'index supprimable
+  # Lots envoyés par groupes (meili_sync.send) : Meilisearch fusionne un groupe en un seul lot, qui réussit ou
+  # échoue en entier. Plus grand = plus d'embeddings en parallèle, mais plus perdu à chaque échec.
+  lots_en_parallele: 4
+  # Reprise d'un groupe dont l'embedding échoue.
+  retry:
+    pause_seconds: 0         # pause entre deux lots, pour soulager l'endpoint d'embedding
+    max_retries: 5           # nouveaux essais après le premier envoi (6 envois au plus), attente 60 s × n
+
+
+# Réglages de l'index (meili_setup.py).
+# Requis : updated_at pour le filigrane, le reste pour search/index.html (filtres, facettes).
+# Absent de la base CLAIR, donc non déclaré : groupe_abrege (nom_court vide).
+index_settings:
+  filterable:
+    - updated_at
+    - legislature
+    - texte_ref
+    - article
+    - groupe_politique
+    - auteur
+    - date_depot
+    - sort
+    - dossier_uid
+    - groupe_libelle
+    - id_discussion_commune    # search/index.html : « Voir la discussion commune »
+    - id_discussion_identique
+  sortable:
+    - updated_at
+    - date_depot
+  # Champs cherchés par mot-clé, du plus au moins important (règle attributeRank).
+  # Sans cette liste ("*"), uid, dates, couleurs… sont aussi cherchés.
+  searchable:
+    - dispositif
+    - expose
+    - dossier_titre
+    - auteur_nom
+    - groupe_libelle
+  # Langue des champs de texte : tokenisation française (élisions l', d'…).
+  localized:
+    - attributePatterns: [dispositif, expose, dossier_titre]
+      locales: [fra]
+  # Mots ignorés à l'indexation et dans les requêtes : sans eux, « de la » trouve tous les amendements.
+  # Élisions sans apostrophe : le tokeniseur coupe « l'amendement » en « l » + « amendement ».
+  stop_words: [le, la, les, l, de, des, du, d, un, une, et, à, au, aux, en, pour, par, sur, dans, qu, n, s]
+
+# Embedders utilisés par search/index.html (même définition que hf-t4 de evals/amendements/meili_upload.py).
+# Inference Endpoint Hugging Face (TEI), API compatible OpenAI ; "{{..}}" = plusieurs textes par requête.
+# api_key_env : variable d'environnement de la clé (retirée avant envoi à Meilisearch).
+embedders:
+  hf-t4:
+    api_key_env: HF_TOKEN
+    settings:
+      source: rest
+      url: https://6ac79a18108491befe2bf801.endpoints.huggingface.cloud/v1/embeddings
+      request:
+        input: ["{{text}}", "{{..}}"]
+        model: /repository
+      response:
+        data: [{embedding: "{{embedding}}"}, "{{..}}"]
+      documentTemplate: "dispositif: {{ doc.dispositif }}\nexposé: {{ doc.expose }}"
+      documentTemplateMaxBytes: 6000
