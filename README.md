@@ -3,7 +3,8 @@
 Outil Data For Good pour aider les chargés de plaidoyer associatifs à suivre le travail
 parlementaire : textes, articles, amendements, groupes et votes.
 
-Pour contribuer, lire [CONTRIBUTING.md](CONTRIBUTING.md).
+Pour contribuer, lire [CONTRIBUTING.md](CONTRIBUTING.md). Pour faire tourner le projet,
+lancer les tests et modifier le code : [LOCAL_DEV.md](LOCAL_DEV.md).
 
 ## Installation
 
@@ -11,7 +12,7 @@ Prérequis : [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync                        # Python, venv et dépendances
-uv run pre-commit install      # lance les vérifications à chaque commit
+uv run prek install            # lance les vérifications à chaque commit
 uv run pytest                  # tests
 ```
 
@@ -40,9 +41,10 @@ Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
 
 ## Vérifications
 
-`pre-commit` tourne à chaque commit et en CI : ruff (lint et format), ty (types),
-detect-secrets, et des contrôles d'hygiène (gros fichiers, clés privées, commit sur `main`…).
+Les hooks de `.pre-commit-config.yaml` tournent via `prek` à chaque commit et en CI :
+ruff (lint et format), ty (types), detect-secrets, et des contrôles d'hygiène (gros fichiers,
+clés privées, commit sur `main`…).
 
 ```bash
-uv run pre-commit run --all-files
+uv run prek run --all-files
 ```

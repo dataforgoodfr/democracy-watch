@@ -14,5 +14,5 @@
 
 - [ ] J'ai relu tout le diff et je peux expliquer chaque ligne
 - [ ] La PR traite un seul sujet (idéalement < 400 lignes)
-- [ ] `uv run pre-commit run --all-files` et `uv run pytest` passent
+- [ ] `uv run prek run --all-files` et `uv run pytest` passent
 - [ ] Aucun secret, dump ou donnée personnelle dans le diff
