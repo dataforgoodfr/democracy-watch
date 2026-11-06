@@ -2,15 +2,21 @@
 
 Routes : GET /api/v0/search (voir search.py), GET /api/v0/dossiers/{dossier_uid},
 GET /api/v0/textes/{texte_ref}/articles, GET /api/v0/amendements/{uid}, GET /health.
-Variables d'environnement : DATABASE_URL (voir democracy_watch/db.py) et celles de meili.py.
+Variables d'environnement : API_KEY, DATABASE_URL (voir democracy_watch/db.py) et celles de
+meili.py.
+Sécurité : les routes /api/v0 exigent l'en-tête X-API-Key égal à API_KEY (toutes refusées si
+API_KEY n'est pas définie). /health et /docs restent ouverts.
 Lectures Postgres : adaptateur backend/clair.py.
 
 Lancement, depuis la racine du dépôt :
   uv run uvicorn backend.api.app:app --reload
 """
 
+import os
+import secrets
+
 import psycopg
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from meilisearch.errors import MeilisearchError
 
@@ -18,8 +24,17 @@ from backend import clair
 from backend.api.meili import client
 from backend.api.search import router as search_router
 
+
+def check_api_key(x_api_key: str = Header("")):
+    """Refuse la requête si l'en-tête X-API-Key ne correspond pas à API_KEY."""
+    expected = os.environ.get("API_KEY", "")
+    if not expected or not secrets.compare_digest(x_api_key, expected):
+        raise HTTPException(401, "Clé d'API manquante ou invalide")
+
+
+SECURED = [Depends(check_api_key)]
 app = FastAPI(title="Democracy Watch API")
-app.include_router(search_router)
+app.include_router(search_router, dependencies=SECURED)
 
 
 def found(item, what):
@@ -29,17 +44,17 @@ def found(item, what):
     return item
 
 
-@app.get("/api/v0/dossiers/{dossier_uid}")
+@app.get("/api/v0/dossiers/{dossier_uid}", dependencies=SECURED)
 def get_dossier(dossier_uid: str):
     return found(clair.dossier(dossier_uid), "Dossier")
 
 
-@app.get("/api/v0/textes/{texte_ref}/articles")
+@app.get("/api/v0/textes/{texte_ref}/articles", dependencies=SECURED)
 def get_articles(texte_ref: str):
     return found(clair.articles(texte_ref), "Texte")
 
 
-@app.get("/api/v0/amendements/{uid}")
+@app.get("/api/v0/amendements/{uid}", dependencies=SECURED)
 def get_amendement(uid: str):
     return found(clair.amendement(uid), "Amendement")
 

@@ -1,5 +1,5 @@
 # API Democracy Watch (backend/api), déployée sur Coolify.
-# Variables à fournir : DATABASE_URL, MEILI_URL, MEILI_KEY (et MEILI_INDEX, MEILI_EMBEDDER).
+# Variables à fournir : API_KEY, DATABASE_URL, MEILI_URL, MEILI_KEY (et MEILI_INDEX, MEILI_EMBEDDER).
 FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
 
 # curl : utilisé par le health check de Coolify à l'intérieur du conteneur
