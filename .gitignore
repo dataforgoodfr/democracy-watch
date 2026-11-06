@@ -168,3 +168,6 @@ output/
 *.dump
 *.sql.gz
 *.parquet
+
+# Clé Meilisearch de la démo de recherche
+demos/search/config.js
