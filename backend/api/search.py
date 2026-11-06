@@ -101,6 +101,12 @@ def search(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=0, le=100),
 ):
+    """Recherche dans les index demandés ; résultats groupés par type.
+
+    `search_mode` vaut `keyword` si la recherche sémantique n'a pas été demandée ou si le
+    service d'embedding ne répond pas : la recherche est alors relancée en mots-clés seuls
+    (réponse 200).
+    """
     types = list(dict.fromkeys(types))
     if unknown := [t for t in types if t not in TYPES]:
         raise HTTPException(400, f"Types inconnus : {unknown}. Valeurs possibles : {list(TYPES)}")

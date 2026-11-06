@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+/* Jetons du design system Democracy Watch (variables Figma --dw-*) */
+@theme {
+  --font-interface: 'DM Sans', sans-serif;
+  --font-marque: 'Archivo', sans-serif;
+  --font-loi: 'Spectral', serif;
+
+  --color-fond-page: #f6f6f6;
+  --color-fond-surface: #ffffff;
+  --color-fond-marque: #f5fac4;
+  --color-fond-action: #17322e;
+  --color-fond-neutre: #eeeeee;
+  --color-fond-selection: #e3f4f1;
+
+  --color-texte-titre: #161616;
+  --color-texte-defaut: #3a3a3a;
+  --color-texte-mention: #666666;
+  --color-texte-action: #17322e;
+  --color-texte-accent: #1f6f66;
+  --color-texte-inverse: #f5fac4;
+
+  --color-bordure-defaut: #dddddd;
+  --color-bordure-forte: #666666;
+
+  --color-statut-info: #0063cb;
+  --color-statut-info-fond: #e8edff;
+  --color-statut-avertissement: #b34000;
+  --color-statut-avertissement-fond: #ffe9e6;
+  --color-statut-erreur: #ce0500;
+  --color-statut-erreur-fond: #ffe9e9;
+  --color-statut-succes: #18753c;
+  --color-statut-succes-fond: #b8fec9;
+}
+
+body {
+  @apply bg-fond-page font-interface text-texte-defaut;
+}
+
+/* Libellé de badge : 12px gras capitales */
+@utility badge {
+  @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs leading-5 font-bold tracking-[0.3px] uppercase whitespace-nowrap;
+}
+
+@utility lien-titre {
+  @apply font-bold text-texte-action underline;
+  text-underline-position: from-font;
+}
