@@ -1,6 +1,8 @@
 ## Quoi
 
-<!-- Ce que change la PR, en 2-3 phrases. Lien vers l'issue : Closes #… -->
+<!-- Ce que change la PR, en 2-3 phrases. -->
+
+Closes #<!-- numéro de la tâche (sous-issue) -->
 
 ## Pourquoi
 
