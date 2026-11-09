@@ -26,15 +26,7 @@ soignez-le. La branche est supprimée automatiquement après le merge.
 ## Labels
 
 Chaque tâche porte un label par domaine qu'elle touche (sur l'issue, pas sur la PR) :
-
-| Label    | Domaine                                          |
-|----------|--------------------------------------------------|
-| `front`  | Interface                                        |
-| `back`   | API                                              |
-| `data`   | Ingestion, schéma Postgres, dump CLAIR           |
-| `search` | Meilisearch                                      |
-| `infra`  | CI, déploiement                                  |
-| `docs`   | Documentation                                    |
+`front`, `back`, `data`, `search`, `infra`, `docs`.
 
 ## Taille des PR
 
