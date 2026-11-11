@@ -78,6 +78,19 @@ def run(queries):
     return client.multi_search(keyword)["results"], True
 
 
+def search_mode(query, result, fell_back):
+    """`hybrid` si la partie sémantique a vraiment servi, sinon `keyword`.
+
+    Si l'embedder échoue avec semanticRatio < 1, Meilisearch ne lève pas d'erreur : il
+    renvoie les résultats par mots-clés avec semanticHitCount = 0.
+    """
+    if "hybrid" not in query or fell_back:
+        return "keyword"
+    if result["hits"] and result.get("semanticHitCount") == 0:
+        return "keyword"
+    return "hybrid"
+
+
 @router.get("/api/v0/search")
 def search(
     response: Response,
@@ -167,7 +180,7 @@ def search(
                 "total_pages": r["totalPages"],
                 "limit": r["hitsPerPage"],
                 "facets": r.get("facetDistribution", {}),
-                "search_mode": "hybrid" if "hybrid" in query and not fell_back else "keyword",
+                "search_mode": search_mode(query, r, fell_back),
             }
             for name, query, r in zip(types, queries, results, strict=True)
         },
