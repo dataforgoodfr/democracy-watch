@@ -3,7 +3,8 @@
 Outil Data For Good pour aider les chargés de plaidoyer associatifs à suivre le travail
 parlementaire : textes, articles, amendements, groupes et votes.
 
-Pour contribuer, lire [CONTRIBUTING.md](CONTRIBUTING.md).
+Nouveau sur le projet : suivre le [golden path](docs/golden-path.md). Pour contribuer, lire
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Installation
 

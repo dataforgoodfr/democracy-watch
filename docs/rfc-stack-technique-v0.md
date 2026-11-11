@@ -59,16 +59,16 @@ democracy-watch/
 * Oxlint Extension: Rust-based static analysis that highlights code errors instantly without slowing down the IDE.
 * Prettier Extension: Enforces format-on-save (`editor.formatOnSave: true`).
 
-###  Agentic AI & AI Coding Tools (Cursor, Claude Code, Copilot)  
+###  Agentic AI & AI Coding Tools (Cursor, Claude Code, Copilot)
 
-AI models frequently default to outdated Vue 2 patterns (Options API, `data()`, raw `fetch()` calls in `onMounted()`) because their training data contains years of legacy code.  
-  
+AI models frequently default to outdated Vue 2 patterns (Options API, `data()`, raw `fetch()` calls in `onMounted()`) because their training data contains years of legacy code.
+
 To prevent AI tools from generating obsolete code:
 
-`Your Repository`  
-`├── .cursor/rules/vue.mdc        <-- Scoped rules for Cursor / Windsurf`  
-`├── CLAUDE.md                    <-- Context rules for Claude Code CLI`  
-`└── .github/copilot-instructions <-- Custom instructions for Copilot`  
+`Your Repository`
+`├── .cursor/rules/vue.mdc        <-- Scoped rules for Cursor / Windsurf`
+`├── CLAUDE.md                    <-- Context rules for Claude Code CLI`
+`└── .github/copilot-instructions <-- Custom instructions for Copilot`
 
 #### Key Rules to Include in Your AI Configuration Files:
 
