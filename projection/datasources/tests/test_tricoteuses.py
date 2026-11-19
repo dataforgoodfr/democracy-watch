@@ -118,19 +118,29 @@ def test_read_text(api):
 
 
 def test_flattened_table_stays_one_alinea():
-    table = {"articleRefHash": "h1", "numero": 3, "texte": "«\tPopulation\tTaux\t\t\n\tMoins de 500\t28,1\t\t\n"}
-    articles = tricoteuses.articles_from_document(dict(DOCUMENT, alineas=DOCUMENT["alineas"] + [table]))
+    table = {
+        "articleRefHash": "h1",
+        "numero": 3,
+        "texte": "«\tPopulation\tTaux\t\t\n\tMoins de 500\t28,1\t\t\n",
+    }
+    articles = tricoteuses.articles_from_document(
+        dict(DOCUMENT, alineas=DOCUMENT["alineas"] + [table])
+    )
     assert articles[0].lignes[-1] == "« Population Taux Moins de 500 28,1"
 
 
 def test_premiere_lecture_texts(monkeypatch):
     acts = {
         "AN1-DEPOT": [{"dossierRefUid": "DL1", "texteAssocieRefUid": "PIONB1"}],
-        "AN1-COM-FOND-RAPPORT": [{"dossierRefUid": "DL1", "texteAdopteRefUid": "PIONBTC1"},
-                                 {"dossierRefUid": "DL2", "texteAdopteRefUid": None}],
+        "AN1-COM-FOND-RAPPORT": [
+            {"dossierRefUid": "DL1", "texteAdopteRefUid": "PIONBTC1"},
+            {"dossierRefUid": "DL2", "texteAdopteRefUid": None},
+        ],
         # La décision en séance peut viser un TAP : seul le BTA est le texte adopté.
-        "AN1-DEBATS-DEC": [{"dossierRefUid": "DL1", "texteAssocieRefUid": "PIONTAP1"},
-                           {"dossierRefUid": "DL1", "texteAssocieRefUid": "PIONBTA1"}],
+        "AN1-DEBATS-DEC": [
+            {"dossierRefUid": "DL1", "texteAssocieRefUid": "PIONTAP1"},
+            {"dossierRefUid": "DL1", "texteAssocieRefUid": "PIONBTA1"},
+        ],
     }
 
     def get(path, params=None):
@@ -139,4 +149,7 @@ def test_premiere_lecture_texts(monkeypatch):
 
     monkeypatch.setattr(tricoteuses, "get", get)
     assert tricoteuses.premiere_lecture_texts(17) == [
-        tricoteuses.PremiereLecture("DL1", depose="PIONB1", commission="PIONBTC1", adopte="PIONBTA1")]
+        tricoteuses.PremiereLecture(
+            "DL1", depose="PIONB1", commission="PIONBTC1", adopte="PIONBTA1"
+        )
+    ]

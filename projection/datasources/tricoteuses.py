@@ -1,7 +1,8 @@
 """Adaptateur de l'API Tricoteuses (https://parlement.tricoteuses.fr).
 
-Seul ce module connaît les noms de champs de Tricoteuses. Il ne dépend pas du moteur : il produit ses propres
-données (Text découpé en Article, Amendement, PremiereLecture), que le serveur et l'évaluation passent au moteur.
+Seul ce module connaît les noms de champs de Tricoteuses. Il ne dépend pas du moteur : il produit
+ses propres données (Text découpé en Article, Amendement, PremiereLecture), que le serveur et
+l'évaluation passent au moteur.
 
 Pièges traités (voir learnings/categories/tricoteuses.md) :
 - pas de champ numéro d'article : on le lit dans le titre
@@ -28,8 +29,11 @@ RANGE = re.compile(r"^(\d+) À (\d+)$")
 
 @dataclasses.dataclass
 class Amendement:
-    """Un amendement tel que le donne Tricoteuses. Mêmes champs que RawAmendement du moteur, qui ne lit que
-    des attributs, plus ce que l'interface et l'évaluation affichent."""
+    """Un amendement tel que le donne Tricoteuses.
+
+    Mêmes champs que RawAmendement du moteur, qui ne lit que des attributs, plus ce que
+    l'interface et l'évaluation affichent.
+    """
 
     uid: str
     numero: str  # « CE11 », « 3 (Rect) »
@@ -100,7 +104,10 @@ def numbers_from_title(titre):
 
 
 def articles_from_document(document):
-    """Réponse de /documents/{uid} (avec subdivisions et alinéas) → les Article, dans l'ordre du texte."""
+    """Réponse de /documents/{uid} → les Article, dans l'ordre du texte.
+
+    La réponse doit inclure les subdivisions et les alinéas.
+    """
     alineas = {}
     for alinea in document.get("alineas") or []:
         alineas.setdefault(alinea["articleRefHash"], []).append(alinea)
@@ -111,8 +118,9 @@ def articles_from_document(document):
             continue
         lignes, supprime = [], "supprim" in subdivision["titre"].lower()
         for alinea in sorted(alineas.get(subdivision["hash"], []), key=lambda a: a["numero"]):
-            # Un tableau arrive aplati en un seul alinéa, cellules séparées par des tabulations et lignes par des
-            # retours : sans ce remplacement, chaque ligne du tableau deviendrait un faux alinéa.
+            # Un tableau arrive aplati en un seul alinéa, cellules séparées par des tabulations et
+            # lignes par des retours : sans ce remplacement, chaque ligne du tableau deviendrait un
+            # faux alinéa.
             text = re.sub(r"[ \t]*[\t\n][ \t\n]*", " ", alinea["texte"] or "").strip()
             if MENTION.fullmatch(text):
                 supprime = supprime or "suppr" in text.lower()
@@ -146,7 +154,9 @@ def amendement_from(data):
         # Les noms arrivent parfois avec des entités HTML (« Barth&#232;s »).
         auteur=html.unescape(data.get("signatairesLibelle") or "") or None,
         # Arrive en texte ou en entier selon les amendements.
-        numero_ordre=int(order) if (order := str(data.get("numeroOrdreDepot") or "")).isdigit() else None,
+        numero_ordre=int(order)
+        if (order := str(data.get("numeroOrdreDepot") or "")).isdigit()
+        else None,
     )
 
 
@@ -166,7 +176,10 @@ def document_title(data):
 
 
 def read_text(uid):
-    """Le Texte uid, découpé en articles (lève TexteIntrouvable s'il n'existe pas ou n'a aucun article)."""
+    """Le Texte uid, découpé en articles.
+
+    Lève TexteIntrouvable s'il n'existe pas ou n'a aucun article.
+    """
     data = document(uid)
     return Text(uid, document_title(data), articles_from_document(data))
 
@@ -189,14 +202,19 @@ def text_amendements(uid):
 def premiere_lecture_texts(legislature):
     """Les PremiereLecture des dossiers de la législature, triées par dossier.
 
-    Pour la décision en séance, `texteAssocieRefUid` donne le texte adopté (BTA) ; `documentRefUid` donnerait le TAP.
+    Pour la décision en séance, `texteAssocieRefUid` donne le texte adopté (BTA) ;
+    `documentRefUid` donnerait le TAP.
     """
     dossiers = {}
-    acts = (("depose", "AN1-DEPOT", "texteAssocieRefUid"),
-             ("commission", "AN1-COM-FOND-RAPPORT", "texteAdopteRefUid"),
-             ("adopte", "AN1-DEBATS-DEC", "texteAssocieRefUid"))
+    acts = (
+        ("depose", "AN1-DEPOT", "texteAssocieRefUid"),
+        ("commission", "AN1-COM-FOND-RAPPORT", "texteAdopteRefUid"),
+        ("adopte", "AN1-DEBATS-DEC", "texteAssocieRefUid"),
+    )
     for key, code, field in acts:
-        for act in all_pages("/actesLegislatifs/json", {"codeActe": code, "legislature": legislature}):
+        for act in all_pages(
+            "/actesLegislatifs/json", {"codeActe": code, "legislature": legislature}
+        ):
             ref = act.get(field)
             if act.get("dossierRefUid") and ref and (key != "adopte" or "BTA" in ref):
                 dossiers.setdefault(act["dossierRefUid"], {})[key] = ref
