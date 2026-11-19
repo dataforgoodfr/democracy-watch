@@ -1,0 +1,80 @@
+// Formules des textes modificatifs (lois, ordonnances, décrets qui modifient un code ou une loi), lues par moteur/lois.py.
+// Les désignations et terminaux (alinéa, phrase, citation, ordinaux…) sont dans commun.lark, concaténé devant.
+//
+// Même forme que amendements.lark, mêmes alias, donc même Transformer (moteur/analyse.py, _VersOperations) :
+//   en_ligne : l'instruction entière, citations comprises (« Au premier alinéa, les mots : « a » sont remplacés par les mots : « b » »)
+//   bloc     : le chapeau seul, terminé par « : », quand le texte inséré est fait des alinéas qui suivent
+//              (« L'article 3 est ainsi rédigé : », « Après le deuxième alinéa, il est inséré un alinéa ainsi rédigé : »)
+//   bloc     : aussi « … est ainsi modifié : », qui ne modifie rien mais donne sa cible aux 1°, a)… qui suivent (-> contexte).
+// La voix est passive et la cible est souvent le sujet (« Le deuxième alinéa est supprimé »).
+// La référence d'article (« l'article L. 571-2 du même code ») est réduite à « l'article » par moteur/lois.py avant
+// l'analyse : le triplet dit déjà quel article est visé.
+
+// ---- en ligne
+
+en_ligne: (cible ","?)? action _FIN?
+
+cible: _A "la"i "fin"i (_DE? cible_loi)?    -> fin_de
+     | "au"i "début"i (_DE? cible_loi)?     -> debut_de
+     | (_A | "au"i | "aux"i | "dans"i)? cible_loi -> dans
+
+action: _OBJET _DP? CITATION _SEP? _REMPLACE "par"i _OBJET _DP? CITATION         -> substitute
+      | _OBJET _DP? CITATION _SEP? _SUPPRIME                                     -> delete_mots
+      | APRES _OBJET _DP? CITATION _SEP? _INSERE _OBJET _DP? CITATION             -> insert_mots
+      | _INSERE _OBJET _DP? CITATION                                             -> insert_bord
+      | cible_loi _COMPLETE "par"i (_OBJET | _PHRASES_REDIGEES) _DP? CITATION    -> complete
+      | cible_loi _SUPPRIME                                                      -> delete_node
+      | cible_loi _REDIGE _DP? CITATION                                          -> rewrite
+      | APRES _OBJET _DP? CITATION _SEP? "la"i "fin"i (_DE? cible_loi)? _REDIGE _DP? CITATION -> rewrite_fin
+      | APRES _OBJET _DP? CITATION _SEP? "la"i "fin"i (_DE? cible_loi)? _SUPPRIME  -> delete_fin
+
+// ---- bloc
+
+bloc: cible_loi _REDIGE ":"                                   -> b_rewrite
+    | cible_loi _REMPLACE "par"i compte ":"                   -> b_rewrite_compte
+    | APRES cible_loi ","? _INSERE compte ":"                 -> b_insert_node
+    | "au"i "début"i (_DE? cible_loi)? ","? _INSERE compte ":" -> b_insert_debut
+    | cible_loi _COMPLETE "par"i compte ":"                   -> b_complete
+    | _INSERE ","? APRES cible_loi ","? compte ":"            -> b_insert_node
+    | (fin ","?)? _INSERE compte ":"                          -> b_ajout_fin
+    | "il"i (_COMPLETE "par"i compte | _AINSI_COMPLETE) ":"   -> b_ajout_fin
+    | cible_loi _MODIFIE ":"                                  -> contexte
+    | (_A | "au"i | "aux"i | "dans"i) cible_loi ":"           -> contexte
+
+fin: _A "la"i "fin"i (_DE? cible_loi)?                         -> fin_de
+
+compte: _UN_ALINEA                                    -> un_alinea
+      | CARDINAL "alinéas"i _REDIGES                  -> n_alineas
+      | _UNE_PHRASE                                   -> une_phrase
+      | CARDINAL "phrases"i _REDIGES                  -> n_phrases
+      | _DISPOSITIONS                                 -> alineas_sans_nombre
+      | _ALINEA_SUIVANT                               -> un_alinea
+      | "les"i CARDINAL "alinéas"i "suivants"i        -> n_alineas
+      | "les"i "alinéas"i "suivants"i                 -> alineas_sans_nombre
+      | _PHRASE                                       -> une_phrase
+      | "les"i CARDINAL "phrases"i "suivantes"i       -> n_phrases
+      | _TABLEAU_SUIVANT                              -> alineas_sans_nombre
+
+?cible_loi: designation
+          | _LA ORDINAL "alinéa"i                       -> alinea_ordinal
+          | _LES? ORDINAL ("," ORDINAL)* ","? "et"i _AU? ORDINAL "alinéas"i -> alineas_liste
+          | _LES? CARDINAL "premiers"i "alinéas"i       -> premiers_alineas
+          | _ARTICLE_L                                -> cet_article
+          | _LE_PRESENT_ARTICLE                       -> cet_article
+
+_REMPLACE: /(est|sont)\s+remplacée?s?/i
+_SUPPRIME: /(est|sont)\s+(supprimée?s?|abrogée?s?)/i
+_COMPLETE: /(est|sont)\s+complétée?s?/i
+_INSERE: /(il\s+est\s+(inséré|ajouté)|(est|sont)\s+(insérée?s?|ajoutée?s?))/i
+_REDIGE: /(est|sont)\s+(ainsi\s+rédigée?s?|rédigée?s?\s+ainsi\s+qu['’]il\s+suit|rédigée?s?\s+comme\s+suit)/i
+_MODIFIE: /(est|sont)\s+(ainsi\s+modifiée?s?|modifiée?s?\s+ainsi\s+qu['’]il\s+suit|modifiée?s?\s+comme\s+suit)/i
+_UN_ALINEA: /un\s+(nouvel\s+)?alinéa\s+(ainsi\s+rédigé|rédigé\s+ainsi\s+qu['’]il\s+suit)/i
+_UNE_PHRASE: /une\s+(nouvelle\s+)?phrase\s+(ainsi\s+rédigée|rédigée\s+ainsi\s+qu['’]il\s+suit)/i
+_REDIGES: /(nouveaux\s+|nouvelles\s+)?(ainsi\s+rédigée?s|rédigée?s\s+ainsi\s+qu['’]il\s+suit)/i
+_PHRASES_REDIGEES: /(une|deux|trois|quatre)\s+phrases?\s+ainsi\s+rédigées?/i
+_DISPOSITIONS: /les\s+dispositions\s+suivantes/i
+_LES: /les|aux|des/i
+_AU: /au|du|le/i
+_TABLEAU_SUIVANT: /le\s+tableau\s+suivant/i
+_AINSI_COMPLETE: /est\s+ainsi\s+complétée?/i
+_LE_PRESENT_ARTICLE: /(le\s+|du\s+)?présent\s+article/i

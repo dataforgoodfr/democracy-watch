@@ -1,0 +1,61 @@
+// Désignations, citations et terminaux communs aux grammaires du moteur (amendements, lois).
+//
+// Ce fichier n'est pas une grammaire complète : moteur/analyse.py le concatène devant chaque grammaire
+// (texte_grammaire). On n'utilise pas %import de Lark : il préfixe les règles et terminaux importés
+// (commun__alinea_numero, commun__NOMBRE), et les méthodes du Transformer ne seraient plus appelées.
+// Une règle ajoutée ici vaut donc pour toutes les grammaires : vérifier qu'elle n'en rend aucune ambiguë.
+
+// ---- désignations
+
+// « la même première phrase du même alinéa 4 », « la seconde phrase dudit alinéa », « la première phrase » seule
+// (l'alinéa est alors celui de l'instruction précédente, ou le seul de l'article), « la même phrase ».
+?designation: (_LA | _LA_MEME) ORDINAL "phrase"i (_DE? alinea)?  -> phrase_de
+           | _LA_MEME "phrase"i (_DE? alinea)?                 -> meme_phrase
+           | alinea
+           | _ALINEAS NOMBRE "à"i NOMBRE                      -> alineas_de_a
+           | _ALINEAS NOMBRE ("," NOMBRE)* "et"i NOMBRE       -> alineas_liste
+           | "cet"i "alinéa"i                                 -> cet_alinea
+           | "cet"i "article"i                                -> cet_article
+           | "cet"i "amendement"i                             -> cet_article
+           | _ARTICLE_L NUMERO_ARTICLE                        -> article_numero
+           | "le"i "titre"i                                   -> titre
+
+// « l'alinéa » sans numéro : celui du préfixe (« À l'alinéa 15, après le mot…, rédiger ainsi la fin de l'alinéa »).
+?alinea: _ALINEA_L NOMBRE            -> alinea_numero
+       | _ALINEA_L                   -> cet_alinea
+       | "le"i ORDINAL "alinéa"i    -> alinea_ordinal
+       | ORDINAL "alinéa"i          -> alinea_ordinal
+       | _MEME "alinéa"i NOMBRE?    -> meme_alinea
+
+APRES: /après|avant/i
+GENRE_RENVOI: /substitution|suppression|insertion/i
+_A: /[àa]\b/i
+_FIN: /[.;,]/
+_DP: /[:;]/
+_SEP: /[,;:.]/
+_DE: /(de|du)\b/i
+_LA: /la\b|l['’]/i
+_LA_MEME: /la\s+même|ladite/i
+// « Rétablir le I de l'alinéa 3 », « les 4° et 5° de l'alinéa 17 » : la subdivision est l'alinéa lui-même.
+_SUBDIVISION: /l[ea]s?\s+(\d+°|[IVX]+|[a-z])(\s+(bis|ter|[A-Z]))?(\s+et\s+(\d+°|[IVX]+|[a-z]))?\s+d[eu]\b/i
+_ARTICLE_L: /l['’]\s*article/i
+NUMERO_ARTICLE: /premier|1er|unique|\d+(\s+(bis|ter|quater|quinquies|sexies)\b)?(\s+[A-Z]\b)?/i
+_INSERER: /insérer|ajouter/i
+_REDIGER: /rédiger\s+ainsi/i
+// Le mot, la référence, le montant… : un même verbe pour tout ce qu'un amendement cite.
+_OBJET: /(aux\s+|au\s+|à\s+la\s+|à\s+l['’]\s*|les\s+|le\s+|la\s+|l['’]\s*)(mots?|références?|montants?|dates?|années?|nombres?|taux|pourcentages?|chiffres?|durées?|signes?|mentions?|délais?|sigles?|termes?|expressions?)(\s+et\s+(la|le|les)\s+\w+)?/i
+_DE_OBJET: /(du\s+|de\s+la\s+|de\s+l['’]\s*|des\s+)(mots?|références?|montants?|dates?|années?|nombres?|taux|pourcentages?|chiffres?|durées?|signes?|mentions?|délais?|sigles?|termes?|expressions?)/i
+_PHRASE: /la\s+phrase\s+suivante/i
+_ALINEA_L: /l['’]\s*alinéa/i
+_ALINEAS: /(les|aux|des)\s+alinéas/i
+_ALINEA_SUIVANT: /l['’]\s*alinéa\s+suivant/i
+_UN_ALINEA_REDIGE: /un\s+alinéa\s+ainsi\s+rédigé/i
+_MEME: /((ce|le)\s+)?même|ledit|dudit|audit/i
+NOMBRE: /\d+/
+// « dernier » vaut -1 et « avant-dernier » -2 (comptés depuis la fin à l'étape 2).
+ORDINAL: /(?:premier|première|deuxième|second|seconde|troisième|quatrième|cinquième|sixième|septième|huitième|neuvième|dixième|onzième|douzième|treizième|quatorzième|quinzième|seizième|dix-septième|dix-huitième|dix-neuvième|vingtième|dernier|dernière|avant-dernier|avant-dernière)\b/i
+CARDINAL: /(?:deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|dix-sept|dix-huit|dix-neuf|vingt|\d+)\b/i
+// Une citation, guillemets imbriqués compris sur un niveau.
+CITATION: /«[^«»]*(«[^«»]*»[^«»]*)*»/
+
+%ignore /[\s\u00a0\u202f]+/
