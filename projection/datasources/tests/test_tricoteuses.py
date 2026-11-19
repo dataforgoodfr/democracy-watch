@@ -1,10 +1,12 @@
 """Tests de l'adaptateur Tricoteuses, sans réseau (get remplacé par monkeypatch)."""
 
+from typing import Any
+
 import pytest
 
 from datasources import tricoteuses
 
-DOCUMENT = {
+DOCUMENT: dict[str, Any] = {
     "uid": "PIONTEST",
     "titrePrincipal": "Proposition de loi de test",
     "subdivisions": [
@@ -56,7 +58,7 @@ def api(monkeypatch):
     """Remplace l'API : le document de test, et ses amendements sur deux pages."""
     calls = []
 
-    def get(path, params=None):
+    def get(path, params):
         calls.append((path, params))
         if path == "/documents/PIONTEST":
             assert params == {"include": "subdivisions,alineas"}
@@ -143,7 +145,7 @@ def test_premiere_lecture_texts(monkeypatch):
         ],
     }
 
-    def get(path, params=None):
+    def get(path, params):
         assert path == "/actesLegislatifs/json" and params["legislature"] == 17
         return Response(acts[params["codeActe"]])
 
