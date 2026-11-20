@@ -1,25 +1,42 @@
-"""Construction du corpus depuis Tricoteuses, sans réseau : l'adaptateur est remplacé par monkeypatch."""
+"""Construction du corpus depuis Tricoteuses, sans réseau.
+
+L'adaptateur est remplacé par monkeypatch.
+"""
 
 import dataclasses
 from collections import Counter
 
 import pytest
 
-from projection.eval import corpus
 from projection.datasources import tricoteuses
+from projection.eval import corpus
 
 ARTICLES = (tricoteuses.Article("PREMIER", ("Le premier alinéa.",)),)
 
 
 def amendement(uid, sort):
     return tricoteuses.Amendement(
-        uid=uid, numero=uid, texte_ref="B1", article_vise="ART. PREMIER", alinea=None, dispositif="<p>Rédiger.</p>",
-        parent_uid=None, tri_amendement="a", date_sort=None, sort=sort, auteur="M. Untel", numero_ordre=1)
+        uid=uid,
+        numero=uid,
+        texte_ref="B1",
+        article_vise="ART. PREMIER",
+        alinea=None,
+        dispositif="<p>Rédiger.</p>",
+        parent_uid=None,
+        tri_amendement="a",
+        date_sort=None,
+        sort=sort,
+        auteur="M. Untel",
+        numero_ordre=1,
+    )
 
 
 @pytest.fixture
 def api(monkeypatch, tmp_path):
-    """Trois textes : B1 (déposé), BTC1 (commission), BTA1 absent de Tricoteuses. Cache dans un dossier temporaire."""
+    """Trois textes : B1 (déposé), BTC1 (commission), BTA1 absent de Tricoteuses.
+
+    Le cache est dans un dossier temporaire.
+    """
     monkeypatch.setattr(corpus, "CACHE", tmp_path)
     calls = Counter()
 
@@ -30,8 +47,14 @@ def api(monkeypatch, tmp_path):
         return tricoteuses.Text(ref, f"Texte {ref}", ARTICLES)
 
     monkeypatch.setattr(tricoteuses, "read_text", read_text)
-    monkeypatch.setattr(tricoteuses, "text_amendements", lambda ref: {
-        "B1": [amendement("AM1", "Adopté")], "BTC1": [amendement("AM2", "Adopté")]}.get(ref, []))
+    monkeypatch.setattr(
+        tricoteuses,
+        "text_amendements",
+        lambda ref: {
+            "B1": [amendement("AM1", "Adopté")],
+            "BTC1": [amendement("AM2", "Adopté")],
+        }.get(ref, []),
+    )
     return calls
 
 
@@ -63,25 +86,38 @@ def test_corpus_fields():
     assert set(corpus.FIELDS) == expected_items
 
 
-
 def test_resolve():
-    previous = [{"numero": "1", "lignes": ["Texte."], "supprime": False, "inchange": False},
-                {"numero": "2", "lignes": [], "supprime": True, "inchange": False}]
-    articles = [{"numero": n, "lignes": [], "supprime": False, "inchange": True} for n in ("1", "2", "3")]
+    previous = [
+        {"numero": "1", "lignes": ["Texte."], "supprime": False, "inchange": False},
+        {"numero": "2", "lignes": [], "supprime": True, "inchange": False},
+    ]
+    articles = [
+        {"numero": n, "lignes": [], "supprime": False, "inchange": True} for n in ("1", "2", "3")
+    ]
     resolved = corpus.resolve(articles, previous)
     # « (Conforme) » après une suppression en commission : l'article reste supprimé.
-    assert [(a["lignes"], a["supprime"]) for a in resolved] == [(["Texte."], False), ([], True), ([], False)]
+    assert [(a["lignes"], a["supprime"]) for a in resolved] == [
+        (["Texte."], False),
+        ([], True),
+        ([], False),
+    ]
     assert corpus.resolve(articles, None) == articles
 
 
 def test_seance_unchanged_from_depose(api, monkeypatch):
     """En séance, un article inchangé en commission puis en séance reprend le texte déposé."""
     unchanged = (tricoteuses.Article("PREMIER", (), inchange=True),)
-    monkeypatch.setattr(tricoteuses, "read_text", lambda ref: tricoteuses.Text(
-        ref, f"Texte {ref}", ARTICLES if ref == "B1" else unchanged))
+    monkeypatch.setattr(
+        tricoteuses,
+        "read_text",
+        lambda ref: tricoteuses.Text(ref, f"Texte {ref}", ARTICLES if ref == "B1" else unchanged),
+    )
     lecture = tricoteuses.PremiereLecture("DL1", depose="B1", commission="BTC1", adopte="BTA1")
     steps = corpus.dossier_steps(lecture, Counter())
     assert [s["etape"] for s in steps] == ["commission", "seance"]
     for step in steps:
-        assert list(step["entree"]["articles"][0]["lignes"]) == list(step["sortie"]["articles"][0]["lignes"]) == [
-            "Le premier alinéa."]
+        assert (
+            list(step["entree"]["articles"][0]["lignes"])
+            == list(step["sortie"]["articles"][0]["lignes"])
+            == ["Le premier alinéa."]
+        )
