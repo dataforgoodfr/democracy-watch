@@ -82,6 +82,20 @@ def test_numbers_from_title():
     assert tricoteuses.numbers_from_title("Articles 12") == ["12"]
     assert tricoteuses.numbers_from_title("Articles 2 à 4 (Supprimés)") == ["2", "3", "4"]
     assert tricoteuses.numbers_from_title("Articles 8 ter et 8 quater") == ["8 TER", "8 QUATER"]
+    assert tricoteuses.numbers_from_title("Articles 15, 16 à 18 et 20") == [
+        "15",
+        "16",
+        "17",
+        "18",
+        "20",
+    ]
+    # Espaces manquants dans le titre.
+    assert tricoteuses.numbers_from_title("Articles 4 nonies et4 decies") == [
+        "4 NONIES",
+        "4 DECIES",
+    ]
+    assert tricoteuses.numbers_from_title("Article 1erbis") == ["1ER BIS"]
+    assert tricoteuses.numbers_from_title("Article 25C") == ["25 C"]
 
 
 def test_amendement_from():
@@ -155,3 +169,26 @@ def test_premiere_lecture_texts(monkeypatch):
             "DL1", depose="PIONB1", commission="PIONBTC1", adopte="PIONBTA1"
         )
     ]
+
+
+def test_unchanged_article_and_false_article():
+    subdivisions = DOCUMENT["subdivisions"] + [
+        {"type": "Article", "hash": "h3", "titre": "Article 3", "sequence": 3},
+        {"type": "Article", "hash": "h4", "titre": "Article 4", "sequence": 4},
+        # Tableau de dispositions applicables outre-mer, typé « Article » par Tricoteuses.
+        {"type": "Article", "hash": "ht", "titre": "ARTICLES APPLICABLES L. 623-4", "sequence": 5},
+    ]
+    alineas = DOCUMENT["alineas"] + [
+        {"articleRefHash": "h3", "numero": 0, "texte": "(Conforme)"},
+        {"articleRefHash": "h4", "numero": 0, "texte": "(Suppression conforme)"},
+        {"articleRefHash": "ht", "numero": 0, "texte": "L. 623-4"},
+    ]
+    articles = tricoteuses.articles_from_document(
+        dict(DOCUMENT, subdivisions=subdivisions, alineas=alineas)
+    )
+    assert articles[2:] == (
+        tricoteuses.Article("3", (), inchange=True),
+        tricoteuses.Article("4", (), supprime=True),
+    )
+    # « (Non modifié) » suivi du texte : l'article a ses lignes, il n'est pas marqué inchangé.
+    assert not articles[0].inchange
