@@ -33,9 +33,12 @@ def amendement(uid, sort):
 
 @pytest.fixture
 def api(monkeypatch, tmp_path):
-    """Trois textes : B1 (déposé), BTC1 (commission), BTA1 absent de Tricoteuses.
+    """Remplace `read_text` et `text_amendements` de l'adaptateur Tricoteuses (aucun accès réseau).
 
-    Le cache est dans un dossier temporaire.
+    Références fictives : B1 (texte déposé) et BTC1 (texte de commission) renvoient `ARTICLES`
+    et un amendement adopté construit par `amendement()` ; BTA1 (texte adopté) lève
+    TextNotFound. Le cache disque de `corpus` est redirigé vers `tmp_path`. Renvoie le nombre
+    d'appels à `read_text` par référence, pour vérifier le cache.
     """
     monkeypatch.setattr(corpus, "CACHE", tmp_path)
     calls = Counter()
