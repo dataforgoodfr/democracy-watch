@@ -11,7 +11,7 @@ import dataclasses
 from engine.domain.documents import Text
 from engine.domain.normalization import normalize
 from engine.domain.refusal import Reason, Refusal
-from engine.domain.tree import ArticleTree, article_of
+from engine.domain.tree import ArticleTree, Word, article_of
 
 
 @dataclasses.dataclass(frozen=True)
@@ -53,3 +53,12 @@ class Version:
         """
         articles = tuple(article if a.id == article.id else a for a in self.articles)
         return Version(self.text_uid, articles, self, (*self.applied, *amendments))
+
+    def word(self, word_id: str) -> Word:
+        """Le mot d'identifiant `word_id` ; `KeyError` s'il n'est pas dans cette version."""
+        for article in self.articles:
+            for paragraph in article.paragraphs:
+                for word in paragraph.words:
+                    if word.id == word_id:
+                        return word
+        raise KeyError(word_id)
