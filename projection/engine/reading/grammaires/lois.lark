@@ -1,13 +1,13 @@
-// Formules des textes modificatifs (lois, ordonnances, décrets qui modifient un code ou une loi), lues par moteur/lois.py.
+// Formules des textes modificatifs (lois, ordonnances, décrets qui modifient un code ou une loi), non chargées par le moteur (hors périmètre).
 // Les désignations et terminaux (alinéa, phrase, citation, ordinaux…) sont dans commun.lark, concaténé devant.
 //
-// Même forme que amendements.lark, mêmes alias, donc même Transformer (moteur/analyse.py, _VersOperations) :
+// Même forme que amendements.lark, mêmes alias, donc même Transformer (engine/reading) :
 //   en_ligne : l'instruction entière, citations comprises (« Au premier alinéa, les mots : « a » sont remplacés par les mots : « b » »)
 //   bloc     : le chapeau seul, terminé par « : », quand le texte inséré est fait des alinéas qui suivent
 //              (« L'article 3 est ainsi rédigé : », « Après le deuxième alinéa, il est inséré un alinéa ainsi rédigé : »)
 //   bloc     : aussi « … est ainsi modifié : », qui ne modifie rien mais donne sa cible aux 1°, a)… qui suivent (-> contexte).
 // La voix est passive et la cible est souvent le sujet (« Le deuxième alinéa est supprimé »).
-// La référence d'article (« l'article L. 571-2 du même code ») est réduite à « l'article » par moteur/lois.py avant
+// La référence d'article (« l'article L. 571-2 du même code ») est réduite à « l'article » en amont (non fait : hors périmètre) avant
 // l'analyse : le triplet dit déjà quel article est visé.
 
 // ---- en ligne

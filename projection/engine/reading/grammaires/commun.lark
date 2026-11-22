@@ -1,8 +1,9 @@
 // Désignations, citations et terminaux communs aux grammaires du moteur (amendements, lois).
 //
-// Ce fichier n'est pas une grammaire complète : moteur/analyse.py le concatène devant chaque grammaire
-// (texte_grammaire). On n'utilise pas %import de Lark : il préfixe les règles et terminaux importés
+// Ce fichier n'est pas une grammaire complète : engine/reading/grammar.py le concatène devant chaque grammaire
+// (`_grammar()`). On n'utilise pas %import de Lark : il préfixe les règles et terminaux importés
 // (commun__alinea_numero, commun__NOMBRE), et les méthodes du Transformer ne seraient plus appelées.
+// lois.lark n'est pas chargé par le moteur (hors périmètre).
 // Une règle ajoutée ici vaut donc pour toutes les grammaires : vérifier qu'elle n'en rend aucune ambiguë.
 
 // ---- désignations
@@ -16,7 +17,7 @@
            | _ALINEAS NOMBRE ("," NOMBRE)* "et"i NOMBRE       -> alineas_liste
            | "cet"i "alinéa"i                                 -> cet_alinea
            | "cet"i "article"i                                -> cet_article
-           | "cet"i "amendement"i                             -> cet_article
+           | "cet"i "amendement"i                             -> cet_amendement
            | _ARTICLE_L NUMERO_ARTICLE                        -> article_numero
            | "le"i "titre"i                                   -> titre
 
@@ -25,6 +26,7 @@
        | _ALINEA_L                   -> cet_alinea
        | "le"i ORDINAL "alinéa"i    -> alinea_ordinal
        | ORDINAL "alinéa"i          -> alinea_ordinal
+       | _LA ORDINAL "alinéa"i      -> alinea_ordinal
        | _MEME "alinéa"i NOMBRE?    -> meme_alinea
 
 APRES: /après|avant/i
@@ -36,8 +38,8 @@ _SEP: /[,;:.]/
 _DE: /(de|du)\b/i
 _LA: /la\b|l['’]/i
 _LA_MEME: /la\s+même|ladite/i
-// « Rétablir le I de l'alinéa 3 », « les 4° et 5° de l'alinéa 17 » : la subdivision est l'alinéa lui-même.
-_SUBDIVISION: /l[ea]s?\s+(\d+°|[IVX]+|[a-z])(\s+(bis|ter|[A-Z]))?(\s+et\s+(\d+°|[IVX]+|[a-z]))?\s+d[eu]\b/i
+// « Rétablir le I de l'alinéa 3 », « les 4° et 5° de l'alinéa 17 » : subdivision d'alinéa, refusée (hors périmètre).
+SUBDIVISION: /l[ea]s?\s+(\d+°|[IVX]+|[a-z])(\s+(bis|ter|[A-Z]))?(\s+et\s+(\d+°|[IVX]+|[a-z]))?\s+d[eu]\b/i
 _ARTICLE_L: /l['’]\s*article/i
 NUMERO_ARTICLE: /premier|1er|unique|\d+(\s+(bis|ter|quater|quinquies|sexies)\b)?(\s+[A-Z]\b)?/i
 _INSERER: /insérer|ajouter/i
@@ -54,7 +56,8 @@ _MEME: /((ce|le)\s+)?même|ledit|dudit|audit/i
 NOMBRE: /\d+/
 // « dernier » vaut -1 et « avant-dernier » -2 (comptés depuis la fin à l'étape 2).
 ORDINAL: /(?:premier|première|deuxième|second|seconde|troisième|quatrième|cinquième|sixième|septième|huitième|neuvième|dixième|onzième|douzième|treizième|quatorzième|quinzième|seizième|dix-septième|dix-huitième|dix-neuvième|vingtième|dernier|dernière|avant-dernier|avant-dernière)\b/i
-CARDINAL: /(?:deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|dix-sept|dix-huit|dix-neuf|vingt|\d+)\b/i
+// Les composés (dix-sept…) avant « dix » : l'alternation prend la première branche qui convient.
+CARDINAL: /(?:deux|trois|quatre|cinq|six|sept|huit|neuf|dix-sept|dix-huit|dix-neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|\d+)\b/i
 // Une citation, guillemets imbriqués compris sur un niveau.
 CITATION: /«[^«»]*(«[^«»]*»[^«»]*)*»/
 

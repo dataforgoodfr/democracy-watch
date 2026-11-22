@@ -1,13 +1,15 @@
-// Formules canoniques des amendements (guide de légistique de l'AN), lues par moteur/analyse.py.
+// Formules canoniques des amendements (guide de légistique de l'AN), lues par engine/reading.
 // Les désignations et terminaux (alinéa, phrase, citation, ordinaux…) sont dans commun.lark, concaténé devant.
 //
 // Deux points d'entrée :
 //   en_ligne : l'instruction entière, citations comprises (« À l'alinéa 2, substituer au mot : « a », le mot : « b ». »)
 //   bloc     : le chapeau seul, terminé par « : », quand le texte inséré est fait des alinéas qui suivent
 //              (« Rédiger ainsi cet article : », « Après l'alinéa 3, insérer les six alinéas suivants : »)
+//   b_restore (« Rétablir … dans la rédaction suivante ») n'a volontairement pas de méthode : rétablir n'est pas
+//   réécrire (un alinéa rétabli s'insère, il n'écrase rien), donc refus hors périmètre.
 // Les mots-clés ignorent la casse ; l'apostrophe peut être droite ou typographique.
 // Une phrase qui admet deux analyses est rejetée par le code (parser Earley, ambiguity="explicit").
-// Chaque alias (-> substitute…) est une méthode de _VersOperations ; les terminaux en _ sont retirés de l'arbre.
+// Chaque alias (-> substitute…) est une méthode de _ToOperations ; les terminaux en _ sont retirés de l'arbre.
 
 // ---- en ligne
 
@@ -26,8 +28,8 @@ action: "substituer"i (occurrence | _OBJET) _DP? CITATION _SEP? _OBJET _DP? CITA
       | APRES (occurrence | _OBJET) _DP? CITATION _SEP? _INSERER _OBJET _DP? CITATION   -> insert_mots
       | APRES (occurrence | _OBJET) _DP? CITATION _SEP? _REDIGER "la"i "fin"i (_DE? designation)? _DP? CITATION -> rewrite_fin
       | APRES (occurrence | _OBJET) _DP? CITATION _SEP? "supprimer"i "la"i "fin"i (_DE? designation)? -> delete_fin
-      | _INSERER (_OBJET | _phrases) _DP? CITATION                                     -> insert_bord
-      | "compléter"i designation "par"i (_OBJET | _phrases) _DP? CITATION              -> complete
+      | _INSERER (_OBJET | phrases) _DP? CITATION                                     -> insert_bord
+      | "compléter"i designation "par"i (_OBJET | phrases) _DP? CITATION              -> complete
       | "supprimer"i designation                                                       -> delete_node
       | _REDIGER designation _DP? CITATION                                             -> rewrite
       | "procéder"i _A "la"i "même"i GENRE_RENVOI cible?                               -> renvoi
@@ -36,12 +38,12 @@ action: "substituer"i (occurrence | _OBJET) _DP? CITATION _SEP? _OBJET _DP? CITA
 occurrence: _A? "la"i ORDINAL "occurrence"i _DE_OBJET
 
 // « par la phrase suivante », « par les deux phrases suivantes » : le nombre n'est pas vérifié en ligne.
-_phrases: _PHRASE | "les"i CARDINAL "phrases"i "suivantes"i
+phrases: _PHRASE | "les"i CARDINAL "phrases"i "suivantes"i
 
 // ---- bloc
 
 bloc: _REDIGER designation ":"                                          -> b_rewrite
-    | "rétablir"i _SUBDIVISION? designation "dans"i "la"i "rédaction"i "suivante"i ":" -> b_rewrite
+    | "rétablir"i SUBDIVISION? designation "dans"i "la"i "rédaction"i "suivante"i ":" -> b_restore
     | "substituer"i _A? designation ","? compte ":"                     -> b_rewrite_compte
     | APRES designation ","? _INSERER compte ":"                        -> b_insert_node
     | "au"i "début"i (("de"i | "du"i) designation)? ","? _INSERER compte ":"  -> b_insert_debut
