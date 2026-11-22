@@ -52,3 +52,17 @@ def test_reject_conflicts_returns_new_drafts_and_leaves_its_input():
     assert [d.applicable for d in drafts] == [True, True]
     assert [d.applicable for d in merged] == [False, False]
     assert merged[0].instructions[0].reason is Reason.CONFLICT
+
+
+def test_conflict_policy_is_a_parameter():
+    """Une autre politique (ici : garder tout) remplace `reject_conflicts` sans toucher au reste."""
+    seen = []
+
+    def keep_all(drafts):
+        seen.append([d.amendment.number for d in drafts])
+        return tuple(drafts)
+
+    result = usecases.consolidate(TEXT, [DELETE_1, DELETE_2], on_conflict=keep_all)
+    assert seen == [["CE1", "CE2"]]
+    assert [p.applied for p in result.projections] == [True, True]
+    assert result.articles[0].lines == ()
