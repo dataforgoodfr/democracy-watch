@@ -10,6 +10,7 @@ from engine import usecases
 from engine.adapters import tricoteuses as adapter
 from engine.domain.documents import Amendment, Article, Text
 from engine.domain.refusal import Reason
+from engine.domain.status import Status
 
 LINES = (
     "Le premier alinéa du texte.",
@@ -510,3 +511,49 @@ def test_article_results_are_read_from_the_version():
         assert consolidated.paragraphs == tree.paragraphs
         assert consolidated.lines == tree.lines
     assert [r.deleted for r in result.articles] == [False, True]
+
+
+def test_twin_of_an_applied_amendment_is_identical():
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST, numero="CE1", id_identique="7"),
+            amendment(*FIRST, numero="CE2", id_identique="7"),
+        ],
+    )
+    first, twin = result.projections
+    assert (first.status, twin.status) == (Status.APPLIED, Status.IDENTICAL)
+
+
+def test_twin_of_a_conflict_refused_representative_is_not_identical():
+    other = ("À l’alinéa 1, substituer au mot :", "« premier »", "le mot :", "« unique ».")
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST, numero="CE1", id_identique="7"),
+            amendment(*FIRST, numero="CE2", id_identique="7"),
+            amendment(*other, numero="CE3"),
+        ],
+    )
+    statuses = [p.status for p in result.projections]
+    assert statuses == [Status.PENDING, Status.PENDING, Status.PENDING]
+
+
+def test_sub_amendment_has_its_own_status_and_no_result():
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST, numero="CE1", uid="PARENT"),
+            amendment(*SECOND, numero="CE2", parent_uid="PARENT"),
+        ],
+    )
+    parent, sub = result.projections
+    assert parent.status is Status.NOT_PARSED
+    assert sub.status is Status.SUB_AMENDMENT and sub.result is None
+    assert sub.reason is Reason.OUT_OF_SCOPE
+
+
+def test_quote_missing_is_pending():
+    absent = ("À l’alinéa 1, substituer au mot :", "« absent »", "le mot :", "« x ».")
+    (projection,) = consolidate([article()], [amendment(*absent)]).projections
+    assert projection.status is Status.PENDING

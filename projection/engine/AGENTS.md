@@ -32,6 +32,8 @@ Interdits (vérifiés par `tests/test_architecture.py`) :
   on ne décale jamais des positions.
 - **Exact ou absent** : une instruction refusée ou en conflit refuse tout l'amendement
   (`Refusal`/`Reason`), jamais de résultat approximatif.
+- **Statut** : `Status` se déduit de `Reason` (`status_of`), ou est imposé par `consolidate`
+  (`Projection.forced`) ; il ne remplace jamais `Reason`.
 - **Nouvelle couche ou nouvel import interdit** : mettre à jour `FORBIDDEN` dans
   `tests/test_architecture.py` dans le même diff.
 - Tests dans `tests/`, un fichier par module ; le test d'architecture doit toujours passer.

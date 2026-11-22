@@ -6,6 +6,7 @@ import hashlib
 from engine.domain.documents import Article
 from engine.domain.operation import Operation
 from engine.domain.refusal import Reason
+from engine.domain.status import Status, status_of
 from engine.domain.tree import Paragraph
 from engine.domain.version import Version
 
@@ -61,11 +62,17 @@ class Projection:
     grammar_version: str
     base: str | None = None
     decided_at: str | None = None  # date de la décision de l'amendement, si connue
+    forced: Status | None = None  # statut imposé par la consolidation, sinon déduit de `reason`
 
     @property
     def applied(self) -> bool:
         """Vrai si l'amendement est appliqué (un résultat, pas de refus)."""
         return self.result is not None
+
+    @property
+    def status(self) -> Status:
+        """Statut imposé par la consolidation, sinon déduit de la raison de refus."""
+        return self.forced or status_of(self.reason, self.result)
 
 
 @dataclasses.dataclass(frozen=True)

@@ -20,6 +20,7 @@ from collections.abc import Iterable
 
 from engine.domain.documents import Amendment, Text
 from engine.domain.refusal import Reason, Refusal
+from engine.domain.status import Status
 from engine.domain.trace import Consolidation, Projection, Result
 from engine.domain.tree import ArticleTree
 from engine.domain.version import Version
@@ -99,8 +100,12 @@ def consolidate(
     projections: list[Projection] = []
     for index, item in enumerate(drafts):
         if index in twins:  # le représentant est avant : sa projection existe déjà
-            same = dataclasses.replace(projections[twins[index]], amendment=item.amendment.number)
+            represented = projections[twins[index]]
+            forced = Status.IDENTICAL if represented.applied else represented.forced
+            same = dataclasses.replace(represented, amendment=item.amendment.number, forced=forced)
             projections.append(same)
+        elif item.amendment.parent_id is not None:
+            projections.append(dataclasses.replace(decide(item), forced=Status.SUB_AMENDMENT))
         else:
             projections.append(decide(item))
 

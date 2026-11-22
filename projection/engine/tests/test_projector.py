@@ -5,6 +5,7 @@ import pytest
 from engine import usecases
 from engine.domain.documents import Amendment, Article, Text
 from engine.domain.refusal import Reason
+from engine.domain.status import Status
 from engine.reading import GRAMMAR_VERSION
 
 LINES = (
@@ -453,3 +454,16 @@ def test_instructions_that_together_delete_every_alinea_are_refused():
     )
     assert projection.reason is Reason.OUT_OF_SCOPE
     assert [i.reason for i in projection.instructions] == [Reason.OUT_OF_SCOPE] * 2
+
+
+def test_applied_amendment_has_status_applied():
+    projection = project(
+        [article()],
+        amendment("À l’alinéa 2, substituer au mot :", "« deuxième »", "le mot :", "« second »."),
+    )
+    assert projection.status is Status.APPLIED
+
+
+def test_ambiguous_amendment_has_status_ambiguous():
+    projection = refusal("I. – Supprimer l’alinéa 1.", "III. – Supprimer l’alinéa 2.")
+    assert projection.status is Status.AMBIGUOUS
