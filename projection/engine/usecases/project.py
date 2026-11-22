@@ -23,7 +23,7 @@ def decide(draft: Draft) -> Projection:
         if refused is not None:
             reason, detail = refused.reason, refused.detail
     args = (draft.amendment.number, draft.number)
-    trace = (draft.instructions, GRAMMAR_VERSION, draft.base)
+    trace = (draft.instructions, GRAMMAR_VERSION, draft.base, draft.amendment.decided_at)
     if reason is not None or draft.article is None:
         return Projection(*args, None, reason, detail, *trace)
     patch = draft.patch

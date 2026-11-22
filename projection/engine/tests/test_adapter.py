@@ -33,7 +33,7 @@ def test_amendment_from_drops_the_alinea_hint():
         dispositif="<p>Supprimer l’alinéa 1.</p>",
         parent_uid="AM0",
         tri_amendement=None,
-        date_sort=None,
+        date_sort="2026-01-01T10:00:00",
         id_identique="7",
     )
     amendment = adapter.amendment_from(amendement)
@@ -44,5 +44,6 @@ def test_amendment_from_drops_the_alinea_hint():
         id="AM1",
         parent_id="AM0",
         twin_group="7",
+        decided_at="2026-01-01T10:00:00",
     )
     assert "alinea" not in {field.name for field in dataclasses.fields(Amendment)}

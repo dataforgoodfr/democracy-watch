@@ -2,12 +2,13 @@
 
 Pour chaque article : le texte de base est le tronc, chaque amendement une branche qui en part
 (patch contre la base commune), chaque instruction un commit. Les branches sont fusionnées
-dans le résultat si tout s'applique ; `x` marque un refus ou un conflit.
+dans le résultat si tout s'applique ; `x` marque un refus ou un conflit. En conflit, l'amendement
+décidé le plus tôt (date après le numéro) est conservé : l'autre est refusé.
 
     * base  Article 2 · 2 alinéas
     |\\
-    | * 1  (CE1) substituer « annuel » à « semestriel »
-    * | x  (CE2) conflit
+    | * 1  (CE1 · 2026-01-01) substituer « annuel » à « semestriel »
+    * | x  (CE2 · 2026-01-02) conflit [décidé plus tôt]
     |/
     * résultat · 2 alinéas
 
@@ -32,14 +33,20 @@ def _label(text: str) -> str:
 
 def _rows(projection: Projection) -> Iterator[tuple[str, str]]:
     """Les commits d'une branche : (marque, libellé) par instruction, ou un seul si refusée."""
-    name = f"({projection.amendment})"
+    date = f" · {projection.decided_at[:10]}" if projection.decided_at else ""
+    name = f"({projection.amendment}{date})"
     if not projection.instructions:
         yield "x", f"{name} {projection.reason or 'aucune instruction'}"
     for instruction in projection.instructions:
         if instruction.reason is None:
             yield "*", f"{name} {_label(instruction.text)}"
         else:
-            yield "x", f"{name} {instruction.reason} : {_label(instruction.text)}"
+            why = _label(instruction.detail) if instruction.reason is Reason.CONFLICT else ""
+            yield (
+                "x",
+                f"{name} {instruction.reason} : {_label(instruction.text)}"
+                + (f" [{why}]" if why else ""),
+            )
 
 
 def _lanes(active: int, count: int, mark: str) -> str:

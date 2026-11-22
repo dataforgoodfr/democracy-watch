@@ -48,6 +48,7 @@ class Amendment:
     `target_label` : article visé tel qu'écrit (« ART. 2 », « APRÈS ART. 3 »). `body_html` : le
     dispositif, un `<p>` par alinéa. `parent_id` : amendement modifié, pour un sous-amendement.
     `twin_group` : série d'amendements identiques votés ensemble.
+    `decided_at` : date de la décision (ISO, UTC), None si inconnue.
     """
 
     number: str  # « CE11 », « 3 (Rect) » : pour l'affichage
@@ -56,3 +57,4 @@ class Amendment:
     id: str = ""
     parent_id: str | None = None
     twin_group: str | None = None
+    decided_at: str | None = None

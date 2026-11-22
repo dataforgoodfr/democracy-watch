@@ -46,6 +46,20 @@ def test_conflict_is_marked_and_blocks_the_result():
     assert graph.splitlines()[-1].startswith("o  non consolidé")
 
 
+def test_oldest_wins_is_shown_with_dates_and_reason():
+    old = Amendment(
+        "CE1", "ART. 3", "<p>Supprimer l’alinéa 1.</p>", decided_at="2026-01-01T09:00:00"
+    )
+    new = Amendment(
+        "CE2", "ART. 3", "<p>Supprimer l’alinéa 1.</p>", decided_at="2026-01-02T09:00:00"
+    )
+    lines = render(consolidate(TEXT, [new, old])).splitlines()
+    kept = next(line for line in lines if "(CE1 · 2026-01-01)" in line)
+    lost = next(line for line in lines if "(CE2 · 2026-01-02)" in line)
+    assert kept.lstrip("*| ").startswith("(") and "x" not in kept.split("(")[0]
+    assert "x" in lost.split("(")[0] and "décidé plus tôt" in lost
+
+
 def test_amendment_without_article_is_listed_apart():
     other = Amendment("CE9", "ART. 3 À 5", "<p>Supprimer l’alinéa 1.</p>")
     assert "hors article" in render(consolidate(TEXT, [other]))

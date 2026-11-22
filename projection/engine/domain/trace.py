@@ -60,6 +60,7 @@ class Projection:
     instructions: tuple[Instruction, ...]
     grammar_version: str
     base: str | None = None
+    decided_at: str | None = None  # date de la décision de l'amendement, si connue
 
     @property
     def applied(self) -> bool:

@@ -6,7 +6,8 @@ qu'il a retenus (le moteur ne filtre pas sur le sort).
 
 Chaque amendement est lu seul, comme dans `project`. Les amendements identiques sont fusionnés
 Les sous-amendements et leurs parents refusés, puis les patchs des amendements encore
-applicables d'un même article sont confrontés par la politique de conflit. Le texte consolidé d'un
+applicables d'un même article sont confrontés par la politique de conflit (par défaut, la décision
+la plus ancienne l'emporte). Le texte consolidé d'un
 article n'est fourni que si tous les amendements qui le visent sont appliqués : un amendement
 refusé pourrait le modifier. Un amendement dont l'article visé est inconnu (`UNRESOLVED_ARTICLE`,
 `article` None : absent, « ART. 3 À 5 »…) pourrait modifier n'importe quel article : tant qu'il
@@ -23,7 +24,7 @@ from engine.domain.refusal import Reason, Refusal
 from engine.domain.trace import Consolidation, Projection, Result
 from engine.domain.version import Version
 from engine.usecases.draft import Draft, draft
-from engine.usecases.merge import ConflictPolicy, reject_conflicts
+from engine.usecases.merge import ConflictPolicy, oldest_wins
 from engine.usecases.project import decide
 
 
@@ -79,7 +80,7 @@ def _article_result(article: str, group: list[Draft]) -> Result:
 
 
 def consolidate(
-    text: Text, amendments: Iterable[Amendment], on_conflict: ConflictPolicy = reject_conflicts
+    text: Text, amendments: Iterable[Amendment], on_conflict: ConflictPolicy = oldest_wins
 ) -> Consolidation:
     """Projette `amendments` sur `text` : une projection par amendement, puis les articles."""
     amendments = tuple(amendments)

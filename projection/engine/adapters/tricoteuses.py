@@ -32,4 +32,5 @@ def amendment_from(amendement: tricoteuses.Amendement) -> Amendment:
         id=amendement.uid,
         parent_id=amendement.parent_uid,
         twin_group=amendement.id_identique,
+        decided_at=amendement.date_sort,
     )

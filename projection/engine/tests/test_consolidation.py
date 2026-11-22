@@ -38,6 +38,7 @@ def amendment(*paragraphs, numero="CE1", article_vise="ART. 3", uid=None, **extr
         id=uid or f"UID-{numero}",
         parent_id=extra.pop("parent_uid", None),
         twin_group=extra.pop("id_identique", None),
+        decided_at=extra.pop("decided_at", None),
     )
 
 
@@ -77,6 +78,62 @@ def test_same_alinea_conflicts_for_both():
     assert [p.reason for p in result.projections] == [Reason.CONFLICT, Reason.CONFLICT]
     assert all(i.reason is Reason.CONFLICT for p in result.projections for i in p.instructions)
     assert result.articles == ()
+
+
+OTHER_FIRST = ("À l’alinéa 1, substituer au mot :", "« premier »", "le mot :", "« unique ».")
+
+
+def test_oldest_decision_wins_a_conflict():
+    old = amendment(*FIRST, numero="CE1", decided_at="2026-01-02T10:00:00")
+    new = amendment(*OTHER_FIRST, numero="CE2", decided_at="2026-01-01T10:00:00")
+    result = consolidate([article()], [old, new])
+    assert [p.reason for p in result.projections] == [Reason.CONFLICT, None]
+    assert "plus tôt" in result.projections[0].instructions[0].detail
+    (consolidated,) = result.articles or (None,)
+    assert consolidated is None  # un amendement refusé pourrait modifier l'article
+
+
+def test_oldest_wins_whatever_the_input_order():
+    old = amendment(*FIRST, numero="CE1", decided_at="2026-01-01T10:00:00")
+    new = amendment(*OTHER_FIRST, numero="CE2", decided_at="2026-01-02T10:00:00")
+    for amendments in ([old, new], [new, old]):
+        result = consolidate([article()], amendments)
+        reasons = {p.amendment: p.reason for p in result.projections}
+        assert reasons == {"CE1": None, "CE2": Reason.CONFLICT}
+
+
+def test_same_date_conflict_refuses_both():
+    date = "2026-01-01T10:00:00"
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST, decided_at=date),
+            amendment(*OTHER_FIRST, numero="CE2", decided_at=date),
+        ],
+    )
+    assert [p.reason for p in result.projections] == [Reason.CONFLICT, Reason.CONFLICT]
+
+
+def test_dated_amendment_beats_undated_one():
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST),
+            amendment(*OTHER_FIRST, numero="CE2", decided_at="2026-01-01T10:00:00"),
+        ],
+    )
+    assert [p.reason for p in result.projections] == [Reason.CONFLICT, None]
+
+
+def test_older_decision_does_not_affect_commuting_amendments():
+    result = consolidate(
+        [article()],
+        [
+            amendment(*FIRST, decided_at="2026-01-02T10:00:00"),
+            amendment(*SECOND, numero="CE2", decided_at="2026-01-01T10:00:00"),
+        ],
+    )
+    assert [p.reason for p in result.projections] == [None, None]
 
 
 def test_two_insertions_at_the_same_point_conflict():
