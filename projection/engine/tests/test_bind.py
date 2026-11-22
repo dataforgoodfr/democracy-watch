@@ -1,4 +1,4 @@
-"""Tests de `bind` : anaphores et renvois."""
+"""Tests de `bind` et d'intégration par `project` : anaphores et renvois."""
 
 import dataclasses
 
@@ -14,10 +14,12 @@ from engine.actions import (
     RewriteEnd,
     Substitute,
 )
+from engine.domain.documents import Amendment, Article, Text
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.target import Alineas, Anaphor, WholeArticle
 from engine.domain.writing import Anchor
 from engine.reading.bind import Replay, bind
+from engine.usecases import project
 
 AL2 = Alineas((2,))
 AL5 = Alineas((5,))
@@ -229,3 +231,79 @@ def test_replay_matrix_resolves_valid_pairs(genre, name):
     previous = DeleteNode(AL2) if name == "DeleteNode" else _OPERATIONS[name]
     bound = bind([previous, Replay(AL5, genre)])[-1]
     assert bound == dataclasses.replace(previous, target=AL5)
+
+
+# ---- intégration par `project`
+
+LINES = (
+    "Le premier alinéa.",
+    "Le chat dort dans le deuxième alinéa.",
+    "Le troisième alinéa.",
+    "Le chat joue dans le quatrième alinéa.",
+    "Le cinquième alinéa.",
+)
+
+
+def amendment(*paragraphs):
+    dispositif = "".join(f"<p>{paragraph}</p>" for paragraph in paragraphs)
+    return Amendment("CE1", "ART. 3", dispositif)
+
+
+def run(*paragraphs):
+    return project(Text("T", (Article("3", LINES),)), amendment(*paragraphs))
+
+
+def test_project_renvoi_substitution_on_other_alinea():
+    projection = run(
+        "I. – À l’alinéa 2, substituer au mot : « chat », le mot : « chien ».",
+        "II. – Procéder à la même substitution à l’alinéa 4.",
+    )
+    assert projection.applied, projection.detail
+    assert projection.result.lines == (
+        "Le premier alinéa.",
+        "Le chien dort dans le deuxième alinéa.",
+        "Le troisième alinéa.",
+        "Le chien joue dans le quatrième alinéa.",
+        "Le cinquième alinéa.",
+    )
+
+
+def test_project_anaphor_insert_after_same_alinea():
+    projection = run(
+        "I. – À l’alinéa 2, supprimer les mots : « dort ».",
+        "II. – Après le même alinéa, insérer l’alinéa suivant :",
+        "« Un alinéa inséré. »",
+    )
+    assert projection.applied, projection.detail
+    assert projection.result.lines == (
+        "Le premier alinéa.",
+        "Le chat dans le deuxième alinéa.",
+        "Un alinéa inséré.",
+        "Le troisième alinéa.",
+        "Le chat joue dans le quatrième alinéa.",
+        "Le cinquième alinéa.",
+    )
+
+
+def test_project_anaphor_on_same_alinea_conflicts():
+    projection = run(
+        "I. – À l’alinéa 2, supprimer les mots : « dort ».",
+        "II. – Supprimer le même alinéa.",
+    )
+    assert not projection.applied
+    assert projection.reason is Reason.CONFLICT
+
+
+def test_project_renvoi_without_antecedent_is_refused():
+    projection = run("Procéder à la même substitution à l’alinéa 4.")
+    assert projection.reason is Reason.TARGET_NOT_FOUND
+
+
+def test_project_anaphor_after_insert_node_is_refused():
+    projection = run(
+        "I. – Après l’alinéa 1, insérer l’alinéa suivant :",
+        "« Nouveau. »",
+        "II. – À la fin de cet alinéa, insérer les mots : « x ».",
+    )
+    assert not projection.applied
+    assert projection.reason is Reason.AMBIGUOUS
