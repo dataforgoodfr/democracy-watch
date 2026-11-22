@@ -36,8 +36,8 @@ ARTICLE_TITLE = re.compile(r"\s*Articles?\s+(\d|unique\b|liminaire\b|premier\b)"
 class Amendement:
     """Un amendement tel que le donne Tricoteuses.
 
-    Mêmes champs que RawAmendement du moteur, qui ne lit que des attributs, plus ce que
-    l'interface et l'évaluation affichent.
+    Le moteur n'en lit que quelques champs ; les autres sont
+    ce que l'interface et l'évaluation affichent.
     """
 
     uid: str
@@ -63,6 +63,9 @@ class Article:
     lignes: tuple[str, ...]  # un alinéa par élément, mentions seules retirées
     supprime: bool = False
     inchange: bool = False  # mention seule « (Non modifié) » ou « (Conforme) » : lignes vides
+    issu_de_plage: bool = (
+        False  # « Articles 2 à 4 » : les lignes sont partagées, non propres à l'article
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -138,9 +141,16 @@ def articles_from_document(document):
                 inchange = "suppr" not in text.lower()
             elif text:
                 lignes.append(text)
-        for numero in numbers_from_title(subdivision["titre"]):
+        numeros = numbers_from_title(subdivision["titre"])
+        for numero in numeros:
             articles.append(
-                Article(numero, tuple(lignes), supprime, inchange and not lignes and not supprime)
+                Article(
+                    numero,
+                    tuple(lignes),
+                    supprime,
+                    inchange and not lignes and not supprime,
+                    issu_de_plage=len(numeros) > 1,
+                )
             )
     if not articles:
         raise TextNotFound(f"{document.get('uid')} : aucun article")

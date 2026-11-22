@@ -192,3 +192,13 @@ def test_unchanged_article_and_false_article():
     )
     # « (Non modifié) » suivi du texte : l'article a ses lignes, il n'est pas marqué inchangé.
     assert not articles[0].inchange
+
+
+def test_article_from_range_is_flagged():
+    subdivisions = [{"type": "Article", "hash": "h", "titre": "Articles 2 à 3", "sequence": 1}]
+    alineas = [{"articleRefHash": "h", "numero": 1, "texte": "Texte partagé."}]
+    articles = tricoteuses.articles_from_document(
+        {"uid": "T", "subdivisions": subdivisions, "alineas": alineas}
+    )
+    assert [(a.numero, a.issu_de_plage) for a in articles] == [("2", True), ("3", True)]
+    assert not tricoteuses.articles_from_document(DOCUMENT)[0].issu_de_plage
