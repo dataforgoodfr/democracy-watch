@@ -7,18 +7,21 @@ relu contre la version courante. Le numéro d'alinéa se lit dans la version de 
 retrouve par identifiant ; les mots cités se cherchent dans l'alinéa tel qu'il est maintenant.
 Ce qui était là dans la référence et n'y est plus (alinéa réécrit, mots retirés par un amendement
 adopté plus tôt) est `TARGET_GONE` : l'amendement est tombé, il n'est pas appliqué à côté.
+Une insertion fait exception : elle ne dépend que de l'endroit de l'alinéa visé, pas de son texte
+(voir `remap_insertion`).
 """
 
 import dataclasses
 import itertools
 
+from engine.actions.paragraphs import InsertNode
 from engine.domain.documents import Article
 from engine.domain.effect import Effect, effect_of
 from engine.domain.grafting import graft
 from engine.domain.operation import Operation
 from engine.domain.patch import Patch, apply, conflicts, deletes_article
 from engine.domain.refusal import Reason, Refusal
-from engine.domain.target import remap
+from engine.domain.target import remap, remap_insertion
 from engine.domain.version import Version
 from engine.usecases.draft import Draft
 
@@ -57,7 +60,11 @@ def replay(version: Version, reference: Version, draft: Draft) -> tuple[Version,
     for instruction in draft.instructions:
         operation = instruction.operation
         assert operation is not None
-        moved = operation.with_target(remap(operation.target, ref_tree, current))
+        if isinstance(operation, InsertNode):
+            target, after = remap_insertion(operation.target, ref_tree, current, operation.after)
+            moved = dataclasses.replace(operation, target=target, after=after)
+        else:
+            moved = operation.with_target(remap(operation.target, ref_tree, current))
         patch = _plan(moved, view)
         patches.append(tuple(dataclasses.replace(s, origin=origin) for s in patch))
     for a, b in itertools.combinations(patches, 2):

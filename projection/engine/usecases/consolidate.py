@@ -7,8 +7,9 @@ qu'il a retenus (le moteur ne filtre pas sur le sort).
 Chaque amendement est lu seul, comme dans `project`. Les amendements identiques sont fusionnés
 Les sous-amendements et leurs parents refusés, puis les patchs des amendements encore
 applicables d'un même article sont confrontés par la politique de conflit (par défaut, la décision
-la plus ancienne l'emporte). Le texte consolidé d'un
-article n'est fourni que si tous les amendements qui le visent sont appliqués : un amendement
+la plus ancienne l'emporte). Les amendements applicables d'un article sont ensuite rejoués dans
+l'ordre sur la version d'origine (`replay`) : le texte consolidé de l'article est lu dans cette
+version. Il n'est fourni que si tous les amendements qui le visent sont appliqués : un amendement
 refusé pourrait le modifier. Un amendement dont l'article visé est inconnu (`UNRESOLVED_ARTICLE`,
 `article` None : absent, « ART. 3 À 5 »…) pourrait modifier n'importe quel article : tant qu'il
 existe, aucun article n'est consolidé. Les « APRÈS ART. X » (`OUT_OF_SCOPE`) n'ont pas cet effet.
@@ -18,14 +19,14 @@ import dataclasses
 from collections.abc import Iterable
 
 from engine.domain.documents import Amendment, Text
-from engine.domain.grafting import graft
-from engine.domain.patch import apply, deletes_article
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.trace import Consolidation, Projection, Result
+from engine.domain.tree import ArticleTree
 from engine.domain.version import Version
 from engine.usecases.draft import Draft, draft
 from engine.usecases.merge import ConflictPolicy, oldest_wins
 from engine.usecases.project import decide
+from engine.usecases.replay import replay
 
 
 def _reject_sub_amendments(drafts: list[Draft]) -> list[Draft]:
@@ -67,16 +68,9 @@ def _by_article(drafts: list[Draft], twins: dict[int, int]) -> dict[str, list[in
     return groups
 
 
-def _article_result(article: str, group: list[Draft]) -> Result:
-    """Texte consolidé d'un article : les patchs de tous ses amendements, sur la base commune."""
-    patch = tuple(splice for item in group for splice in item.patch)
-    assert group[0].article is not None and group[0].tree is not None
-    return Result(
-        article,
-        apply(group[0].article.lines, patch),
-        deletes_article(patch),
-        graft(group[0].tree, patch, group[0].text_uid).paragraphs,
-    )
+def _article_result(tree: ArticleTree) -> Result:
+    """Texte consolidé d'un article, lu dans sa version rejouée. Sans alinéa : article supprimé."""
+    return Result(tree.number, tree.lines, not tree.paragraphs, tree.paragraphs)
 
 
 def consolidate(
@@ -91,6 +85,17 @@ def consolidate(
         for index, merged in zip(indices, on_conflict([drafts[i] for i in indices]), strict=True):
             drafts[index] = merged
 
+    reference = Version.of(text)
+    replayed: dict[str, Version] = {}
+    for number, indices in groups.items():
+        current = reference
+        for index in (i for i in indices if drafts[i].applicable):
+            try:
+                current, _ = replay(current, reference, drafts[index])
+            except Refusal as refusal:
+                drafts[index] = drafts[index].refused(refusal)
+        replayed[number] = current
+
     projections: list[Projection] = []
     for index, item in enumerate(drafts):
         if index in twins:  # le représentant est avant : sa projection existe déjà
@@ -104,14 +109,12 @@ def consolidate(
         p.reason is Reason.UNRESOLVED_ARTICLE and p.article is None for p in projections
     )
     articles = []
+    version = reference
     for article in () if unlocated else text.articles:
         targeting = [p for p in projections if p.article == article.number]
         if targeting and all(p.applied for p in targeting):
-            group = [drafts[i] for i in groups[article.number]]
-            articles.append(_article_result(article.number, group))
-    version = Version.of(text)
-    for result in articles:
-        tree = dataclasses.replace(version.find(result.number), paragraphs=result.paragraphs)
-        group = (drafts[i].amendment for i in groups[result.number])
-        version = version.replace(tree, *(a.id or a.number for a in group))
+            tree = replayed[article.number].find(article.number)
+            articles.append(_article_result(tree))
+            group = (drafts[i].amendment for i in groups[article.number])
+            version = version.replace(tree, *(a.id or a.number for a in group))
     return Consolidation(tuple(projections), tuple(articles), version)

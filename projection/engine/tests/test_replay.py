@@ -210,3 +210,52 @@ def test_deleting_the_article_leaves_a_version_without_paragraphs():
         reference, reference, draft(TEXT, amendment("CE1", "Supprimer cet article."))
     )
     assert deleted.find("3").paragraphs == ()
+
+
+THREE = Text("T0", (Article("3", ("Un.", "Deux.", "Trois.", "Quatre.")),))
+
+
+def run_three(*amendments):
+    reference = Version.of(THREE)
+    version = reference
+    for one in amendments:
+        version, _ = replay(version, reference, draft(THREE, one))
+    return version.find("3").lines
+
+
+def test_insertion_after_a_deleted_alinea_lands_where_it_was():
+    delete = amendment("D", "Supprimer l'alinéa 2.")
+    insert = amendment("I", "Après l'alinéa 2, insérer l'alinéa suivant :", "« Neuf. »")
+    assert run_three(delete, insert) == ("Un.", "Neuf.", "Trois.", "Quatre.")
+
+
+def test_insertion_after_a_rewritten_alinea_lands_after_the_replacement():
+    rewrite = amendment("R", "Rédiger ainsi l'alinéa 2 :", "« Nouveau. »")
+    insert = amendment("I", "Après l'alinéa 2, insérer l'alinéa suivant :", "« Neuf. »")
+    assert run_three(rewrite, insert) == ("Un.", "Nouveau.", "Neuf.", "Trois.", "Quatre.")
+
+
+def test_insertion_before_a_deleted_alinea_lands_after_the_previous_one():
+    delete = amendment("D", "Supprimer l'alinéa 2.")
+    insert = amendment("I", "Avant l'alinéa 2, insérer l'alinéa suivant :", "« Neuf. »")
+    assert run_three(delete, insert) == ("Un.", "Neuf.", "Trois.", "Quatre.")
+
+
+def test_insertion_after_the_last_alinea_deleted_goes_to_the_end():
+    delete = amendment("D", "Supprimer l'alinéa 4.")
+    insert = amendment("I", "Après l'alinéa 4, insérer l'alinéa suivant :", "« Neuf. »")
+    assert run_three(delete, insert) == ("Un.", "Deux.", "Trois.", "Neuf.")
+
+
+def test_insertion_before_the_first_alinea_deleted_goes_to_the_start():
+    delete = amendment("D", "Supprimer l'alinéa 1.")
+    insert = amendment("I", "Avant l'alinéa 1, insérer l'alinéa suivant :", "« Neuf. »")
+    assert run_three(delete, insert) == ("Neuf.", "Deux.", "Trois.", "Quatre.")
+
+
+def test_word_edit_in_a_deleted_alinea_is_still_gone():
+    delete = amendment("D", "Supprimer l'alinéa 2.")
+    edit = amendment("E", "À l'alinéa 2, substituer au mot :", "« Deux »", "le mot :", "« Dix ».")
+    with pytest.raises(Refusal) as error:
+        run_three(delete, edit)
+    assert error.value.reason is Reason.TARGET_GONE

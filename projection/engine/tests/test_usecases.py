@@ -64,5 +64,5 @@ def test_conflict_policy_is_a_parameter():
 
     result = usecases.consolidate(TEXT, [DELETE_1, DELETE_2], on_conflict=keep_all)
     assert seen == [["CE1", "CE2"]]
-    assert [p.applied for p in result.projections] == [True, True]
-    assert result.articles[0].lines == ()
+    assert [p.applied for p in result.projections] == [True, False]
+    assert result.projections[1].reason is Reason.OUT_OF_SCOPE
