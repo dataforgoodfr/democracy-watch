@@ -9,6 +9,7 @@ class Reason(enum.StrEnum):
     AMBIGUOUS = "ambigue"
     OUT_OF_SCOPE = "hors_perimetre"
     TARGET_NOT_FOUND = "cible_introuvable"
+    TARGET_GONE = "cible_disparue"
     QUOTE_MISSING = "citation_absente"
     QUOTE_MULTIPLE = "citation_multiple"
     CONFLICT = "conflit"

@@ -21,6 +21,7 @@ from engine.domain.grafting import graft
 from engine.domain.patch import apply, deletes_article
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.trace import Consolidation, Projection, Result
+from engine.domain.version import Version
 from engine.usecases.draft import Draft, draft
 from engine.usecases.merge import ConflictPolicy, reject_conflicts
 from engine.usecases.project import decide
@@ -107,4 +108,9 @@ def consolidate(
         if targeting and all(p.applied for p in targeting):
             group = [drafts[i] for i in groups[article.number]]
             articles.append(_article_result(article.number, group))
-    return Consolidation(tuple(projections), tuple(articles))
+    version = Version.of(text)
+    for result in articles:
+        tree = dataclasses.replace(version.find(result.number), paragraphs=result.paragraphs)
+        group = (drafts[i].amendment for i in groups[result.number])
+        version = version.replace(tree, *(a.id or a.number for a in group))
+    return Consolidation(tuple(projections), tuple(articles), version)

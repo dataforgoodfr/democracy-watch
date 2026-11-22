@@ -7,6 +7,7 @@ Les positions d'alinéa sont celles du texte d'entrée de l'étape (1 = premier 
 import dataclasses
 
 from engine.domain.refusal import Reason, Refusal
+from engine.domain.tree import ArticleTree
 
 
 @dataclasses.dataclass(frozen=True)
@@ -58,3 +59,25 @@ def resolve(target: Target, article_number: str, count: int) -> tuple[int, ...]:
             return tuple(range(count))
         case Anaphor():
             raise Refusal(Reason.OUT_OF_SCOPE, "antécédent d'une anaphore non résolu")
+
+
+def remap(target: Target, reference: ArticleTree, current: ArticleTree) -> Target:
+    """La même cible, lue dans la version de référence puis retrouvée dans la version courante.
+
+    Le numéro d'alinéa d'un amendement est celui du texte sur lequel il a été rédigé : on en tire un
+    identifiant stable, puis la position de cet alinéa dans `current`. Un alinéa inséré plus tôt ne
+    décale donc rien ; un alinéa réécrit ou supprimé plus tôt est `TARGET_GONE`. Les autres cibles
+    ne dépendent pas des positions.
+    """
+    if not isinstance(target, Alineas):
+        return target
+    positions = []
+    for index in resolve(target, reference.number, len(reference.paragraphs)):
+        paragraph = reference.paragraphs[index]
+        try:
+            positions.append(current.find(paragraph.id) + 1)
+        except ValueError:
+            raise Refusal(
+                Reason.TARGET_GONE, f"alinéa {index + 1} ({paragraph.id}) absent de la version"
+            ) from None
+    return Alineas(tuple(positions))

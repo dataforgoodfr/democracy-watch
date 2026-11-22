@@ -14,6 +14,7 @@ dans le résultat si tout s'applique ; `x` marque un refus ou un conflit.
 Usage : `python -m engine.adapters.graph <référence du texte> [<article>]`.
 """
 
+import dataclasses
 import sys
 import textwrap
 from collections.abc import Iterator
@@ -103,7 +104,7 @@ def main(argv: list[str]) -> None:
     consolidation = consolidate(text, amendments)
     if len(argv) == 2:
         keep = tuple(p for p in consolidation.projections if p.article == argv[1].upper())
-        consolidation = Consolidation(keep, consolidation.articles)
+        consolidation = dataclasses.replace(consolidation, projections=keep)
     print(render(consolidation))
 
 

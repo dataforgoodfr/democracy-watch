@@ -7,6 +7,7 @@ from engine.domain.documents import Article
 from engine.domain.operation import Operation
 from engine.domain.refusal import Reason
 from engine.domain.tree import Paragraph
+from engine.domain.version import Version
 
 
 @dataclasses.dataclass(frozen=True)
@@ -71,8 +72,11 @@ class Consolidation:
     """Sortie du moteur pour plusieurs amendements d'une même étape.
 
     `projections` : une par amendement, dans l'ordre d'entrée. `articles` : texte consolidé des
-    articles dont tous les amendements sont appliqués, dans l'ordre du texte d'entrée.
+    articles dont tous les amendements sont appliqués, dans l'ordre du texte d'entrée. `version` :
+    le texte de l'étape avec ces articles consolidés ; les autres y sont tels que le texte d'entrée
+    les donne, donc exacts seulement pour les articles de `articles`.
     """
 
     projections: tuple[Projection, ...]
     articles: tuple[Result, ...]
+    version: Version

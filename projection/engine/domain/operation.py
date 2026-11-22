@@ -1,6 +1,7 @@
 """Contrat d'une opération : une donnée immuable qui sait se traduire en patch."""
 
-from typing import Protocol
+import copy
+from typing import Protocol, Self
 
 from engine.domain.documents import Article
 from engine.domain.patch import Patch
@@ -26,3 +27,15 @@ class Operation(Protocol):
         opération.
         """
         ...
+
+    def with_target(self, target: Target) -> Operation:
+        """La même opération, sur une autre cible (retrouvée dans une autre version)."""
+        ...
+
+
+class Retargetable:
+    """Pour les opérations : `with_target`, la même opération sur une autre cible."""
+
+    def with_target(self, target: Target) -> Self:
+        """La même opération, sur une autre cible (retrouvée dans une autre version)."""
+        return copy.replace(self, target=target)

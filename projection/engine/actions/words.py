@@ -5,6 +5,7 @@ from collections.abc import Callable
 
 from engine.domain import writing
 from engine.domain.documents import Article
+from engine.domain.operation import Retargetable
 from engine.domain.patch import Patch, Splice
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.target import Target, resolve
@@ -39,7 +40,7 @@ def _rewrite_line(
 
 
 @dataclasses.dataclass(frozen=True)
-class Substitute:
+class Substitute(Retargetable):
     target: Target
     anchor: Anchor
     new: str
@@ -54,7 +55,7 @@ class Substitute:
 
 
 @dataclasses.dataclass(frozen=True)
-class DeleteWords:
+class DeleteWords(Retargetable):
     target: Target
     anchor: Anchor
 
@@ -63,7 +64,7 @@ class DeleteWords:
 
 
 @dataclasses.dataclass(frozen=True)
-class InsertWords:
+class InsertWords(Retargetable):
     target: Target
     anchor: Anchor
     new: str
@@ -81,7 +82,7 @@ class InsertWords:
 
 
 @dataclasses.dataclass(frozen=True)
-class InsertEdge:  # insert_bord, complete, debut_de, b_complete par des mots
+class InsertEdge(Retargetable):  # insert_bord, complete, debut_de, b_complete par des mots
     target: Target
     new: str
     start: bool  # début (True) ou fin (False) de l'alinéa
@@ -97,7 +98,7 @@ class InsertEdge:  # insert_bord, complete, debut_de, b_complete par des mots
 
 
 @dataclasses.dataclass(frozen=True)
-class RewriteEnd:
+class RewriteEnd(Retargetable):
     target: Target
     anchor: Anchor
     new: str
@@ -112,7 +113,7 @@ class RewriteEnd:
 
 
 @dataclasses.dataclass(frozen=True)
-class DeleteEnd:
+class DeleteEnd(Retargetable):
     target: Target
     anchor: Anchor
 

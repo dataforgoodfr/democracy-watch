@@ -3,13 +3,14 @@
 import dataclasses
 
 from engine.domain.documents import Article
+from engine.domain.operation import Retargetable
 from engine.domain.patch import Patch, Splice
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.target import Target, WholeArticle, resolve
 
 
 @dataclasses.dataclass(frozen=True)
-class DeleteNode:  # alinéas et article
+class DeleteNode(Retargetable):  # alinéas et article
     target: Target
 
     def plan(self, article: Article) -> Patch:
@@ -23,7 +24,7 @@ class DeleteNode:  # alinéas et article
 
 
 @dataclasses.dataclass(frozen=True)
-class Rewrite:  # rewrite, b_rewrite, b_rewrite_compte
+class Rewrite(Retargetable):  # rewrite, b_rewrite, b_rewrite_compte
     target: Target
     lines: tuple[str, ...]
 
@@ -37,7 +38,7 @@ class Rewrite:  # rewrite, b_rewrite, b_rewrite_compte
 
 
 @dataclasses.dataclass(frozen=True)
-class InsertNode:  # b_insert_node, b_insert_debut, b_complete par des alinéas
+class InsertNode(Retargetable):  # b_insert_node, b_insert_debut, b_complete par des alinéas
     """Alinéas insérés après (ou avant) la cible ; article entier : à la fin (ou au début)."""
 
     target: Target
