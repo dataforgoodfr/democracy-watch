@@ -17,6 +17,7 @@ import dataclasses
 from collections.abc import Iterable
 
 from engine.domain.documents import Amendment, Text
+from engine.domain.grafting import graft
 from engine.domain.patch import apply, deletes_article
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.trace import Consolidation, Projection, Result
@@ -67,8 +68,13 @@ def _by_article(drafts: list[Draft], twins: dict[int, int]) -> dict[str, list[in
 def _article_result(article: str, group: list[Draft]) -> Result:
     """Texte consolidé d'un article : les patchs de tous ses amendements, sur la base commune."""
     patch = tuple(splice for item in group for splice in item.patch)
-    assert group[0].article is not None
-    return Result(article, apply(group[0].article.lines, patch), deletes_article(patch))
+    assert group[0].article is not None and group[0].tree is not None
+    return Result(
+        article,
+        apply(group[0].article.lines, patch),
+        deletes_article(patch),
+        graft(group[0].tree, patch, group[0].text_uid).paragraphs,
+    )
 
 
 def consolidate(

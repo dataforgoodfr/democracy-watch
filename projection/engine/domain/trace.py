@@ -6,6 +6,7 @@ import hashlib
 from engine.domain.documents import Article
 from engine.domain.operation import Operation
 from engine.domain.refusal import Reason
+from engine.domain.tree import Paragraph
 
 
 @dataclasses.dataclass(frozen=True)
@@ -22,11 +23,16 @@ class Instruction:
 
 @dataclasses.dataclass(frozen=True)
 class Result:
-    """Texte résultant d'un article. `deleted` : article supprimÃ©, `lines` est alors vide."""
+    """Texte résultant d'un article. `deleted` : article supprimé, `lines` est alors vide.
+
+    `paragraphs` : les mêmes alinéas, avec l'identifiant et l'origine de chaque mot ; `lines` en est
+    le texte. Ils ne comptent pas dans la comparaison de deux résultats.
+    """
 
     number: str
     lines: tuple[str, ...]
     deleted: bool = False
+    paragraphs: tuple[Paragraph, ...] = dataclasses.field(default=(), compare=False)
 
 
 def fingerprint(text_uid: str, article: Article) -> str:

@@ -12,6 +12,7 @@ from engine.domain.normalization import article_number, normalize
 from engine.domain.patch import Patch, apply
 from engine.domain.refusal import Reason, Refusal
 from engine.domain.trace import Instruction, fingerprint
+from engine.domain.tree import ArticleTree, article_of
 from engine.reading import read
 from engine.reading.dispositif import dispositif_lines
 
@@ -52,6 +53,12 @@ class Draft:
     instructions: tuple[Instruction, ...] = ()
     patches: tuple[Patch, ...] = ()
     refusal: Refusal | None = None
+    text_uid: str = ""
+
+    @property
+    def tree(self) -> ArticleTree | None:
+        """L'arbre de l'article de base, avec ses identifiants (None si l'article est inconnu)."""
+        return None if self.article is None else article_of(self.text_uid, self.article)
 
     @property
     def applicable(self) -> bool:
@@ -101,14 +108,18 @@ def _touched(article: Article, patch: Patch) -> tuple[tuple[str, ...], tuple[str
     return tuple(before), tuple(after)
 
 
-def _plan(instruction: Instruction, article: Article) -> tuple[Instruction, Patch]:
-    """L'instruction tracée (avant/après, ou raison du refus) et son patch contre `article`."""
+def _plan(instruction: Instruction, article: Article, origin: str) -> tuple[Instruction, Patch]:
+    """L'instruction tracée (avant/après, ou raison du refus) et son patch contre `article`.
+
+    Les splices du patch portent `origin`, l'amendement qui les écrit.
+    """
     if instruction.operation is None:
         return instruction, ()
     try:
         patch = instruction.operation.plan(article)
     except Refusal as refusal:
         return dataclasses.replace(instruction, reason=refusal.reason, detail=refusal.detail), ()
+    patch = tuple(dataclasses.replace(splice, origin=origin) for splice in patch)
     before, after = _touched(article, patch)
     return dataclasses.replace(instruction, before=before, after=after), patch
 
@@ -127,7 +138,8 @@ def draft(text: Text, amendment: Amendment) -> Draft:
     except Refusal as refusal:
         return Draft(amendment, number, base=base, refusal=refusal)
     article = dataclasses.replace(found, lines=tuple(normalize(line) for line in found.lines))
-    planned = [_plan(instruction, article) for instruction in read(body)]
+    origin = amendment.id or amendment.number
+    planned = [_plan(instruction, article, origin) for instruction in read(body)]
     return Draft(
         amendment,
         number,
@@ -136,4 +148,5 @@ def draft(text: Text, amendment: Amendment) -> Draft:
         body,
         tuple(instruction for instruction, _ in planned),
         tuple(patch for _, patch in planned),
+        text_uid=text.uid,
     )

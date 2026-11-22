@@ -22,13 +22,15 @@ from typing import cast
 class Splice:
     """Remplace `span` (début inclus, fin exclue) d'une séquence de l'article par `new`.
 
-    `span` vide (début = fin) : insertion.
+    `span` vide (début = fin) : insertion. `origin` : l'amendement qui écrit `new` (identifiant,
+    sinon numéro), pour l'origine des mots du texte projeté ; il ne joue pas dans les conflits.
     """
 
     article: str
     span: tuple[int, int] | None
     new: str | tuple[str, ...]
     line: int | None = None
+    origin: str = ""
 
     @classmethod
     def on_article(cls, article: str, new: tuple[str, ...]) -> Splice:
@@ -86,7 +88,7 @@ def conflicts(a: Splice, b: Splice) -> bool:
     return _lines_overlap(a.span, b.span)
 
 
-def _ordered[T](edits: Iterable[tuple[int, int, T]]) -> list[tuple[int, int, T]]:
+def ordered[T](edits: Iterable[tuple[int, int, T]]) -> list[tuple[int, int, T]]:
     """Remplacements `(début, fin, nouveau)` dans l'ordre de la séquence.
 
     À position égale, une insertion passe avant un remplacement.
@@ -98,19 +100,19 @@ def _compose_text(text: str, edits: Iterable[tuple[int, int, str]]) -> str:
     """Applique des remplacements sans conflit, en parallèle sur les positions de `text`."""
     pieces: list[str] = []
     position = 0
-    for start, end, new in _ordered(edits):
+    for start, end, new in ordered(edits):
         pieces += [text[position:start], new]
         position = end
     return "".join(pieces) + text[position:]
 
 
-def _compose_lines(
-    lines: tuple[str, ...], edits: Iterable[tuple[int, int, tuple[str, ...]]]
-) -> tuple[str, ...]:
+def compose_lines[T](
+    lines: tuple[T, ...], edits: Iterable[tuple[int, int, tuple[T, ...]]]
+) -> tuple[T, ...]:
     """Applique des remplacements sans conflit, en parallèle sur les positions de `lines`."""
-    result: tuple[str, ...] = ()
+    result: tuple[T, ...] = ()
     position = 0
-    for start, end, new in _ordered(edits):
+    for start, end, new in ordered(edits):
         result += lines[position:start] + new
         position = end
     return result + lines[position:]
@@ -139,7 +141,7 @@ def apply(lines: tuple[str, ...], patch: Patch) -> tuple[str, ...]:
                 if splice.line == index and splice.span is not None
             ),
         )
-    return _compose_lines(
+    return compose_lines(
         tuple(texts),
         (
             (splice.span[0], splice.span[1], cast(tuple[str, ...], splice.new))

@@ -5,6 +5,7 @@ instruction refusée, ou en conflit, refuse tout l'amendement (tout ou rien).
 """
 
 from engine.domain.documents import Amendment, Text
+from engine.domain.grafting import graft
 from engine.domain.patch import apply, deletes_article
 from engine.domain.trace import Projection, Result
 from engine.reading import GRAMMAR_VERSION
@@ -26,7 +27,13 @@ def decide(draft: Draft) -> Projection:
     if reason is not None or draft.article is None:
         return Projection(*args, None, reason, detail, *trace)
     patch = draft.patch
-    result = Result(draft.article.number, apply(draft.article.lines, patch), deletes_article(patch))
+    assert draft.tree is not None
+    result = Result(
+        draft.article.number,
+        apply(draft.article.lines, patch),
+        deletes_article(patch),
+        graft(draft.tree, patch, draft.text_uid).paragraphs,
+    )
     return Projection(*args, result, None, "", *trace)
 
 

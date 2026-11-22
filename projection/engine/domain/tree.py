@@ -99,8 +99,12 @@ def paragraph_of(id: str, text: str, origin: Origin) -> Paragraph:
     return Paragraph(id, words)
 
 
+@functools.lru_cache(maxsize=512)
 def article_of(text_uid: str, article: Article) -> ArticleTree:
-    """L'arbre d'un article du texte `text_uid` : tout vient du texte d'entrée."""
+    """L'arbre d'un article du texte `text_uid` : tout vient du texte d'entrée.
+
+    Mémoïsé : l'arbre est immuable et un même article sert à tous les amendements qui le visent.
+    """
     article_id = identity.article_id(text_uid, article.number)
     origin = Origin(text_uid)
     paragraphs = tuple(
