@@ -48,8 +48,8 @@ class Deleting(Predictor):
 
 
 def test_select():
-    assert [p.name for p in run.select([])] == ["identity"]
-    assert [p.name for p in run.select(["identity", "identity"])] == ["identity"]
+    assert [p.name for p in run.select([])] == ["copy_input"]
+    assert [p.name for p in run.select(["copy_input", "copy_input"])] == ["copy_input"]
     with pytest.raises(SystemExit, match="Unknown predictors"):
         run.select(["deleting"])
 
@@ -59,5 +59,5 @@ def test_main(built, capsys):
     out = capsys.readouterr().out
     assert "1 steps" in out and "missing from the built corpus" in out
     results = json.loads((built / "results.json").read_text())
-    assert list(results) == ["identity"]
-    assert results["identity"]["changed"]["scores"]["identical"]["identical"]["mean"] == 0.0
+    assert list(results) == ["copy_input"]
+    assert results["copy_input"]["changed"]["scores"]["identical"]["identical"]["mean"] == 0.0

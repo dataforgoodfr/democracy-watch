@@ -5,6 +5,6 @@
 """
 
 from projection.eval.predictors.base import Predictor, all_predictors
-from projection.eval.predictors.identity import Identity
+from projection.eval.predictors.copy_input import CopyInput
 
-__all__ = ["Identity", "Predictor", "all_predictors"]
+__all__ = ["CopyInput", "Predictor", "all_predictors"]

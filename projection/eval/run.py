@@ -2,10 +2,10 @@
 
 Usage, depuis la racine du repo, une fois le corpus construit (projection/eval/corpus.py) :
     uv run python -m projection.eval.run                  # tous les prédicteurs
-    uv run python -m projection.eval.run identity         # ceux nommés
+    uv run python -m projection.eval.run copy_input       # ceux nommés
     uv run python -m projection.eval.run --split test --json results.json
 
-La référence « identity » (recopier l'entrée) est toujours lancée : c'est le score à battre.
+La référence « copy_input » (recopier l'entrée) est toujours lancée : c'est le score à battre.
 Seules les étapes du manifeste sont évaluées (un corpus reconstruit plus tard en contient de
 nouvelles), sans les textes budgétaires (PLF, PLFSS), comme le prévoit la RFC.
 """
@@ -18,10 +18,14 @@ from pathlib import Path
 from projection.eval import corpus
 from projection.eval.formats import Step, SubsetSummary
 from projection.eval.metrics import score_step, summarize
-from projection.eval.predictors import Identity, Predictor, all_predictors
+from projection.eval.predictors import CopyInput, Predictor, all_predictors
 
-# Score affiché pour chaque métrique ; le JSON les contient tous.
-SHOWN = {"identical": "identical", "presence": "presence", "words": "f1"}
+# Colonnes du tableau : titre → (métrique, score). Le JSON contient tous les scores.
+SHOWN = {
+    "identical": ("identical", "identical"),
+    "presence": ("presence", "presence"),
+    "words f1": ("words", "f1"),
+}
 TITLES = {
     "changed": "Articles the official text changes",
     "all": "All articles",
@@ -35,7 +39,7 @@ def select(names: list[str]) -> list[Predictor]:
     unknown = [name for name in names if name not in available]
     if unknown:
         raise SystemExit(f"Unknown predictors: {unknown}. Available: {sorted(available)}")
-    chosen = dict.fromkeys([Identity.name, *(names or available)])
+    chosen = dict.fromkeys([CopyInput.name, *(names or available)])
     return [available[name] for name in chosen]
 
 
@@ -59,13 +63,13 @@ def evaluate(predictor: Predictor, steps: list[Step]) -> dict[str, SubsetSummary
 def table(results: dict[str, dict[str, SubsetSummary]]) -> str:
     """Un tableau par sous-ensemble d'articles, une ligne par prédicteur."""
     lines = ["Scores per article, mean (median), from 0 to 1: 1 = perfect."]
-    header = "".join(f"{f'{metric} ({key})':>24}" for metric, key in SHOWN.items())
+    header = "".join(f"{title:>24}" for title in SHOWN)
     for subset, summary in next(iter(results.values())).items():
         lines += ["", f"{TITLES.get(subset, subset)}: {summary.articles} articles"]
         lines.append(f"  {'predictor':<30}{header}")
         for name, result in results.items():
             cells = []
-            for metric, key in SHOWN.items():
+            for metric, key in SHOWN.values():
                 stats = result[subset].scores.get(metric, {}).get(key)
                 if stats is None or stats["mean"] is None:
                     cells.append("—")
