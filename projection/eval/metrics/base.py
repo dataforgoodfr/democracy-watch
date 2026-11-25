@@ -1,10 +1,9 @@
 """La classe dont hérite chaque métrique."""
 
-import inspect
 from abc import ABC, abstractmethod
 from typing import ClassVar
 
-PACKAGE = __name__.rpartition(".")[0]
+from projection.eval.discovery import instances
 
 
 class Metric(ABC):
@@ -22,15 +21,5 @@ class Metric(ABC):
 
 
 def all_metrics() -> list[Metric]:
-    """Une instance de chaque métrique de ce paquet, dans l'ordre où elles sont importées.
-
-    Une sous-classe définie ailleurs (dans un test, par exemple) n'est pas prise par défaut.
-    """
-    found: list[Metric] = []
-    todo: list[type[Metric]] = [Metric]
-    while todo:
-        cls = todo.pop(0)
-        todo += cls.__subclasses__()
-        if not inspect.isabstract(cls) and cls.__module__.startswith(f"{PACKAGE}."):
-            found.append(cls())
-    return found
+    """Une instance de chaque métrique de ce paquet."""
+    return instances(Metric, __name__.rpartition(".")[0])

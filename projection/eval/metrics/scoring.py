@@ -3,8 +3,8 @@
 from collections.abc import Callable, Sequence
 from statistics import fmean, median
 
+from projection.eval.formats import CorpusArticle, Row, Stats, Step, SubsetSummary
 from projection.eval.metrics.base import Metric, all_metrics
-from projection.eval.metrics.formats import CorpusArticle, Row, Stats, Step, SubsetSummary
 from projection.eval.metrics.text import normalize
 
 # Sous-ensembles d'articles sur lesquels le résumé est calculé : un nom et un filtre. Ceux que

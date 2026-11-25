@@ -43,13 +43,14 @@ Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
 Compare les algorithmes de projection aux textes officiels du corpus.
 
 ```bash
-uv run python -m projection.eval.corpus                   # construit le corpus (une fois, en cache)
-uv run python -m projection.eval.run                      # la référence : recopier l'entrée
-uv run python -m projection.eval.run module:fonction      # un algorithme, à côté de la référence
+uv run python -m projection.eval.corpus          # construit le corpus (une fois, en cache)
+uv run python -m projection.eval.run             # lance tous les prédicteurs
+uv run python -m projection.eval.run identity    # seulement ceux nommés
 ```
 
-Un prédicteur est une fonction `fonction(entree, amendements) -> articles`. Une métrique est une
-sous-classe de `Metric` dans `projection/eval/metrics/` (voir `base.py`).
+Un prédicteur (un algorithme) est une sous-classe de `Predictor` dans `projection/eval/predictors/`,
+une métrique une sous-classe de `Metric` dans `projection/eval/metrics/` : un fichier chacun,
+importé dans le `__init__.py` du dossier.
 
 ## Vérifications
 

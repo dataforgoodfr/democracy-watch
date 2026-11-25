@@ -5,6 +5,7 @@ import json
 import pytest
 
 from projection.eval import corpus, run
+from projection.eval.predictors import Predictor
 
 
 def step(id_, split, finances=False):
@@ -37,15 +38,26 @@ def test_load_steps(built):
     assert [s["id"] for s in steps] == ["D1"] and missing == 1
 
 
-def test_load_predictor():
-    assert run.load_predictor("identity") is run.identity
-    assert run.load_predictor("projection.eval.run:identity") is run.identity
+class Deleting(Predictor):
+    """Défini hors du paquet predictors : pas lancé par défaut."""
+
+    name = "deleting"
+
+    def predict(self, entree, amendements):
+        return []
+
+
+def test_select():
+    assert [p.name for p in run.select([])] == ["identity"]
+    assert [p.name for p in run.select(["identity", "identity"])] == ["identity"]
+    with pytest.raises(SystemExit, match="Unknown predictors"):
+        run.select(["deleting"])
 
 
 def test_main(built, capsys):
-    run.main(["projection.eval.run:identity", "--json", str(built / "results.json")])
+    run.main(["--json", str(built / "results.json")])
     out = capsys.readouterr().out
     assert "1 steps" in out and "missing from the built corpus" in out
     results = json.loads((built / "results.json").read_text())
-    assert list(results) == ["identity", "projection.eval.run:identity"]
+    assert list(results) == ["identity"]
     assert results["identity"]["changed"]["scores"]["identical"]["identical"]["mean"] == 0.0

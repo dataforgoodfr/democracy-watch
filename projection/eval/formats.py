@@ -1,7 +1,7 @@
-"""Formats d'entrée et de sortie des métriques (#154).
+"""Formats d'entrée et de sortie de l'évaluation (#154).
 
 Entrée : une étape du corpus (format de corpus.py, dont les noms de champs restent ceux des
-données) et les articles prédits pour sa sortie.
+données). Un prédicteur en reçoit l'entrée et les amendements, et renvoie des CorpusArticle.
 Sortie : une Row par article (les scores de chaque métrique), puis un SubsetSummary par
 sous-ensemble d'articles. Les deux passent en JSON par dataclasses.asdict.
 """

@@ -1,31 +1,24 @@
-"""Lance l'évaluation : fait tourner des prédicteurs sur le corpus et affiche leurs scores.
-
-Un prédicteur est la fonction F de la RFC, entrée → sortie : il reçoit les articles du texte
-d'entrée et les amendements déposés dessus, et renvoie les articles prédits pour la sortie, au
-format du corpus. Il ne voit jamais la sortie officielle. La référence « identity » (recopier
-l'entrée) est toujours affichée : c'est le score à battre.
+"""Lance l'évaluation : fait tourner les prédicteurs sur le corpus et affiche leurs scores.
 
 Usage, depuis la racine du repo, une fois le corpus construit (projection/eval/corpus.py) :
-    uv run python -m projection.eval.run                           # la référence seule
-    uv run python -m projection.eval.run paquet.module:fonction    # un algorithme
-    uv run python -m projection.eval.run … --split test --json results.json
+    uv run python -m projection.eval.run                  # tous les prédicteurs
+    uv run python -m projection.eval.run identity         # ceux nommés
+    uv run python -m projection.eval.run --split test --json results.json
 
+La référence « identity » (recopier l'entrée) est toujours lancée : c'est le score à battre.
 Seules les étapes du manifeste sont évaluées (un corpus reconstruit plus tard en contient de
 nouvelles), sans les textes budgétaires (PLF, PLFSS), comme le prévoit la RFC.
 """
 
 import argparse
 import dataclasses
-import importlib
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 from projection.eval import corpus
+from projection.eval.formats import Step, SubsetSummary
 from projection.eval.metrics import score_step, summarize
-from projection.eval.metrics.formats import CorpusArticle, Step, SubsetSummary
-
-type Predictor = Callable[[list[CorpusArticle], list[dict]], list[CorpusArticle]]
+from projection.eval.predictors import Identity, Predictor, all_predictors
 
 # Score affiché pour chaque métrique ; le JSON les contient tous.
 SHOWN = {"identical": "identical", "presence": "presence", "words": "f1"}
@@ -36,17 +29,14 @@ TITLES = {
 }
 
 
-def identity(entree: list[CorpusArticle], amendements: list[dict]) -> list[CorpusArticle]:
-    """Référence : recopie l'entrée sans appliquer aucun amendement."""
-    return entree
-
-
-def load_predictor(name: str) -> Predictor:
-    """« identity », ou une fonction donnée par « module:fonction »."""
-    if name == "identity":
-        return identity
-    module, _, function = name.partition(":")
-    return getattr(importlib.import_module(module), function)
+def select(names: list[str]) -> list[Predictor]:
+    """Les prédicteurs nommés, tous si aucun, toujours précédés de la référence."""
+    available = {predictor.name: predictor for predictor in all_predictors()}
+    unknown = [name for name in names if name not in available]
+    if unknown:
+        raise SystemExit(f"Unknown predictors: {unknown}. Available: {sorted(available)}")
+    chosen = dict.fromkeys([Identity.name, *(names or available)])
+    return [available[name] for name in chosen]
 
 
 def load_steps(split: str) -> tuple[list[Step], int]:
@@ -58,10 +48,11 @@ def load_steps(split: str) -> tuple[list[Step], int]:
     return [step for step in steps if not step["finances"]], len(ids) - len(steps)
 
 
-def evaluate(predict: Predictor, steps: list[Step]) -> dict[str, SubsetSummary]:
+def evaluate(predictor: Predictor, steps: list[Step]) -> dict[str, SubsetSummary]:
     rows = []
     for step in steps:
-        rows += score_step(step, predict(step["entree"]["articles"], step["amendements"]))
+        prediction = predictor.predict(step["entree"]["articles"], step["amendements"])
+        rows += score_step(step, prediction)
     return summarize(rows)
 
 
@@ -86,16 +77,16 @@ def table(results: dict[str, dict[str, SubsetSummary]]) -> str:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Evaluate predictors on the corpus.")
-    parser.add_argument("predictors", nargs="*", help="functions given as module:function")
+    parser.add_argument("predictors", nargs="*", help="predictor names (default: all)")
     parser.add_argument("--split", choices=["dev", "test"], default="dev")
     parser.add_argument("--json", type=Path, help="also write every score to this file")
     args = parser.parse_args(argv)
+    predictors = select(args.predictors)
     steps, missing = load_steps(args.split)
     print(f"Corpus {corpus.NAME}, split {args.split}: {len(steps)} steps, budget texts excluded")
     if missing:
         print(f"Warning: {missing} steps of the manifest are missing from the built corpus.")
-    names = ["identity", *[name for name in args.predictors if name != "identity"]]
-    results = {name: evaluate(load_predictor(name), steps) for name in names}
+    results = {predictor.name: evaluate(predictor, steps) for predictor in predictors}
     print(table(results))
     if args.json:
         data = {

@@ -1,7 +1,7 @@
 """Métriques de l'évaluation, sur des articles écrits à la main."""
 
+from projection.eval.formats import CorpusArticle, Step
 from projection.eval.metrics import Identical, Metric, Words, all_metrics, score_step, summarize
-from projection.eval.metrics.formats import CorpusArticle, Step
 from projection.eval.metrics.text import normalize, tokens
 
 ENTREE = "Les organismes contrôlent la fraude chaque année."
