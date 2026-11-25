@@ -38,6 +38,19 @@ log.info("%s amendements lus", count)
 
 Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
 
+## Evaluation
+
+Scores projection algorithms against the official texts of the corpus.
+
+```bash
+uv run python -m projection.eval.corpus                    # build the corpus once (cached)
+uv run python -m projection.eval.run                       # the identity baseline
+uv run python -m projection.eval.run some.module:predict   # an algorithm, next to the baseline
+```
+
+A predictor is a function `predict(entree, amendements) -> articles`. A metric is a subclass of
+`Metric` in `projection/eval/metrics/` (see `base.py`).
+
 ## Vérifications
 
 `pre-commit` tourne à chaque commit et en CI : ruff (lint et format), ty (types),
