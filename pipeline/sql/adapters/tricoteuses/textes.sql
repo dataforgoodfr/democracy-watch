@@ -212,3 +212,31 @@ SELECT
     date_depot
 FROM final
 ORDER BY dossier_uid, rang_dans_dossier;
+
+-- -----------------------------------------------------------------------------
+-- 5. MÉTADONNÉES DUCKDB (`COMMENT ON TABLE` / `COMMENT ON COLUMN`)
+-- -----------------------------------------------------------------------------
+
+COMMENT ON TABLE textes IS
+    'Périmètre : 17e législature, Assemblée nationale (assemblee.dossiers.legislature = 17). Grain : 1 ligne par document parlementaire (assemblee.documents.uid) rattaché à un dossier L17 présent dans assemblee.dossiers (INNER JOIN excluant les documents orphelins ou hors L17). Ordonné par (dossier_uid, rang_dans_dossier).';
+
+COMMENT ON COLUMN textes.uid IS
+    'Source : assemblee.documents.uid. Signification : identifiant unique du document parlementaire. Transformation : aucune.';
+
+COMMENT ON COLUMN textes.dossier_uid IS
+    'Source : assemblee.documents.data ($.dossierRef), filtré par INNER JOIN sur assemblee.dossiers.uid (WHERE legislature = 17). Signification : identifiant du dossier législatif parent (17e législature). Transformation : extraction JSON et filtrage de périmètre et d''intégrité référentielle.';
+
+COMMENT ON COLUMN textes.nature IS
+    'Source : assemblee.documents.uid et data ($.classification.type.code, $.classification.famille.depot.code, $.classification.type.libelle). Signification : rôle parlementaire normalisé du document dans le dossier. Transformation : CASE priorisant les marqueurs de uid (%BTC%, %BTA%, %TAP%), puis le couple (type_code, depot_code) pour PION/PRJL/PNRE (INITDEP/INITNAV), puis le mapping de type_code, sinon repli sur type_document.';
+
+COMMENT ON COLUMN textes.type_document IS
+    'Source : assemblee.documents.data ($.classification.type.libelle). Signification : libellé brut du type de document. Transformation : extraction JSON sans normalisation.';
+
+COMMENT ON COLUMN textes.numero IS
+    'Source : assemblee.documents.data ($.notice.numNotice). Signification : numéro de notice du document parlementaire. Transformation : extraction JSON.';
+
+COMMENT ON COLUMN textes.rang_dans_dossier IS
+    'Source : assemblee.dossiers.data (arbre $.actesLegislatifs : top_idx de niveau 1, dateActe, texteAssocieRef, texteAdopteRef, textesAssocies[*].texteAssocieRef, texteLoiRef), date_depot et uid. Signification : rang chronologique et procédural continu (1..N) du document dans son dossier. Transformation : aplatissement récursif de actesLegislatifs pour calculer top_idx et sort_path, sélection de la 1re apparition via MIN_BY((first_top_idx, first_acte_date, first_sort_key)) avec ref.idx complété à 3 chiffres (LPAD(ref.idx::VARCHAR, 3, ''0'')), puis ROW_NUMBER() OVER (PARTITION BY dossier_uid ORDER BY first_top_idx NULLS LAST, first_acte_date NULLS LAST, first_sort_key NULLS LAST, date_depot NULLS LAST, uid)::INTEGER.';
+
+COMMENT ON COLUMN textes.date_depot IS
+    'Source : assemblee.documents.data ($.cycleDeVie.chrono.dateDepot, avec repli sur dateCreation puis datePublication). Signification : date de dépôt, de création ou de publication du document. Transformation : COALESCE des trois champs, LEFT(..., 10) pour éviter tout décalage de fuseau horaire, puis TRY_CAST(... AS DATE).';
