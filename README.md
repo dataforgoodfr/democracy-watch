@@ -38,18 +38,18 @@ log.info("%s amendements lus", count)
 
 Messages sur stderr ; niveau réglable par `DW_LOG_LEVEL` (INFO par défaut).
 
-## Evaluation
+## Évaluation
 
-Scores projection algorithms against the official texts of the corpus.
+Compare les algorithmes de projection aux textes officiels du corpus.
 
 ```bash
-uv run python -m projection.eval.corpus                    # build the corpus once (cached)
-uv run python -m projection.eval.run                       # the identity baseline
-uv run python -m projection.eval.run some.module:predict   # an algorithm, next to the baseline
+uv run python -m projection.eval.corpus                   # construit le corpus (une fois, en cache)
+uv run python -m projection.eval.run                      # la référence : recopier l'entrée
+uv run python -m projection.eval.run module:fonction      # un algorithme, à côté de la référence
 ```
 
-A predictor is a function `predict(entree, amendements) -> articles`. A metric is a subclass of
-`Metric` in `projection/eval/metrics/` (see `base.py`).
+Un prédicteur est une fonction `fonction(entree, amendements) -> articles`. Une métrique est une
+sous-classe de `Metric` dans `projection/eval/metrics/` (voir `base.py`).
 
 ## Vérifications
 
