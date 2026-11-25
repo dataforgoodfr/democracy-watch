@@ -23,9 +23,9 @@ from projection.eval.predictors import Identity, Predictor, all_predictors
 # Score affiché pour chaque métrique ; le JSON les contient tous.
 SHOWN = {"identical": "identical", "presence": "presence", "words": "f1"}
 TITLES = {
-    "changed": "Articles the official text changes (the score that matters)",
+    "changed": "Articles the official text changes",
     "all": "All articles",
-    "unchanged": "Articles the official text leaves as they were (copying the input is perfect)",
+    "unchanged": "Articles the official text leaves as they were",
 }
 
 
