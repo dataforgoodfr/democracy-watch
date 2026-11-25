@@ -1,7 +1,7 @@
 """Formats d'entrée et de sortie de l'évaluation (#154).
 
 Entrée : une étape du corpus (format de corpus.py, dont les noms de champs restent ceux des
-données). Un prédicteur en reçoit l'entrée et les amendements, et renvoie des CorpusArticle.
+données). Un algorithme en reçoit l'entrée et les amendements, et renvoie des CorpusArticle.
 Sortie : une Row par article (les scores de chaque métrique), puis un SubsetSummary par
 sous-ensemble d'articles. Les deux passent en JSON par dataclasses.asdict.
 """
@@ -24,7 +24,7 @@ class CorpusText(TypedDict):
 
 
 class Step(TypedDict):
-    """Une étape du corpus, réduite à ce que lisent les métriques et les prédicteurs."""
+    """Une étape du corpus, réduite à ce que lisent les métriques et les algorithmes."""
 
     id: str  # « <dossier>:<etape> »
     entree: CorpusText

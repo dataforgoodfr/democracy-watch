@@ -1,4 +1,4 @@
-"""La classe dont hérite chaque prédicteur."""
+"""La classe dont hérite chaque algorithme."""
 
 from abc import ABC, abstractmethod
 from typing import ClassVar
@@ -7,12 +7,12 @@ from projection.eval.discovery import instances
 from projection.eval.formats import CorpusArticle
 
 
-class Predictor(ABC):
-    """Un prédicteur : la fonction F de la RFC, entrée → sortie. Il ne voit jamais la sortie
-    officielle.
+class Algorithm(ABC):
+    """Un algorithme de projection : la fonction F de la RFC, entrée → sortie. Il ne voit jamais
+    la sortie officielle.
 
     Pour en ajouter un : un module de ce paquet, avec une sous-classe qui définit `name` et
-    `predict`, importé dans __init__.py. Il est alors lancé par défaut (voir all_predictors).
+    `predict`, importé dans __init__.py. Il est alors lancé par défaut (voir all_algorithms).
     """
 
     name: ClassVar[str]  # nom donné à la commande et affiché dans les résultats
@@ -23,6 +23,6 @@ class Predictor(ABC):
         amendements déposés dessus."""
 
 
-def all_predictors() -> list[Predictor]:
-    """Une instance de chaque prédicteur de ce paquet."""
-    return instances(Predictor, __name__.rpartition(".")[0])
+def all_algorithms() -> list[Algorithm]:
+    """Une instance de chaque algorithme de ce paquet."""
+    return instances(Algorithm, __name__.rpartition(".")[0])

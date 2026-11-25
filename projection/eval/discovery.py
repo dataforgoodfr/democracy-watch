@@ -1,4 +1,4 @@
-"""Découverte des métriques et des prédicteurs : les sous-classes concrètes d'une classe de base."""
+"""Découverte des métriques et des algorithmes : les sous-classes concrètes d'une classe de base."""
 
 import inspect
 

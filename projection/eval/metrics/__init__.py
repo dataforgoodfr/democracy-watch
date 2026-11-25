@@ -1,6 +1,6 @@
 """Métriques de l'évaluation de la projection (#73).
 
-    rows = [row for step in steps for row in score_step(step, predict(step))]
+    rows = [row for step in steps for row in score_step(step, prediction)]
     summary = summarize(rows)  # {"changed" | "all" | "unchanged": SubsetSummary}
 
 - base.py    : Metric, la classe dont hérite chaque métrique ;

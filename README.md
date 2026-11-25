@@ -44,11 +44,11 @@ Compare les algorithmes de projection aux textes officiels du corpus.
 
 ```bash
 uv run python -m projection.eval.corpus          # construit le corpus (une fois, en cache)
-uv run python -m projection.eval.run             # lance tous les prédicteurs
-uv run python -m projection.eval.run copy_input  # seulement ceux nommés
+uv run python -m projection.eval.run             # lance tous les algorithmes
+uv run python -m projection.eval.run identity    # seulement ceux nommés
 ```
 
-Un prédicteur (un algorithme) est une sous-classe de `Predictor` dans `projection/eval/predictors/`,
+Un algorithme est une sous-classe de `Algorithm` dans `projection/eval/algorithms/`,
 une métrique une sous-classe de `Metric` dans `projection/eval/metrics/` : un fichier chacun,
 importé dans le `__init__.py` du dossier.
 
