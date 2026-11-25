@@ -14,10 +14,10 @@ class Metric(ABC):
     `score`, importé dans __init__.py. Elle est alors utilisée par défaut (voir all_metrics).
     """
 
-    name: ClassVar[str]  # clé de ses scores dans Row.scores et GroupSummary.scores
+    name: ClassVar[str]  # clé de ses scores dans Row.scores et SubsetSummary.scores
 
     @abstractmethod
-    def score(self, prediction: str, cible: str) -> dict[str, float]:
+    def score(self, prediction: str, target: str) -> dict[str, float]:
         """Les scores d'un article, textes prédit et officiel ("" s'il est absent ou supprimé)."""
 
 

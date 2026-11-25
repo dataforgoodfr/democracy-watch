@@ -1,29 +1,29 @@
 """Métriques de l'évaluation de la projection (#73).
 
     rows = [row for step in steps for row in score_step(step, predict(step))]
-    summary = summarize(rows)  # {"tous" | "modifies" | "inchanges": GroupSummary}
+    summary = summarize(rows)  # {"changed" | "all" | "unchanged": SubsetSummary}
 
 - base.py    : Metric, la classe dont hérite chaque métrique ;
 - formats.py : ce que les métriques reçoivent et renvoient (#154) ;
-- scoring.py : appariement des articles par numéro, résumé par groupe (GROUPS) ;
+- scoring.py : appariement par numéro, résumé par sous-ensemble (ARTICLE_SUBSETS) ;
 - text.py    : normalisation des textes ;
 - un module par métrique. Les métriques utilisées par défaut sont celles importées ici.
 """
 
 from projection.eval.metrics.base import Metric, all_metrics
-from projection.eval.metrics.formats import GroupSummary, Row
+from projection.eval.metrics.formats import Row, SubsetSummary
 from projection.eval.metrics.identical import Identical
 from projection.eval.metrics.presence import Presence
-from projection.eval.metrics.scoring import GROUPS, score_step, summarize
+from projection.eval.metrics.scoring import ARTICLE_SUBSETS, score_step, summarize
 from projection.eval.metrics.words import Words
 
 __all__ = [
-    "GROUPS",
-    "GroupSummary",
+    "ARTICLE_SUBSETS",
     "Identical",
     "Metric",
     "Presence",
     "Row",
+    "SubsetSummary",
     "Words",
     "all_metrics",
     "score_step",

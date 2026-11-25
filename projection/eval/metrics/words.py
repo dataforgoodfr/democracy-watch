@@ -11,19 +11,19 @@ class Words(Metric):
     Les deux textes sont alignés par diff : une phrase déplacée ne décale pas tout le reste.
     """
 
-    name = "mots"
+    name = "words"
 
-    def score(self, prediction: str, cible: str) -> dict[str, float]:
-        predicted, expected = tokens(prediction), tokens(cible)
+    def score(self, prediction: str, target: str) -> dict[str, float]:
+        predicted, expected = tokens(prediction), tokens(target)
         matcher = SequenceMatcher(None, predicted, expected, autojunk=False)
         common = sum(block.size for block in matcher.get_matching_blocks())
         # Deux textes vides (article supprimé des deux côtés) : prédiction parfaite.
         precision = common / len(predicted) if predicted else float(not expected)
         recall = common / len(expected) if expected else float(not predicted)
         return {
-            "ajoutes": len(predicted) - common,
-            "retires": len(expected) - common,
+            "added": len(predicted) - common,
+            "removed": len(expected) - common,
             "precision": precision,
-            "rappel": recall,
+            "recall": recall,
             "f1": 2 * precision * recall / (precision + recall) if precision + recall else 0.0,
         }

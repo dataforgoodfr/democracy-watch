@@ -1,8 +1,9 @@
 """Formats d'entrée et de sortie des métriques (#154).
 
-Entrée : une étape du corpus (format de corpus.py) et les articles prédits pour sa sortie.
-Sortie : une Row par article (les scores de chaque métrique), puis un GroupSummary par groupe
-d'articles. Les deux passent en JSON par dataclasses.asdict.
+Entrée : une étape du corpus (format de corpus.py, dont les noms de champs restent ceux des
+données) et les articles prédits pour sa sortie.
+Sortie : une Row par article (les scores de chaque métrique), puis un SubsetSummary par
+sous-ensemble d'articles. Les deux passent en JSON par dataclasses.asdict.
 """
 
 from dataclasses import dataclass
@@ -23,16 +24,17 @@ class CorpusText(TypedDict):
 
 
 class Step(TypedDict):
-    """Une étape du corpus, réduite à ce que lisent les métriques."""
+    """Une étape du corpus, réduite à ce que lisent les métriques et les prédicteurs."""
 
     id: str  # « <dossier>:<etape> »
     entree: CorpusText
     sortie: CorpusText
+    amendements: list[dict]  # déposés sur l'entrée, champs de tricoteuses.Amendement sans l'auteur
 
 
 class Stats(TypedDict):
-    moyenne: float | None  # None : groupe vide
-    mediane: float | None
+    mean: float | None  # None : sous-ensemble vide
+    median: float | None
 
 
 @dataclass
@@ -41,13 +43,14 @@ class Row:
 
     id: str  # l'étape du corpus
     numero: str
-    modifie: bool  # la cible modifie l'article (texte, création ou suppression)
+    changed: bool  # la cible modifie l'article (texte, création ou suppression)
     scores: dict[str, dict[str, float]]
 
 
 @dataclass
-class GroupSummary:
-    """Résumé d'un groupe d'articles : leur nombre, et chaque score en moyenne et médiane."""
+class SubsetSummary:
+    """Résumé d'un sous-ensemble d'articles : leur nombre, et la moyenne et la médiane de chaque
+    score."""
 
     articles: int
     scores: dict[str, dict[str, Stats]]

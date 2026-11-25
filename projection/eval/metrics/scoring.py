@@ -1,18 +1,19 @@
-"""Score d'une prédiction : chaque article passé à chaque métrique, puis résumé par groupe."""
+"""Score d'une prédiction : article par article, puis résumé par sous-ensemble d'articles."""
 
 from collections.abc import Callable, Sequence
 from statistics import fmean, median
 
 from projection.eval.metrics.base import Metric, all_metrics
-from projection.eval.metrics.formats import CorpusArticle, GroupSummary, Row, Stats, Step
+from projection.eval.metrics.formats import CorpusArticle, Row, Stats, Step, SubsetSummary
 from projection.eval.metrics.text import normalize
 
-# Groupes d'articles du résumé. Ceux que la cible ne modifie pas sont à part : une prédiction
-# qui recopie l'entrée y est parfaite sans rien projeter.
-GROUPS: dict[str, Callable[[Row], bool]] = {
-    "tous": lambda row: True,
-    "modifies": lambda row: row.modifie,
-    "inchanges": lambda row: not row.modifie,
+# Sous-ensembles d'articles sur lesquels le résumé est calculé : un nom et un filtre. Ceux que
+# la cible ne modifie pas sont à part : une prédiction qui recopie l'entrée y est parfaite sans
+# rien projeter.
+ARTICLE_SUBSETS: dict[str, Callable[[Row], bool]] = {
+    "changed": lambda row: row.changed,
+    "all": lambda row: True,
+    "unchanged": lambda row: not row.changed,
 }
 
 
@@ -29,28 +30,28 @@ def score_step(
     Un article absent de la prédiction compte comme supprimé. Par défaut, toutes les métriques.
     """
     metrics = all_metrics() if metrics is None else metrics
-    entree = texts_by_number(step["entree"]["articles"])
-    cible = texts_by_number(step["sortie"]["articles"])
+    inputs = texts_by_number(step["entree"]["articles"])
+    targets = texts_by_number(step["sortie"]["articles"])
     predicted = texts_by_number(prediction)
     rows = []
-    for number in dict.fromkeys([*entree, *cible, *predicted]):
-        e, c, p = entree.get(number, ""), cible.get(number, ""), predicted.get(number, "")
-        scores = {metric.name: metric.score(p, c) for metric in metrics}
-        rows.append(Row(step["id"], number, normalize(e) != normalize(c), scores))
+    for number in dict.fromkeys([*inputs, *targets, *predicted]):
+        before, target = inputs.get(number, ""), targets.get(number, "")
+        scores = {m.name: m.score(predicted.get(number, ""), target) for m in metrics}
+        rows.append(Row(step["id"], number, normalize(before) != normalize(target), scores))
     return rows
 
 
 def stats(values: list[float]) -> Stats:
     return {
-        "moyenne": fmean(values) if values else None,
-        "mediane": median(values) if values else None,
+        "mean": fmean(values) if values else None,
+        "median": median(values) if values else None,
     }
 
 
-def summarize(rows: list[Row]) -> dict[str, GroupSummary]:
-    """Un GroupSummary par groupe de GROUPS : moyenne et médiane de chaque score."""
+def summarize(rows: list[Row]) -> dict[str, SubsetSummary]:
+    """Un SubsetSummary par sous-ensemble de ARTICLE_SUBSETS : moyenne et médiane des scores."""
     summary = {}
-    for group, keep in GROUPS.items():
+    for subset, keep in ARTICLE_SUBSETS.items():
         kept = [row for row in rows if keep(row)]
         values: dict[str, dict[str, list[float]]] = {}
         for row in kept:
@@ -58,5 +59,5 @@ def summarize(rows: list[Row]) -> dict[str, GroupSummary]:
                 for key, value in scores.items():
                     values.setdefault(metric, {}).setdefault(key, []).append(value)
         scores = {m: {k: stats(v) for k, v in keys.items()} for m, keys in values.items()}
-        summary[group] = GroupSummary(len(kept), scores)
+        summary[subset] = SubsetSummary(len(kept), scores)
     return summary
