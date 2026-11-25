@@ -62,11 +62,11 @@ def evaluate(predictor: Predictor, steps: list[Step]) -> dict[str, SubsetSummary
 
 def table(results: dict[str, dict[str, SubsetSummary]]) -> str:
     """Un tableau par sous-ensemble d'articles, une ligne par prédicteur."""
-    lines = ["Scores per article, mean (median), from 0 to 1: 1 = perfect."]
-    header = "".join(f"{title:>24}" for title in SHOWN)
+    lines = ["Mean score per article, from 0 to 1, where 1 is perfect."]
+    header = "".join(f"{title:>12}" for title in SHOWN)
     for subset, summary in next(iter(results.values())).items():
         lines += ["", f"{TITLES.get(subset, subset)}: {summary.articles} articles"]
-        lines.append(f"  {'predictor':<30}{header}")
+        lines.append(f"  {'predictor':<20}{header}")
         for name, result in results.items():
             cells = []
             for metric, key in SHOWN.values():
@@ -74,8 +74,8 @@ def table(results: dict[str, dict[str, SubsetSummary]]) -> str:
                 if stats is None or stats["mean"] is None:
                     cells.append("—")
                 else:
-                    cells.append(f"{stats['mean']:.3f} ({stats['median']:.2f})")
-            lines.append(f"  {name:<30}" + "".join(f"{cell:>24}" for cell in cells))
+                    cells.append(f"{stats['mean']:.3f}")
+            lines.append(f"  {name:<20}" + "".join(f"{cell:>12}" for cell in cells))
     return "\n".join(lines)
 
 
