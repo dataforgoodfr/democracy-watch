@@ -9,7 +9,10 @@ Pièges traités (voir learnings/categories/tricoteuses.md) :
   (« Article 5 bis (nouveau) » → « 5 BIS ») ;
   l'identifiant (`article-1`) ne suit pas toujours le numéro officiel (« Article unique ») ;
 - une mention seule (« (Non modifié) », « (Supprimé) ») est rangée comme un alinéa : on l'écarte,
-  sinon tous les numéros d'alinéas de l'article sont décalés d'un cran.
+  sinon tous les numéros d'alinéas de l'article sont décalés d'un cran ;
+- un article inchangé (« (Non modifié) », « (Conforme) ») n'a que cette mention : il est marqué
+  `inchange`, son texte est à prendre dans le texte précédent ;
+- un tableau de dispositions applicables outre-mer peut arriver typé « Article » : écarté.
 """
 
 import dataclasses
@@ -25,6 +28,8 @@ MENTION = re.compile(
     r"\((non modifié|supprimés?|suppression maintenue|suppression conforme|conforme)\)\.?", re.I
 )
 RANGE = re.compile(r"^(\d+) À (\d+)$")
+# Un vrai titre d'article : « Article 5 bis », « Article 1er », « Article unique »…
+ARTICLE_TITLE = re.compile(r"\s*Articles?\s+(\d|unique\b|liminaire\b|premier\b)", re.I)
 
 
 @dataclasses.dataclass
@@ -57,6 +62,7 @@ class Article:
     numero: str  # « PREMIER », « 5 BIS »
     lignes: tuple[str, ...]  # un alinéa par élément, mentions seules retirées
     supprime: bool = False
+    inchange: bool = False  # mention seule « (Non modifié) » ou « (Conforme) » : lignes vides
 
 
 @dataclasses.dataclass(frozen=True)
@@ -91,16 +97,21 @@ def numbers_from_title(titre):
     """Numéros d'un titre d'article.
 
     « Article 1er » → [PREMIER] ; « Article 5 bis (nouveau) » → [5 BIS] ;
-    « Articles 2 à 4 » → [2, 3, 4].
+    « Articles 2 à 4 » → [2, 3, 4] ; « Articles 15, 16 à 18 et 20 » → [15, 16, 17, 18, 20].
     """
     body = re.sub(r"\(.*?\)", "", titre).replace("\xa0", " ")
     body = re.sub(r"^\s*Articles?\s+", "", body, flags=re.I)
     body = re.sub(r"\s+", " ", body).strip().upper()
-    range_ = RANGE.match(body)
-    if range_:
-        return [str(n) for n in range(int(range_[1]), int(range_[2]) + 1)]
-    pieces = [m.strip() for m in re.split(r",| ET ", body) if m.strip()]
-    return ["PREMIER" if re.fullmatch(r"1 ?ER|PREMIER", m) else m for m in pieces]
+    # Espaces manquants dans certains titres : « 1erbis », « 25C », « 4 nonies et4 decies ».
+    body = re.sub(r"(\d(?:ER)?+)(?=[A-Z])", r"\1 ", body)
+    body = re.sub(r" ET(?=\d)", " ET ", body)
+    numbers = []
+    for piece in (m.strip() for m in re.split(r",| ET ", body)):
+        if range_ := RANGE.match(piece):
+            numbers += [str(n) for n in range(int(range_[1]), int(range_[2]) + 1)]
+        elif piece:
+            numbers.append("PREMIER" if re.fullmatch(r"1 ?ER|PREMIER", piece) else piece)
+    return numbers
 
 
 def articles_from_document(document):
@@ -114,9 +125,9 @@ def articles_from_document(document):
     articles = []
     subdivisions = sorted(document.get("subdivisions") or [], key=lambda s: s.get("sequence") or 0)
     for subdivision in subdivisions:
-        if subdivision["type"] != "Article":
+        if subdivision["type"] != "Article" or not ARTICLE_TITLE.match(subdivision["titre"]):
             continue
-        lignes, supprime = [], "supprim" in subdivision["titre"].lower()
+        lignes, supprime, inchange = [], "supprim" in subdivision["titre"].lower(), False
         for alinea in sorted(alineas.get(subdivision["hash"], []), key=lambda a: a["numero"]):
             # Un tableau arrive aplati en un seul alinéa, cellules séparées par des tabulations et
             # lignes par des retours : sans ce remplacement, chaque ligne du tableau deviendrait un
@@ -124,10 +135,13 @@ def articles_from_document(document):
             text = re.sub(r"[ \t]*[\t\n][ \t\n]*", " ", alinea["texte"] or "").strip()
             if MENTION.fullmatch(text):
                 supprime = supprime or "suppr" in text.lower()
+                inchange = "suppr" not in text.lower()
             elif text:
                 lignes.append(text)
         for numero in numbers_from_title(subdivision["titre"]):
-            articles.append(Article(numero, tuple(lignes), supprime))
+            articles.append(
+                Article(numero, tuple(lignes), supprime, inchange and not lignes and not supprime)
+            )
     if not articles:
         raise TextNotFound(f"{document.get('uid')} : aucun article")
     return tuple(articles)
