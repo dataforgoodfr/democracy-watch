@@ -505,3 +505,64 @@ SELECT
     expose_des_motifs
 FROM final
 ORDER BY uid;
+
+-- -----------------------------------------------------------------------------
+-- 6. MÉTADONNÉES DUCKDB (`COMMENT ON TABLE` / `COMMENT ON COLUMN`)
+-- -----------------------------------------------------------------------------
+
+COMMENT ON TABLE dossiers IS
+    'Périmètre : 17e législature, Assemblée nationale (legislature = 17). Grain : 1 ligne par dossier législatif (assemblee.dossiers.uid), enrichi par l''aplatissement récursif de actesLegislatifs, les libellés de assemblee.organes et les exposés des motifs de tisseuse.assemblee_text_search. Ordonné par uid.';
+
+COMMENT ON COLUMN dossiers.uid IS
+    'Source : assemblee.dossiers.uid. Signification : identifiant unique du dossier législatif. Transformation : aucune.';
+
+COMMENT ON COLUMN dossiers.legislature IS
+    'Source : assemblee.dossiers.legislature. Signification : numéro de législature du dossier (filtré à 17). Transformation : filtre WHERE legislature = 17.';
+
+COMMENT ON COLUMN dossiers.procedure IS
+    'Source : assemblee.dossiers.data ($.procedureParlementaire.libelle) et $.texteAssocieRef du 1er acte DepotInitiative_Type dans actesLegislatifs. Signification : type de procédure normalisé (Projet de loi, Proposition de loi, Résolution, Rapport d''information, ou libellé brut). Transformation : CASE sur procedure_libelle ; les procédures mixtes (Projet ou proposition de loi%) sont départagées par le préfixe du 1er document déposé (PRJL% vs PION%).';
+
+COMMENT ON COLUMN dossiers.procedure_code IS
+    'Source : assemblee.dossiers.data ($.procedureParlementaire.code). Signification : code brut de la procédure parlementaire. Transformation : extraction JSON.';
+
+COMMENT ON COLUMN dossiers.procedure_libelle IS
+    'Source : assemblee.dossiers.data ($.procedureParlementaire.libelle). Signification : libellé brut de la procédure parlementaire. Transformation : extraction JSON.';
+
+COMMENT ON COLUMN dossiers.titre IS
+    'Source : assemblee.dossiers.data ($.titreDossier.titre). Signification : titre officiel du dossier législatif. Transformation : extraction JSON.';
+
+COMMENT ON COLUMN dossiers.dossier_url IS
+    'Source : assemblee.dossiers.data ($.titreDossier.titreChemin) et assemblee.dossiers.legislature. Signification : URL du dossier sur le site de l''Assemblée nationale (NULL si titreChemin absent). Transformation : construction de https://www.assemblee-nationale.fr/dyn/<legislature>/dossiers/<titreChemin> lorsque $.titreDossier.titreChemin IS NOT NULL.';
+
+COMMENT ON COLUMN dossiers.statut IS
+    'Source : assemblee.dossiers.data (arbre $.actesLegislatifs : xsiType, statutConclusion.libelle, decision.libelle ; $.procedureParlementaire.code ; et $.fusionDossier.dossierAbsorbantRef). Signification : statut normalisé du dossier (promulgué, absorbé, retiré, adopté, rejeté, en_cours). Transformation : CASE par priorité décroissante (Promulgation_Type -> promulgué, fusion_absorbant_ref IS NOT NULL -> absorbé, RetraitInitiative_Type -> retiré, motions de censure procedure_code = ''13'', décisions CC sur résolutions et lois non promulguées, résolutions 8/22 adoptées ou rejetées, lois définitivement adoptées en attente de promulgation via adopté sans modification / ANLDEF / CMP 2 chambres, texte considéré comme rejeté art. 49.3, PPL rejetée en 1re lecture de 1re assemblée ou PJL rejeté en 1re lecture des 2 assemblées -> rejeté, sinon en_cours).';
+
+COMMENT ON COLUMN dossiers.denouement IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs : Promulgation_Type/codeLoi, RetraitInitiative_Type, ConclusionEtapeCC_Type, DecisionMotionCensure_Type, Decision_Type ; $.procedureParlementaire.code ; et $.fusionDossier). Signification : libellé lisible du dénouement ou de la dernière décision enregistrée (NULL si aucun). Transformation : CASE hiérarchique construisant le libellé (Loi promulguée avec ou sans codeLoi, motif/référence de fusion, retrait, conclusion du Conseil constitutionnel, décision de motion restreinte à procedure_code = ''13'', ou dernière Decision_Type ordonnée par (top_idx, date_acte, sort_path) uniquement si derniere_decision_top_idx = max_top_idx).';
+
+COMMENT ON COLUMN dossiers.date_depot IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs[*].dateActe) et assemblee.dossiers.date_dernier_acte. Signification : date de dépôt initial du dossier. Transformation : LEFT(dateActe, 10) casté en DATE (évite les décalages de fuseau horaire), puis COALESCE(MIN sur DepotInitiative_Type, MIN sur tous les actes, date_dernier_acte).';
+
+COMMENT ON COLUMN dossiers.date_dernier_acte IS
+    'Source : assemblee.dossiers.date_dernier_acte. Signification : date du dernier acte enregistré sur le dossier. Transformation : AT TIME ZONE ''Europe/Paris'' avant cast explicite en ::DATE.';
+
+COMMENT ON COLUMN dossiers.date_prochain_acte IS
+    'Source : assemblee.dossiers.date_prochain_acte. Signification : date du prochain acte prévu sur le dossier. Transformation : AT TIME ZONE ''Europe/Paris'' avant cast explicite en ::DATE.';
+
+COMMENT ON COLUMN dossiers.date_promulgation IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs[*].dateActe sur Promulgation_Type). Signification : date de promulgation de la loi (NULL si non promulgué). Transformation : LEFT(dateActe, 10) casté en DATE puis MAX sur les actes Promulgation_Type.';
+
+COMMENT ON COLUMN dossiers.commission_saisie_au_fond_uid IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs[*].organeRef sur SaisieComFond_Type). Signification : identifiant de la dernière commission saisie au fond. Transformation : MAX_BY(organe_ref, sort_path) sur les actes SaisieComFond_Type.';
+
+COMMENT ON COLUMN dossiers.commission_saisie_au_fond_libelle IS
+    'Source : assemblee.organes.data ($.libelle), joint sur assemblee.organes.uid = commission_saisie_au_fond_uid. Signification : libellé de la dernière commission saisie au fond. Transformation : extraction JSON et LEFT JOIN sur assemblee.organes.';
+
+COMMENT ON COLUMN dossiers.etape_code IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs[*].codeActe au niveau 1). Signification : code de la dernière étape de premier niveau atteinte (ex. AN1, SN1, CMP, PROM). Transformation : MAX_BY(top_code, top_idx) à depth = 1.';
+
+COMMENT ON COLUMN dossiers.etape_libelle IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs[*].libelleActe.nomCanonique et codeActe au niveau 1). Signification : libellé de la dernière étape de premier niveau, désambiguïsé par chambre. Transformation : MAX_BY(top_libelle, top_idx) à depth = 1, puis préfixage par ''Assemblée nationale — '' (AN%) ou ''Sénat — '' (SN%).';
+
+COMMENT ON COLUMN dossiers.expose_des_motifs IS
+    'Source : tisseuse.assemblee_text_search (item_kind = ''expose_des_motifs'', legislature = 17, dossier_uid IS NOT NULL). Signification : historique chronologique des exposés des motifs du dossier au format tableau JSON. Transformation : agrégation par dossier_uid via to_json(LIST({...})) ordonnée par document_date NULLS LAST, document_uid, numéro de section extrait de item_id (SPLIT_PART(item_id, ''-'', -1)::INTEGER), puis item_id.';
