@@ -27,9 +27,9 @@ SHOWN = {
     "words f1": ("words", "f1"),
 }
 TITLES = {
-    "changed": "Articles the official text changes",
+    "changed": "Articles with changes",
     "all": "All articles",
-    "unchanged": "Articles the official text leaves as they were",
+    "unchanged": "Articles without changes",
 }
 
 
