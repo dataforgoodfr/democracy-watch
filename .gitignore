@@ -168,3 +168,6 @@ output/
 *.dump
 *.sql.gz
 *.parquet
+
+# Cache et corpus construits par projection/eval/corpus.py
+projection/eval/donnees/
