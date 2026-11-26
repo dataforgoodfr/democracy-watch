@@ -1,0 +1,54 @@
+{
+  "name": "democracy-watch-frontend",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "vitest run --project e2e",
+    "test:watch": "vitest",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "nuxt typecheck",
+    "check": "npm run lint && npm run format:check && npm run typecheck"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "^1.2.0",
+    "@nuxt/icon": "^2.6.3",
+    "@nuxt/ui": "^4.13.1",
+    "@pinia/nuxt": "^1.0.3",
+    "nuxt": "~4.6.4",
+    "pinia": "^4.1.0",
+    "tailwindcss": "^4.3.5",
+    "vue": "^3.5.45",
+    "vue-router": "^5.4.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "vue-demi": true
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.159",
+    "@nuxt/test-utils": "^4.4.0",
+    "@playwright/test": "1.65.1",
+    "@vue/test-utils": "^2.6.0",
+    "happy-dom": "^21.0.4",
+    "oxlint": "^1.95.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.1",
+    "vue-tsc": "^3.3.14"
+  }
+}

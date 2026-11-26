@@ -1,0 +1,21 @@
+name: democracy-watch-frontend
+version: 0.1.0
+description: Instructions et serveurs MCP pour le frontend Nuxt
+targets: [claude, copilot, codex, opencode, cursor]
+dependencies:
+  mcp:
+    # Documentation officielle Nuxt (modules, composables, config)
+    - name: nuxt
+      registry: false
+      transport: http
+      url: https://nuxt.com/mcp
+    # Documentation Nuxt UI (composants, thèmes, props)
+    - name: nuxt-ui
+      registry: false
+      transport: http
+      url: https://ui.nuxt.com/mcp
+    # Maquettes Figma (OAuth dans le navigateur à la première utilisation)
+    - name: figma
+      registry: false
+      transport: http
+      url: https://mcp.figma.com/mcp

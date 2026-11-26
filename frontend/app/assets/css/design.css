@@ -1,0 +1,390 @@
+/*
+  Source : Maquette Figma
+  Dernière synchronisation : 2026-11-24 22-41-21
+*/
+
+@theme {
+  --font-sans: 'Archivo', arial, sans-serif;
+  --font-loi: 'Spectral', georgia, serif;
+
+  --color-dw-blanc: #ffffff;
+  --color-dw-vert-900: #17322e;
+  --color-dw-jaune-100: #f5fac4;
+  --color-dw-jaune-300: #edf58a;
+  --color-dw-jaune-50: #f7fbdd;
+  --color-dw-sarcelle-500: #2e9f92;
+  --color-dw-sarcelle-700: #1f6f66;
+  --color-dw-sarcelle-50: #e3f4f1;
+
+  --color-dw-gris-50: #161616;
+  --color-dw-gris-200: #3a3a3a;
+  --color-dw-gris-425: #666666;
+  --color-dw-gris-900: #dddddd;
+  --color-dw-gris-950: #eeeeee;
+  --color-dw-gris-975: #f6f6f6;
+
+  --color-dw-erreur: #ce0500;
+  --color-dw-erreur-fond: #ffe9e9;
+  --color-dw-succes: #18753c;
+  --color-dw-succes-fond: #b8fec9;
+  --color-dw-avertissement: #b34000;
+  --color-dw-avertissement-fond: #ffe9e6;
+  --color-dw-info: #0063cb;
+  --color-dw-info-fond: #e8edff;
+  --color-dw-focus: #0a76f6;
+
+  --spacing-dw-1v: 4px;
+  --spacing-dw-2v: 8px;
+  --spacing-dw-3v: 12px;
+  --spacing-dw-4v: 16px;
+  --spacing-dw-6v: 24px;
+  --spacing-dw-8v: 32px;
+  --spacing-dw-10v: 40px;
+  --spacing-dw-12v: 48px;
+  --spacing-dw-16v: 64px;
+
+  --radius-dw-sm: 4px;
+  --radius-dw-md: 8px;
+  --radius-dw-lg: 16px;
+  --radius-dw-xl: 28px;
+  --radius-dw-pilule: 999px;
+
+  --shadow-dw-eleve: 0 6px 18px rgba(0, 0, 18, 0.16);
+}
+
+:root {
+  --dw-fond-action: var(--color-dw-vert-900);
+  --dw-texte-action: var(--color-dw-vert-900);
+  --dw-bordure-action: var(--color-dw-vert-900);
+  --dw-fond-marque: var(--color-dw-jaune-100);
+  --dw-fond-marque-accent: var(--color-dw-jaune-300);
+  --dw-texte-inverse: var(--color-dw-vert-900);
+  --dw-texte-accent: var(--color-dw-sarcelle-700);
+  --dw-fond-selection: var(--color-dw-sarcelle-50);
+
+  --dw-texte-titre: var(--color-dw-gris-50);
+  --dw-texte-defaut: var(--color-dw-gris-200);
+  --dw-texte-mention: var(--color-dw-gris-425);
+  --dw-bordure-defaut: var(--color-dw-gris-900);
+  --dw-bordure-forte: var(--color-dw-gris-425);
+  --dw-fond-neutre: var(--color-dw-gris-950);
+  --dw-fond-page: var(--color-dw-gris-975);
+  --dw-fond-surface: var(--color-dw-blanc);
+
+  --dw-statut-erreur: var(--color-dw-erreur);
+  --dw-statut-erreur-fond: var(--color-dw-erreur-fond);
+  --dw-statut-succes: var(--color-dw-succes);
+  --dw-statut-succes-fond: var(--color-dw-succes-fond);
+  --dw-statut-avertissement: var(--color-dw-avertissement);
+  --dw-statut-avertissement-fond: var(--color-dw-avertissement-fond);
+  --dw-statut-info: var(--color-dw-info);
+  --dw-statut-info-fond: var(--color-dw-info-fond);
+
+  --ui-primary: var(--dw-fond-action);
+  --ui-radius: var(--radius-dw-sm);
+  --ui-bg: var(--dw-fond-surface);
+  --ui-text: var(--dw-texte-defaut);
+  --ui-text-highlighted: var(--dw-texte-titre);
+  --ui-text-muted: var(--dw-texte-mention);
+  --ui-border: var(--dw-bordure-defaut);
+}
+
+@layer base {
+  body {
+    background-color: var(--dw-fond-page);
+    color: var(--dw-texte-defaut);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--dw-texte-titre);
+    font-weight: 700;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+  h2 {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+  h3 {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+  h4 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  h5 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  h6 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  @media (max-width: 767px) {
+    h1 {
+      font-size: 2rem;
+      line-height: 2.5rem;
+    }
+    h2 {
+      font-size: 1.75rem;
+      line-height: 2.25rem;
+    }
+    h3 {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    h4 {
+      font-size: 1.375rem;
+      line-height: 1.75rem;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-dw-focus);
+    outline-offset: 2px;
+  }
+}
+
+@utility dw-text-chapo {
+  font-size: 1.25rem;
+  line-height: 2rem;
+}
+@utility dw-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+@utility dw-text-sm {
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+@utility dw-text-xs {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+@utility dw-loi {
+  font-family: var(--font-loi);
+  font-size: 1rem;
+  line-height: 1.75rem;
+}
+@utility dw-loi-citation {
+  font-family: var(--font-loi);
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.875rem;
+}
+@utility dw-logo {
+  color: var(--dw-texte-action);
+  font-size: 1.625rem;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.75rem;
+}
+
+@utility dw-border-defaut {
+  border: 1px solid var(--dw-bordure-defaut);
+}
+@utility dw-border-forte {
+  border: 1px solid var(--dw-bordure-forte);
+}
+@utility dw-border-action {
+  border: 1px solid var(--dw-bordure-action);
+}
+@utility dw-accent-bas {
+  box-shadow: inset 0 -4px 0 var(--dw-bordure-action);
+}
+
+@layer components {
+  .dw-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-dw-2v);
+    min-height: 40px;
+    padding: 0 var(--spacing-dw-4v);
+    border: 1px solid var(--dw-bordure-action);
+    border-radius: var(--radius-dw-sm);
+    background-color: var(--dw-fond-action);
+    color: var(--color-dw-blanc);
+    font-weight: 500;
+    line-height: 1.5rem;
+    cursor: pointer;
+  }
+  .dw-btn:hover {
+    background-color: color-mix(in srgb, var(--dw-fond-action) 88%, white);
+  }
+  .dw-btn:disabled {
+    border-color: var(--dw-bordure-defaut);
+    background-color: var(--dw-fond-neutre);
+    color: var(--dw-texte-mention);
+    cursor: not-allowed;
+  }
+  .dw-btn--sm {
+    min-height: 32px;
+    padding: 0 var(--spacing-dw-3v);
+    font-size: 0.875rem;
+  }
+  .dw-btn--secondaire {
+    background-color: transparent;
+    color: var(--dw-texte-action);
+  }
+  .dw-btn--secondaire:hover {
+    background-color: var(--dw-fond-selection);
+  }
+  .dw-btn--tertiaire {
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--dw-texte-action);
+  }
+  .dw-btn--tertiaire:hover {
+    background-color: var(--dw-fond-neutre);
+  }
+
+  .dw-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-dw-1v);
+    padding: 0 var(--spacing-dw-2v);
+    border-radius: var(--radius-dw-sm);
+    background-color: var(--dw-fond-neutre);
+    color: var(--dw-texte-defaut);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .dw-badge--succes {
+    background-color: var(--dw-statut-succes-fond);
+    color: var(--dw-statut-succes);
+  }
+  .dw-badge--erreur {
+    background-color: var(--dw-statut-erreur-fond);
+    color: var(--dw-statut-erreur);
+  }
+  .dw-badge--avertissement {
+    background-color: var(--dw-statut-avertissement-fond);
+    color: var(--dw-statut-avertissement);
+  }
+  .dw-badge--info {
+    background-color: var(--dw-statut-info-fond);
+    color: var(--dw-statut-info);
+  }
+  .dw-badge--accent {
+    background-color: var(--dw-fond-marque-accent);
+    color: var(--dw-texte-action);
+  }
+
+  .dw-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-dw-1v);
+    min-height: 32px;
+    padding: 0 var(--spacing-dw-3v);
+    border-radius: var(--radius-dw-pilule);
+    background-color: var(--dw-fond-neutre);
+    color: var(--dw-texte-defaut);
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+  .dw-tag--selectionne,
+  .dw-tag[aria-pressed='true'] {
+    background-color: var(--dw-fond-action);
+    color: var(--color-dw-blanc);
+  }
+
+  .dw-nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 56px;
+    padding: 0 var(--spacing-dw-4v);
+    color: var(--dw-texte-defaut);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .dw-nav-link[aria-current],
+  .dw-nav-link--actif {
+    color: var(--dw-texte-action);
+    box-shadow: inset 0 -2px 0 var(--dw-bordure-action);
+  }
+
+  .dw-card {
+    padding: var(--spacing-dw-6v);
+    border: 1px solid var(--dw-bordure-defaut);
+    border-radius: var(--radius-dw-md);
+    background-color: var(--dw-fond-surface);
+  }
+  .dw-card--cliquable:hover {
+    box-shadow: inset 0 -4px 0 var(--dw-bordure-action);
+  }
+  .dw-card--selectionnee {
+    border-color: var(--dw-bordure-action);
+    background-color: var(--dw-fond-selection);
+  }
+
+  .dw-bandeau {
+    padding: var(--spacing-dw-6v);
+    border-radius: var(--radius-dw-xl);
+    background-color: var(--dw-fond-marque);
+    color: var(--dw-texte-inverse);
+  }
+
+  .dw-encart {
+    padding: var(--spacing-dw-4v);
+    border-radius: var(--radius-dw-md);
+    background-color: var(--dw-statut-info-fond);
+    color: var(--dw-texte-defaut);
+  }
+
+  .dw-alerte {
+    padding: var(--spacing-dw-3v) var(--spacing-dw-4v);
+    border: 1px solid var(--dw-statut-info);
+    border-radius: var(--radius-dw-sm);
+    background-color: var(--dw-statut-info-fond);
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+  .dw-alerte--erreur {
+    border-color: var(--dw-statut-erreur);
+    background-color: var(--dw-statut-erreur-fond);
+  }
+  .dw-alerte--succes {
+    border-color: var(--dw-statut-succes);
+    background-color: var(--dw-statut-succes-fond);
+  }
+  .dw-alerte--avertissement {
+    border-color: var(--dw-statut-avertissement);
+    background-color: var(--dw-statut-avertissement-fond);
+  }
+
+  .dw-loi-cible {
+    border-radius: var(--radius-dw-md);
+    background-color: var(--dw-fond-selection);
+  }
+  .dw-loi-ajout {
+    background-color: var(--dw-fond-marque-accent);
+  }
+  .dw-surlignage {
+    color: var(--dw-texte-accent);
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .dw-popover {
+    border-radius: var(--radius-dw-md);
+    background-color: var(--dw-fond-surface);
+    box-shadow: var(--shadow-dw-eleve);
+  }
+}

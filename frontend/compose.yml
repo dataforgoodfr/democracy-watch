@@ -1,0 +1,17 @@
+services:
+  frontend:
+    build: .
+    image: democracy-watch-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:-http://localhost:8000}
+      NUXT_API_URL: ${NUXT_API_URL:-http://host.docker.internal:8000}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
