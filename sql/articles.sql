@@ -70,7 +70,7 @@ CREATE OR REPLACE TEMP MACRO est_numero_alinea(chiffres, suivant, attendu) AS (
     (chiffres = CAST(attendu AS VARCHAR)
         AND regexp_matches(suivant, '^[\p{L}«"“(\[–—]'))
     OR
-    -- Cas 2 : le numéro attendu est collé à un numéro de liste (1 ou 2 chiffres, pas une année) : « 181. », « 21° », « 321) » 
+    -- Cas 2 : le numéro attendu est collé à un numéro de liste (1 ou 2 chiffres, pas une année) : « 181. », « 21° », « 321) »
     (starts_with(chiffres, CAST(attendu AS VARCHAR))
         AND length(chiffres) - length(CAST(attendu AS VARCHAR)) BETWEEN 1 AND 2
         AND substr(chiffres, length(CAST(attendu AS VARCHAR)) + 1, 1) <> '0'
@@ -125,7 +125,7 @@ WITH RECURSIVE chaine(id, ord, n) AS (
 )
 SELECT * FROM chaine;
 
--- Étape D : reconstruire le texte de chaque alinéa. 
+-- Étape D : reconstruire le texte de chaque alinéa.
 -- Un faux numéro (« 12 » au milieu d'un alinéa) est remis dans le texte ; un numéro de liste collé (« 181. ») garde sa partie « 1. ».
 CREATE OR REPLACE TEMP TABLE _alineas AS
 WITH morceaux AS (
