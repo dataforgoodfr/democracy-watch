@@ -1,0 +1,14 @@
+.git/
+.venv/
+.env
+.env.*
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+build/
+data/
+output/
+*.dump
+*.sql.gz
+*.parquet
+*.jsonl

@@ -15,20 +15,34 @@ dependencies = [
     "lark>=1.3.1",
     "matplotlib>=3.10.0",
     "pandas>=2.2.3",
-    "psycopg[binary]>=3.3.6",
+    "psycopg[binary]>=3.3.7",
     "requests>=2.32.3",
+
+    "cryptography>=42.0.0",
+    "fastapi[standard]>=0.111.0",
+    "httpx>=0.28.1",
+    "pydantic>=2.14.2",
+    "pydantic-settings>=2.2.1",
+    "pyjwt[crypto]>=2.8.0",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "sqlmodel>=0.0.48",
 ]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.7.0",
+    "prek>=0.5.9",
     "pytest>=9.1.1",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "sqlacodegen>=4.0.4",
     "ty>=0.0.95",
 ]
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 pythonpath = [".", "projection"]
-testpaths = ["tests", "projection"]
+testpaths = ["tests", "projection", "backend/api/tests"]
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 100
@@ -38,7 +52,7 @@ target-version = "py314"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["democracy_watch"]
+known-first-party = ["backend", "democracy_watch"]
 
 [tool.ty.src]
-include = ["democracy_watch", "tests"]
+include = ["backend","democracy_watch", "tests"]

@@ -28,7 +28,7 @@ dans une base Postgres partagée, recherche via Meilisearch.
 ## Avant de rendre la main
 
 ```bash
-uv run pre-commit run --all-files
+uv run prek run --all-files
 uv run pytest
 ```
 

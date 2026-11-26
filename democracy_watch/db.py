@@ -10,6 +10,7 @@ Lecture seule par défaut : il faut demander explicitement une connexion en
 
 import os
 
+import asyncpg
 import psycopg
 from psycopg.rows import dict_row
 
@@ -24,3 +25,29 @@ def connect(read_only=True):
     )
     conn.read_only = read_only
     return conn
+
+
+async def connect_async(
+    read_only: bool = True,
+    *,
+    dsn: str | None = None,
+    timeout: int = 15,
+    command_timeout: int = 15,
+) -> asyncpg.Connection:
+    """Ouvre une connexion asyncpg ; l'appelant doit ensuite attendre sa fermeture.
+
+    Utilise DATABASE_URL ou les variables PG* natives d'asyncpg. Aucun chargement
+    implicite de .env : le programme appelant fournit sa configuration.
+    """
+    dsn = dsn if dsn is not None else os.environ.get("DATABASE_URL")
+    if dsn and dsn.startswith("postgresql+asyncpg://"):
+        dsn = dsn.replace("postgresql+asyncpg://", "postgresql://", 1)
+    return await asyncpg.connect(
+        dsn=dsn,
+        timeout=timeout,
+        command_timeout=command_timeout,
+        server_settings={
+            "default_transaction_read_only": "on" if read_only else "off",
+            "statement_timeout": str(max(1, int(command_timeout * 1000))),
+        },
+    )
