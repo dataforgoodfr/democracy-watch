@@ -30,8 +30,9 @@ Puis compléter `.env` (ignoré par git, ne jamais le committer) :
 
 | Variable | Rôle |
 | --- | --- |
-| `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | Base Postgres partagée (demander les accès à un lead) |
-| `DATABASE_URL` | Construite à partir des `PG*` ; utiliser un rôle en lecture seule |
+| `DATA_PATH` | Base DuckDB de l'API (modèle V3) : fichier local ou `s3://…` (demander l'accès à un lead) |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Bucket S3 privé ; vides pour une lecture anonyme |
+| `PGHOST`…`PGPASSWORD`, `DATABASE_URL` | Base Postgres partagée, hors API (scripts, notebooks) |
 | `API_PASSWORD` | Mot de passe partagé de l'API v0 ; sans lui, `/api/v0/*` répond `503` |
 | `MEILI_URL`, `MEILI_API_KEY` | Meilisearch ; en local, la clé maître de `MEILI_MASTER_KEY` |
 
@@ -45,7 +46,7 @@ comme `$PGUSER` dans `DATABASE_URL`. Sans `.env`, elles échouent avec
 make check-connections
 ```
 
-Lecture seule : `SELECT 1` sur Postgres, puis `/health` et `/version` sur Meilisearch
+Lecture seule : ouverture de `DATA_PATH` et décompte des dossiers, puis `/health` et `/version` sur Meilisearch
 (ce dernier valide la clé). Chaque service affiche `OK` ou `ÉCHEC` avec la cause ; la commande
 échoue si l'un des deux est inaccessible. Aucun secret n'est affiché.
 
@@ -93,7 +94,7 @@ dans git. Microcks perd tout au redémarrage : relancer `make microcks-import`.
 
 - **Port occupé** : `dev`, `docker-up` et `microcks-up` vérifient d'abord les ports et
   proposent d'arrêter le processus ou le conteneur qui les occupe.
-- **`503` sur `/api/v0/*`** : `API_PASSWORD`, `DATABASE_URL` ou `MEILI_URL` manquant ou
+- **`503` sur `/api/v0/*`** : `API_PASSWORD`, `DATA_PATH` ou `MEILI_URL` manquant ou
   service injoignable ; lancer `make check-connections`.
 - **`401`** : ajouter l'en-tête `Authorization: Bearer <API_PASSWORD>`.
 - **Avertissement `VIRTUAL_ENV … does not match`** : un autre venv est activé dans le shell ;
@@ -108,13 +109,13 @@ make lint       # tous les hooks sur tout le dépôt
 make check      # lint puis tests : à lancer avant chaque PR (la CI fait de même)
 ```
 
-Ciblé : `uv run pytest backend/api/tests/test_textes.py -k pagination`.
+Ciblé : `uv run pytest backend/api/tests/test_legislatif.py -k pagination`.
 
 Règles des tests :
 
 - Ils ne touchent jamais la vraie base, Meilisearch ni le `.env` réel.
-- Postgres : session simulée (`db_session` dans `backend/api/tests/conftest.py`) ou
-  `monkeypatch` de la connexion.
+- Données : base DuckDB en mémoire au vrai modèle V3, remplie par `backend/api/tests/seed.sql`
+  (fixture `database` de `backend/api/tests/conftest.py`).
 - Meilisearch et services HTTP : `httpx.MockTransport`.
 - Tests de l'API dans `backend/api/tests/`, outillage commun et scripts dans `tests/`.
 
@@ -126,21 +127,21 @@ Règles des tests :
 | --- | --- |
 | `backend/api/app/main.py` | Application FastAPI, branchement des routeurs sous `/api/v0` |
 | `backend/api/app/<domaine>/` | `router.py` (HTTP), `adapter.py` (SQL), `schemas.py` (réponses) |
-| `backend/api/app/core/` | Configuration, session DB, erreurs, authentification |
-| `backend/schemas/database_mapping.py` | Modèles SQLAlchemy générés depuis la base (ne pas modifier à la main) |
+| `backend/api/app/core/` | Configuration, accès DuckDB, erreurs, authentification |
+| `backend/source_data/DATA_MODEL_V3_DUCKDB.sql` | Modèle des données lues par l'API |
 | `backend/api/scripts/` | Scripts appelés par le Makefile |
 | `democracy_watch/` | Connexion Postgres (`db.py`) et logging partagés |
 
-Flux d'une requête : routeur, puis adaptateur, puis session Postgres en lecture seule.
-Seul l'adaptateur connaît les noms de colonnes CLAIR ; il les traduit en champs publics.
+Flux d'une requête : routeur, puis adaptateur, puis curseur DuckDB en lecture seule.
+Seul l'adaptateur connaît les noms de colonnes du modèle ; il les traduit en champs publics.
 
 ### Ajouter un endpoint
 
 1. Décrire la réponse dans `<domaine>/schemas.py`.
-2. Écrire la requête dans `<domaine>/adapter.py`, à partir de `database_mapping.py`.
+2. Écrire la requête SQL dans `<domaine>/adapter.py`, d'après `DATA_MODEL_V3_DUCKDB.sql`.
 3. Exposer la route dans `<domaine>/router.py` ; un nouveau domaine se branche dans
    `main.py`.
-4. Ajouter le test avec une session simulée, puis `make check`.
+4. Ajouter le test sur la base synthétique (compléter `seed.sql` au besoin), puis `make check`.
 
 Conventions de réponse, pagination et erreurs : [backend/api/README.md](backend/api/README.md).
 
@@ -149,6 +150,6 @@ Conventions de réponse, pagination et erreurs : [backend/api/README.md](backend
 - Python ≥ 3.14 ; dépendances via `uv add`, jamais `pip install`.
 - Commentaires et docstrings en français ; identifiants en anglais ; noms CLAIR inchangés.
 - Tout nouveau comportement vient avec un test.
-- Jamais d'écriture dans Postgres ni Meilisearch : ils sont partagés.
+- Jamais d'écriture dans Postgres, la base DuckDB ni Meilisearch : ils sont partagés.
 - Aucun secret, dump ou export dans git.
 - Branche depuis `main`, PR de moins de 400 lignes : voir [CONTRIBUTING.md](CONTRIBUTING.md).

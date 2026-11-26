@@ -1,36 +1,64 @@
-"""Projection Core des groupes politiques vers le contrat public."""
+"""Lecture des groupes politiques du modèle V3 (groupes_politiques, sous-type d'organes)."""
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from duckdb import DuckDBPyConnection
 
-from backend.schemas.database_mapping import GroupesPolitiques
+from ..core.database import fetch_all, fetch_one
+from ..organes.adapter import ORGANE_COLUMNS, ORGANE_FROM, concurrent_mandates
+from .schemas import GroupePolitique
 
-from .schemas import PoliticalGroup
-
-source = GroupesPolitiques.__table__.c
-projection = select(
-    source.id.label("uid"),
-    source.slug.label("slug"),
-    source.nom.label("name"),
-    source.chambre.label("chamber"),
-    source.actif.label("active"),
-    source.nom_complet.label("full_name"),
-    source.nom_court.label("short_name"),
-    source.couleur.label("color"),
-    source.position.label("political_position"),
-    source.legislature.label("legislative_term"),
-    source.stats_membres_actifs.label("active_member_count"),
-)
+COLUMNS = f"""{ORGANE_COLUMNS},
+    gp.couleur AS color, gp.logo_url, gp.position_politique AS political_position
+"""
+FROM = f"{ORGANE_FROM} JOIN groupes_politiques gp ON gp.organe_id = o.id"
 
 
-async def list_political_groups(
-    session: AsyncSession, *, limit: int, offset: int
-) -> list[PoliticalGroup]:
-    statement = projection.order_by(source.id).limit(limit).offset(offset)
-    rows = (await session.execute(statement)).mappings().all()
-    return [PoliticalGroup.model_validate(row) for row in rows]
+def ref(organe: str, groupe: str) -> str:
+    """STRUCT GroupePolitiqueRef des alias `organe` et `groupe` ; NULL sans groupe."""
+    return (
+        f"CASE WHEN {groupe}.organe_id IS NOT NULL THEN {{'uid': {organe}.uid, "
+        f"'name': {organe}.nom, 'short_name': {organe}.nom_court, 'color': {groupe}.couleur}} END"
+    )
 
 
-async def get_political_group(session: AsyncSession, uid: str) -> PoliticalGroup | None:
-    row = (await session.execute(projection.where(source.id == uid))).mappings().one_or_none()
-    return PoliticalGroup.model_validate(row) if row is not None else None
+def current_ref(personne_id: str) -> str:
+    """Sous-requête : groupe du mandat de groupe en cours le plus récent de la personne."""
+    return f"""(
+        SELECT arg_max({ref("cgo", "cgp")}, cg.date_debut)
+        FROM mandats cg
+        JOIN groupes_politiques cgp ON cgp.organe_id = cg.organe_id
+        JOIN organes cgo ON cgo.id = cg.organe_id
+        WHERE cg.personne_id = {personne_id} AND cg.date_fin IS NULL
+    )"""
+
+
+def list_groupes(
+    db: DuckDBPyConnection,
+    *,
+    limit: int,
+    offset: int,
+    organe_uid: str | None = None,
+    current: bool = True,
+) -> list[GroupePolitique]:
+    """Groupes, ou seulement ceux dont un membre siège dans l'organe `organe_uid`."""
+    where = ""
+    params: dict[str, object] = {"limit": limit, "offset": offset}
+    if organe_uid is not None:
+        params["organe_uid"] = organe_uid
+        where = f"""WHERE EXISTS (
+            SELECT 1 FROM mandats g
+            JOIN mandats m ON m.personne_id = g.personne_id
+            JOIN organes mo ON mo.id = m.organe_id
+            WHERE g.organe_id = gp.organe_id AND mo.uid = $organe_uid
+              AND {concurrent_mandates("m", "g", current=current)})"""
+    rows = fetch_all(
+        db,
+        f"SELECT {COLUMNS} FROM {FROM} {where} "
+        "ORDER BY o.chambre, o.nom, o.id LIMIT $limit OFFSET $offset",
+        params,
+    )
+    return [GroupePolitique.model_validate(row) for row in rows]
+
+
+def get_groupe(db: DuckDBPyConnection, uid: str) -> GroupePolitique | None:
+    row = fetch_one(db, f"SELECT {COLUMNS} FROM {FROM} WHERE o.uid = $uid", {"uid": uid})
+    return GroupePolitique.model_validate(row) if row is not None else None

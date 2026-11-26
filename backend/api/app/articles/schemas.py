@@ -1,16 +1,21 @@
-"""Contrat public des articles, indépendant du stockage CLAIR."""
+"""Articles : emplacements d'un texte (titre, articles réels, intervalles entre articles)."""
 
 from pydantic import BaseModel
 
+from ..dossiers.schemas import DossierRef
+from ..textes.schemas import TexteRef
 
-class Article(BaseModel):
-    uid: str
-    text_reference: str
-    number: str
+
+class ArticleRef(BaseModel):
+    uid: str  # « <uid du texte>-<position> », stable d'un chargement à l'autre
+    number: str | None  # NULL pour un emplacement
     label: str
-    content: str
-    position: int
-    chamber: str
-    legislative_term: int
-    dossier_uid: str | None
-    source_url: str | None
+
+
+class Article(ArticleRef):
+    texte: TexteRef
+    dossier: DossierRef
+    position: int  # 0 = titre, 10k = article de rang k, 10k + 5 = après l'article k
+    is_placeholder: bool  # titre ou intervalle entre articles, pas un article réel
+    is_deleted: bool
+    content: str | None

@@ -17,13 +17,13 @@ from backend.api.scripts.export_openapi import build_document
 
 ROOT = Path(__file__).resolve().parents[1]
 COLLECTIONS = {
-    "/api/v0/amendements",
     "/api/v0/dossiers",
     "/api/v0/textes",
     "/api/v0/articles",
-    "/api/v0/parlementaires",
+    "/api/v0/amendements",
+    "/api/v0/organes",
     "/api/v0/groupes_politiques",
-    "/api/v0/declarations_hatvp",
+    "/api/v0/personnes",
 }
 
 
@@ -35,9 +35,9 @@ def test_docker_build_excludes_local_credentials():
 def test_microcks_examples_do_not_access_database_or_export_secrets(monkeypatch):
     password = token_urlsafe(32)
     monkeypatch.setenv("API_PASSWORD", password)
-    monkeypatch.setenv("DATABASE_URL", "postgresql://example.invalid/test")
+    monkeypatch.setenv("DATA_PATH", "s3://example.invalid/clair.duckdb")
     engine = Mock(side_effect=AssertionError("Aucun accès DB autorisé"))
-    monkeypatch.setattr(main, "create_async_engine", engine)
+    monkeypatch.setattr(main, "open_database", engine)
     document = build_document()
     assert document["openapi"].startswith("3.1.")
     assert password not in json.dumps(document)

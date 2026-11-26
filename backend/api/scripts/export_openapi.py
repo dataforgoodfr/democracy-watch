@@ -9,7 +9,7 @@ from backend.api.app.main import create_app
 
 def build_document() -> dict[str, Any]:
     """Ajoute des scénarios nommés aux collections et à la vivacité uniquement."""
-    app = create_app(Settings(_env_file=None, DATABASE_URL=None, API_PASSWORD=None))
+    app = create_app(Settings(_env_file=None, DATA_PATH=None, API_PASSWORD=None))
     document = app.openapi()
     schemas = document["components"]["schemas"]
     for path, methods in document["paths"].items():

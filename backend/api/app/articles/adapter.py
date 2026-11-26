@@ -1,46 +1,61 @@
-"""Lecture et conversion des articles CLAIR vers le contrat public."""
+"""Lecture des articles du modèle V3 (table articles)."""
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from duckdb import DuckDBPyConnection
 
-from backend.schemas.database_mapping import TextesArticles
-
+from ..core.database import fetch_all, fetch_one
+from ..dossiers.adapter import ref as dossier_ref
+from ..textes.adapter import ref as texte_ref
 from .schemas import Article
 
-source = TextesArticles.__table__.c
-projection = select(
-    source.id.label("uid"),
-    source.texte_ref.label("text_reference"),
-    source.numero.label("number"),
-    source.libelle.label("label"),
-    source.contenu.label("content"),
-    source.ordre.label("position"),
-    source.chambre.label("chamber"),
-    source.legislature.label("legislative_term"),
-    source.dossier_id.label("dossier_uid"),
-    source.source_url,
-)
+
+def public_uid(article: str, texte: str) -> str:
+    """Identifiant public : les id internes changent à chaque reconstruction de la base."""
+    return f"{texte}.uid || '-' || {article}.ordre_place"
 
 
-async def list_articles(
-    session: AsyncSession,
+COLUMNS = f"""
+    {public_uid("a", "t")} AS uid, a.numero AS number, a.libelle AS label,
+    {texte_ref("t")} AS texte, {dossier_ref("d")} AS dossier, a.ordre_place AS position,
+    a.est_emplacement AS is_placeholder, a.est_supprime AS is_deleted, a.contenu AS content
+"""
+FROM = """articles a
+    JOIN textes t ON t.id = a.texte_id
+    JOIN dossiers d ON d.id = t.dossier_id"""
+
+
+def ref(article: str, texte: str) -> str:
+    """STRUCT ArticleRef d'un article joint sous `article`, de texte joint sous `texte`."""
+    return (
+        f"CASE WHEN {article}.id IS NOT NULL THEN {{'uid': {public_uid(article, texte)}, "
+        f"'number': {article}.numero, 'label': {article}.libelle}} END"
+    )
+
+
+def list_articles(
+    db: DuckDBPyConnection,
     *,
     dossier_uid: str,
     limit: int,
     offset: int,
-    text_reference: str | None = None,
+    texte_uid: str | None = None,
 ) -> list[Article]:
-    """Liste les articles d'un dossier, éventuellement restreints à une référence de texte."""
-    statement = projection.where(source.dossier_id == dossier_uid)
-    if text_reference is not None:
-        statement = statement.where(source.texte_ref == text_reference)
-    else:
-        statement = statement.order_by(source.texte_ref)
-    statement = statement.order_by(source.ordre, source.id).limit(limit).offset(offset)
-    rows = (await session.execute(statement)).mappings().all()
+    """Articles d'un dossier, éventuellement d'un seul texte, dans l'ordre du document."""
+    where = "d.uid = $dossier_uid"
+    params = {"dossier_uid": dossier_uid, "limit": limit, "offset": offset}
+    if texte_uid is not None:
+        where += " AND t.uid = $texte_uid"
+        params["texte_uid"] = texte_uid
+    rows = fetch_all(
+        db,
+        f"SELECT {COLUMNS} FROM {FROM} WHERE {where} "
+        "ORDER BY t.ordre_dossier, a.ordre_place LIMIT $limit OFFSET $offset",
+        params,
+    )
     return [Article.model_validate(row) for row in rows]
 
 
-async def get_article(session: AsyncSession, uid: str) -> Article | None:
-    row = (await session.execute(projection.where(source.id == uid))).mappings().one_or_none()
+def get_article(db: DuckDBPyConnection, uid: str) -> Article | None:
+    row = fetch_one(
+        db, f"SELECT {COLUMNS} FROM {FROM} WHERE {public_uid('a', 't')} = $uid", {"uid": uid}
+    )
     return Article.model_validate(row) if row is not None else None

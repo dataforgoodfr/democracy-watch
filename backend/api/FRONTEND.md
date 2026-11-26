@@ -94,101 +94,90 @@ if (error.value?.statusCode === 404) { /* introuvable */ }
 // Corps Problem : error.value?.data?.detail
 ```
 
-## 3. Hiérarchie et filtres
+## 3. Hiérarchies et filtres
 
-Dossier → texte → article → amendement. Chaque niveau se filtre par les identifiants des
-niveaux supérieurs. Un paramètre obligatoire absent donne `422`.
+Deux hiérarchies, du haut vers le bas :
 
-| Route | Obligatoires | Optionnels |
-| --- | --- | --- |
-| `/dossiers` | — | `limit`, `offset` |
-| `/textes` | `dossier_uid` | `text_reference`, `limit`, `offset` |
-| `/articles` | `dossier_uid` | `text_reference`, `limit`, `offset` |
-| `/amendements` | `dossier_uid`, `text_reference` | `article_uid`, `limit`, `offset` |
+- travail législatif : dossier → texte → article → amendement ;
+- acteurs : organe → groupe politique → personne (types d'organes à part, `/organes/types`).
 
-`text_reference` est la référence du texte (ex. `PRJLANR5L17B2247`), lue dans le champ
-`text_reference` d'un article ou d'une ligne de `/textes`. Il n'y a pas encore
-d'objet « texte » autonome : `/textes` renvoie une ligne par article.
+Règle de filtrage d'une liste : le niveau **juste au-dessus** est facultatif, les niveaux
+plus hauts sont obligatoires (`422` s'ils manquent). Un objet seul se lit par son `uid`.
+Filtre sans correspondance (ex. texte d'un autre dossier) : collection vide, `200`.
 
-### Dossiers
+| Liste | Obligatoires | Facultatifs | Détail |
+| --- | --- | --- | --- |
+| `/dossiers` | — | — | `/dossiers/{uid}` |
+| `/textes` | — | `dossier_uid` | `/textes/{uid}` |
+| `/articles` | `dossier_uid` | `texte_uid` | `/articles/{uid}` |
+| `/amendements` | `dossier_uid`, `texte_uid` | `article_uid` | `/amendements/{uid}` |
+| `/organes` | — | `type` | `/organes/{uid}` |
+| `/groupes_politiques` | — | `organe_uid`, `current` | `/groupes_politiques/{uid}` |
+| `/personnes` | `organe_uid` | `groupe_uid`, `current` | `/personnes/{uid}` |
+
+Toutes les listes acceptent aussi `limit` et `offset`.
+
+`uid` est l'identifiant source, stable d'un chargement à l'autre : `DLR5L17N50879` (dossier),
+`PIONANR5L17BTC0699` (texte), `AMANR5L17PO838901BTC0699P0D1N000001` (amendement), `PO838901`
+(organe, groupe), slug pour une personne (`marie-dupont`). Un article n'a pas d'identifiant
+source : son `uid` vaut `<uid du texte>-<position>` (ex. `PIONANR5L17BTC0699-15`).
+
+Chaque objet embarque une référence courte (`*Ref`) de ses parents : un amendement porte
+`dossier`, `texte`, `article`, `author`, `groupe`… sans appel supplémentaire.
+
+### Travail législatif
 
 ```ts
-// Liste
-const { data } = await useFetch<Page<Dossier>>('/api/dw/dossiers', { query: { limit: 20 } })
-// Détail
-const { data: dossier } = await useFetch<Dossier>(`/api/dw/dossiers/${dossierUid}`)
-```
-
-Champs : `uid, source_uid, title, legislative_term, status, procedure, submitted_at,
-adopted_at, assembly_url, senate_url, legifrance_url, law_number, law_title,
-law_published_at, subject_uid, updated_at`.
-
-### Textes d'un dossier
-
-```ts
-const { data } = await useFetch<Page<Text>>('/api/dw/textes', {
-  query: { dossier_uid: dossierUid, text_reference: undefined },
+const { data: dossiers } = await useFetch<Page<Dossier>>('/api/dw/dossiers')
+const { data: textes } = await useFetch<Page<Texte>>('/api/dw/textes', {
+  query: { dossier_uid: dossierUid },
+})
+const { data: articles } = await useFetch<Page<Article>>('/api/dw/articles', {
+  query: { dossier_uid: dossierUid, texte_uid: texteUid /* facultatif */ },
+})
+const { data: amendements } = await useFetch<Page<Amendement>>('/api/dw/amendements', {
+  query: { dossier_uid: dossierUid, texte_uid: texteUid, article_uid: articleUid /* facultatif */ },
 })
 ```
 
-Une ligne par article, triée par référence de texte puis position. Champs : `uid, text_reference,
-number, label, content, position, chamber, legislative_term, dossier_uid, source_url`.
-Pour lister les textes distincts d'un dossier, regrouper côté front sur `text_reference`.
+| Objet | Champs |
+| --- | --- |
+| `Dossier` | `uid, title, short_title, procedure, procedure_label, status, outcome, submitted_on, outcome_on, loi` (`loi` : dossier promulgué seulement) |
+| `Texte` | `uid, nature, number, dossier, chamber, term, position, title, submitted_on` |
+| `Article` | `uid, number, label, texte, dossier, position, is_placeholder, is_deleted, content` |
+| `Amendement` | `uid, number, dossier, texte, article, targeted_article, paragraph_number, parent_uid, examining_organe, author, author_organe, groupe, status, outcome, outcome_reason, submitted_on, outcome_at, body, explanation` |
 
-### Articles
-
-```ts
-// Articles d'un texte d'un dossier
-const { data } = await useFetch<Page<Article>>('/api/dw/articles', {
-  query: { dossier_uid: dossierUid, text_reference: textReference },
-})
-// Détail
-const { data: article } = await useFetch<Article>(`/api/dw/articles/${articleUid}`)
-```
-
-Champs : `uid, text_reference, number, label, content, position, chamber, legislative_term,
-dossier_uid, source_url`.
-
-### Amendements
-
-```ts
-// Amendements d'un texte, éventuellement d'un seul article
-const { data } = await useFetch<Page<Amendement>>('/api/dw/amendements', {
-  query: {
-    dossier_uid: dossierUid,
-    text_reference: textReference,
-    article_uid: articleUid, // optionnel
-  },
-})
-// Détail
-const { data: amendement } = await useFetch<Amendement>(`/api/dw/amendements/${uid}`)
-```
-
-Avec `article_uid`, les amendements « APRÈS ART. … » / « AVANT ART. … » ne sont pas renvoyés :
-ils créent un nouvel article et ne visent aucun article existant. Les textes du Sénat n'ont pas
-encore d'articles : filtrer par `article_uid` n'y renvoie rien.
-
-Champs : `uid, source_uid, number, chamber, legislative_term, targeted_article, body,
-explanation, outcome, submitted_at, author, text_reference, dossier_uid, parliamentarian_uid,
-group_reference, author_reference, paragraph, paragraph_number, order_number,
-parent_amendement_uid, sitting_reference, joint_discussion_id, identical_discussion_id`.
+Un article « emplacement » (`is_placeholder`, `number` à `null`) est le titre ou l'intervalle
+entre deux articles (« Après l'article 2 ») : c'est là que pointent les amendements qui
+créent un article. `article` d'un amendement est `null` si l'emplacement visé n'est pas
+résolu ; `targeted_article` garde alors le libellé source.
 
 ## 4. Acteurs politiques
 
-Collections paginées (`limit`, `offset`, aucun filtre) et détail par `uid` :
-
-| Liste | Détail | Champs |
-| --- | --- | --- |
-| `/parlementaires` | `/parlementaires/{uid}` | `uid, slug, first_name, last_name, chamber, active, group_uid, constituency_uid, photo_url, website` |
-| `/groupes_politiques` | `/groupes_politiques/{uid}` | `uid, slug, name, chamber, active, full_name, short_name, color, political_position, legislative_term, active_member_count` |
-| `/declarations_hatvp` | `/declarations_hatvp/{uid}` | `uid, parliamentarian_uid, document_type, submitted_at, published_at, status, dossier_url` |
-
 ```ts
-const { data } = await useFetch<Page<Parliamentarian>>('/api/dw/parlementaires')
-const { data: groupe } = await useFetch<PoliticalGroup>(`/api/dw/groupes_politiques/${uid}`)
+const { data: types } = await useFetch<TypeOrgane[]>('/api/dw/organes/types')
+const { data: commissions } = await useFetch<Page<Organe>>('/api/dw/organes', {
+  query: { type: 'COMPER' },
+})
+// Groupes représentés à l'Assemblée de la XVIIe législature
+const { data: groupes } = await useFetch<Page<GroupePolitique>>('/api/dw/groupes_politiques', {
+  query: { organe_uid: 'PO838901' },
+})
+// Députés RN de la XVIIe législature
+const { data: deputes } = await useFetch<Page<Personne>>('/api/dw/personnes', {
+  query: { organe_uid: 'PO838901', groupe_uid: 'PO845401' },
+})
 ```
 
-`uid` est la clé primaire, pas le `slug` : `/parlementaires/{slug}` répond `404`.
+| Objet | Champs |
+| --- | --- |
+| `TypeOrgane` | `code, label, family, chamber` |
+| `Organe` | `uid, type, name, short_name, type_label, family, chamber, parent_uid, start_date, end_date` |
+| `GroupePolitique` | champs d'`Organe` + `color, logo_url, political_position` |
+| `Personne` | `uid, first_name, last_name, civility, profession, photo_url, groupe` (groupe actuel) |
+
+`current=true` (défaut) : seuls les mandats en cours comptent. `current=false` : tout mandat
+passé, à condition que les périodes dans l'organe et dans le groupe se chevauchent.
 
 ## 5. Recherche
 

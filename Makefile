@@ -31,7 +31,7 @@ help: ## Afficher cette aide
 install: ## Installer Python, le venv et les dépendances (uv sync)
 	$(UV) sync
 
-check-connections: ## Vérifier l'accès à Postgres et Meilisearch du .env (lecture seule)
+check-connections: ## Vérifier l'accès aux données (DATA_PATH) et à Meilisearch (lecture seule)
 	$(UV_ENV) python -m backend.api.scripts.check_connections
 
 ##@ API en local (hors Docker)

@@ -1,31 +1,28 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from ..core.database import DbSession
+from ..core.database import Db
 from ..schemas import Page, PaginationQuery
 from . import adapter
-from .schemas import Text
+from .schemas import Texte
 
 router = APIRouter(prefix="/textes", tags=["Textes"])
 
 
 @router.get(
     "",
-    response_model=Page[Text],
-    summary="Lister les articles des textes d'un dossier",
-    description="Une ligne par article. Ordre stable par référence, position puis identifiant. "
-    "Collection vide si le dossier ou la référence est absent.",
+    summary="Lister les textes",
+    description="`dossier_uid` facultatif. Ordre de la navette dans chaque dossier.",
 )
-async def list_texts(
-    dossier_uid: str,
-    session: DbSession,
-    pagination: PaginationQuery,
-    text_reference: str | None = None,
-) -> Page[Text]:
-    items = await adapter.list_texts(
-        session,
-        dossier_uid=dossier_uid,
-        text_reference=text_reference,
-        limit=pagination.limit + 1,
-        offset=pagination.offset,
+def list_textes(db: Db, pagination: PaginationQuery, dossier_uid: str | None = None) -> Page[Texte]:
+    items = adapter.list_textes(
+        db, dossier_uid=dossier_uid, limit=pagination.limit + 1, offset=pagination.offset
     )
-    return Page[Text].from_items(items, pagination)
+    return Page[Texte].from_items(items, pagination)
+
+
+@router.get("/{uid}", summary="Consulter un texte")
+def get_texte(uid: str, db: Db) -> Texte:
+    item = adapter.get_texte(db, uid)
+    if item is None:
+        raise HTTPException(404, "Texte introuvable")
+    return item

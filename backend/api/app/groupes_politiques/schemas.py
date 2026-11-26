@@ -1,17 +1,18 @@
-"""Contrat public des groupes politiques."""
+"""Groupes politiques : sous-type des organes, au-dessus des personnes."""
 
 from pydantic import BaseModel
 
+from ..organes.schemas import Organe
 
-class PoliticalGroup(BaseModel):
+
+class GroupePolitiqueRef(BaseModel):
     uid: str
-    slug: str
     name: str
-    chamber: str
-    active: bool
-    full_name: str | None = None
-    short_name: str | None = None
-    color: str | None = None
-    political_position: str | None = None
-    legislative_term: int | None = None
-    active_member_count: int | None = None
+    short_name: str | None
+    color: str | None
+
+
+class GroupePolitique(Organe):
+    color: str | None
+    logo_url: str | None
+    political_position: str | None

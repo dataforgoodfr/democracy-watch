@@ -1,22 +1,19 @@
 import json
-from unittest.mock import AsyncMock
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from unittest.mock import Mock
 
 from backend.api.app.articles.schemas import Article
 from backend.api.scripts import export_microcks_samples as export
 
 ARTICLE = {
-    "uid": "A1",
-    "text_reference": "T1",
-    "number": "1",
+    "uid": "T1-10",
+    "number": "PREMIER",
     "label": "Article premier",
+    "texte": {"uid": "T1", "nature": "projet", "number": 1},
+    "dossier": {"uid": "D1", "title": "Dossier", "short_title": None},
+    "position": 10,
+    "is_placeholder": False,
+    "is_deleted": False,
     "content": "Texte",
-    "position": 1,
-    "chamber": "assemblee",
-    "legislative_term": 17,
-    "dossier_uid": "D1",
-    "source_url": None,
 }
 
 
@@ -24,16 +21,16 @@ def operations(path):
     return json.loads(path.read_text().split("operations: ", 1)[1])
 
 
-async def test_collection_pages_and_default_page(monkeypatch):
+def test_collection_pages_and_default_page():
     rows = [Article.model_validate({**ARTICLE, "uid": f"A{index}"}) for index in range(130)]
     calls = []
 
-    async def list_items(session, *, dossier_uid, limit, offset):
+    def list_items(db, *, dossier_uid, limit, offset):
         calls.append((dossier_uid, limit, offset))
         return rows[offset : offset + limit]
 
-    samples, everything = await export.collection(
-        AsyncMock(spec=AsyncSession), "/api/v0/articles", "D1", list_items, {"dossier_uid": "D1"}
+    samples, everything = export.collection(
+        Mock(), "/api/v0/articles", "D1", list_items, {"dossier_uid": "D1"}
     )
     assert calls == [("D1", 101, 0), ("D1", 101, 100)]
     assert everything == rows
@@ -67,3 +64,27 @@ def test_write_examples_chunks_and_escapes(tmp_path, monkeypatch):
     assert example["request"] == {"parameters": {"uid": "A0"}}
     assert example["response"]["status"] == "200"
     assert example["response"]["body"]["content"] == "a\x8db c é"
+
+
+def test_collect_walks_the_hierarchy(seeded_database):
+    cursor = seeded_database.cursor()
+    cursor.execute("USE clair")
+    samples = export.collect(cursor, ["DLR5L17N1"])
+    names = {(item["path"], item["name"]) for item in samples}
+    assert ("/api/v0/dossiers/{uid}", "DLR5L17N1") in names
+    assert ("/api/v0/textes/{uid}", "PRJLANR5L17BTC0002") in names
+    assert ("/api/v0/articles/{uid}", "PRJLANR5L17B0001-15") in names
+    assert ("/api/v0/amendements", "PRJLANR5L17B0001") in names
+    assert ("/api/v0/amendements", "PRJLANR5L17B0001-15") in names
+    assert ("/api/v0/amendements/{uid}", "AMANR5L17PO1B0001P0D1N000002") in names
+    by_article = next(
+        item
+        for item in samples
+        if (item["path"], item["name"]) == ("/api/v0/amendements", "PRJLANR5L17B0001-15")
+    )
+    assert by_article["parameters"] == {
+        "dossier_uid": "DLR5L17N1",
+        "texte_uid": "PRJLANR5L17B0001",
+        "article_uid": "PRJLANR5L17B0001-15",
+    }
+    assert [item["number"] for item in by_article["response"]["items"]] == ["2"]

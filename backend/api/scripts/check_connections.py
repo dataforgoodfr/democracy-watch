@@ -1,7 +1,7 @@
-"""Vérifie l'accès à Postgres et Meilisearch configurés dans l'environnement, en lecture seule.
+"""Vérifie l'accès aux données DuckDB et à Meilisearch configurés, en lecture seule.
 
-Postgres : connexion en lecture seule puis `SELECT 1`. Meilisearch : `/health` (sans clé)
-puis `/version`, qui exige une clé valide. N'affiche que l'hôte, jamais de secret.
+Données : ouverture de DATA_PATH en lecture seule puis décompte des dossiers. Meilisearch :
+`/health` (sans clé) puis `/version`, qui exige une clé valide. N'affiche ni clé ni secret.
 Usage : `make check-connections` ; code de sortie 1 si une vérification échoue.
 """
 
@@ -9,10 +9,11 @@ import asyncio
 import sys
 from urllib.parse import urlsplit
 
+import duckdb
 import httpx
 
 from backend.api.app.core.config import Settings
-from democracy_watch.db import connect_async
+from backend.api.app.core.database import CATALOG, open_database
 
 
 def host_of(url: str) -> str:
@@ -21,21 +22,16 @@ def host_of(url: str) -> str:
     return f"{parts.hostname}:{parts.port}" if parts.port else str(parts.hostname)
 
 
-async def check_postgres(config: Settings) -> str:
-    """Ouvre une connexion en lecture seule et exécute `SELECT 1`."""
-    if not config.DATABASE_URL:
-        raise RuntimeError("DATABASE_URL non défini")
-    connection = await connect_async(
-        dsn=config.DATABASE_URL,
-        timeout=config.DATABASE_TIMEOUT,
-        command_timeout=config.DATABASE_TIMEOUT,
-    )
+def check_data(config: Settings) -> str:
+    """Ouvre DATA_PATH en lecture seule et compte les dossiers."""
+    connection = open_database(config)
     try:
-        await connection.fetchval("SELECT 1")
-        version = connection.get_server_version()
+        connection.execute(f"USE {CATALOG}")
+        row = connection.execute("SELECT count(*) FROM dossiers").fetchone()
     finally:
-        await connection.close()
-    return f"{host_of(config.DATABASE_URL)} (PostgreSQL {version.major}.{version.minor})"
+        connection.close()
+    count = row[0] if row else 0
+    return f"{config.DATA_PATH} (DuckDB {duckdb.__version__}, {count} dossiers)"
 
 
 async def check_meilisearch(
@@ -63,7 +59,11 @@ async def check_meilisearch(
 async def run(config: Settings) -> int:
     """Lance chaque vérification et affiche son résultat ; renvoie le code de sortie."""
     failed = False
-    for name, check in (("Postgres", check_postgres), ("Meilisearch", check_meilisearch)):
+    checks = (
+        ("Données", lambda config: asyncio.to_thread(check_data, config)),
+        ("Meilisearch", check_meilisearch),
+    )
+    for name, check in checks:
         # Chaque échec est rapporté sans interrompre les autres vérifications.
         try:
             print(f"{name} : OK, {await check(config)}")

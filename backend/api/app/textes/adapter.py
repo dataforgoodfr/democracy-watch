@@ -1,39 +1,46 @@
-"""Lecture des articles CLAIR d'un dossier, exposés comme lignes de textes."""
+"""Lecture des textes du modèle V3 (tables textes, periodes_legislatives)."""
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from duckdb import DuckDBPyConnection
 
-from backend.schemas.database_mapping import TextesArticles
+from ..core.database import fetch_all, fetch_one
+from ..dossiers.adapter import ref as dossier_ref
+from .schemas import Texte
 
-from .schemas import Text
-
-source = TextesArticles.__table__.c
-projection = select(
-    source.id.label("uid"),
-    source.texte_ref.label("text_reference"),
-    source.numero.label("number"),
-    source.libelle.label("label"),
-    source.contenu.label("content"),
-    source.ordre.label("position"),
-    source.chambre.label("chamber"),
-    source.legislature.label("legislative_term"),
-    source.dossier_id.label("dossier_uid"),
-    source.source_url,
-)
+COLUMNS = f"""
+    t.uid, t.nature, t.numero AS number, {dossier_ref("d")} AS dossier, t.chambre AS chamber,
+    pl.numero AS term, t.ordre_dossier AS position, t.titre AS title,
+    t.date_depot AS submitted_on
+"""
+FROM = """textes t
+    JOIN dossiers d ON d.id = t.dossier_id
+    JOIN periodes_legislatives pl ON pl.id = t.periode_legislative_id"""
 
 
-async def list_texts(
-    session: AsyncSession,
-    *,
-    dossier_uid: str,
-    limit: int,
-    offset: int,
-    text_reference: str | None = None,
-) -> list[Text]:
-    """Liste les articles d'un dossier, éventuellement restreints à une référence de texte."""
-    statement = projection.where(source.dossier_id == dossier_uid)
-    if text_reference is not None:
-        statement = statement.where(source.texte_ref == text_reference)
-    statement = statement.order_by(source.texte_ref, source.ordre, source.id)
-    rows = (await session.execute(statement.limit(limit).offset(offset))).mappings().all()
-    return [Text.model_validate(row) for row in rows]
+def ref(alias: str) -> str:
+    """STRUCT TexteRef d'un texte joint sous `alias`."""
+    return (
+        f"CASE WHEN {alias}.id IS NOT NULL THEN {{'uid': {alias}.uid, "
+        f"'nature': {alias}.nature, 'number': {alias}.numero}} END"
+    )
+
+
+def list_textes(
+    db: DuckDBPyConnection, *, limit: int, offset: int, dossier_uid: str | None = None
+) -> list[Texte]:
+    """Textes, dans l'ordre de la navette de chaque dossier."""
+    where = ""
+    params: dict[str, object] = {"limit": limit, "offset": offset}
+    if dossier_uid is not None:
+        where, params["dossier_uid"] = "WHERE d.uid = $dossier_uid", dossier_uid
+    rows = fetch_all(
+        db,
+        f"SELECT {COLUMNS} FROM {FROM} {where} "
+        "ORDER BY d.id, t.ordre_dossier LIMIT $limit OFFSET $offset",
+        params,
+    )
+    return [Texte.model_validate(row) for row in rows]
+
+
+def get_texte(db: DuckDBPyConnection, uid: str) -> Texte | None:
+    row = fetch_one(db, f"SELECT {COLUMNS} FROM {FROM} WHERE t.uid = $uid", {"uid": uid})
+    return Texte.model_validate(row) if row is not None else None

@@ -1,68 +1,63 @@
-from sqlalchemy import func, select, tuple_
-from sqlalchemy.ext.asyncio import AsyncSession
+"""Lecture des amendements du modèle V3 (table amendements)."""
 
-from backend.schemas.database_mapping import Amendements, TextesArticles
+from duckdb import DuckDBPyConnection
 
+from ..articles.adapter import public_uid as article_public_uid
+from ..articles.adapter import ref as article_ref
+from ..core.database import fetch_all, fetch_one
+from ..dossiers.adapter import ref as dossier_ref
+from ..groupes_politiques.adapter import ref as groupe_ref
+from ..organes.adapter import ref as organe_ref
+from ..personnes.adapter import ref as personne_ref
+from ..textes.adapter import ref as texte_ref
 from .schemas import Amendement
 
-_columns = Amendements.__table__.c
-_projection = select(
-    _columns.id.label("uid"),
-    _columns.uid.label("source_uid"),
-    _columns.numero.label("number"),
-    _columns.chambre.label("chamber"),
-    _columns.legislature.label("legislative_term"),
-    _columns.article_vise.label("targeted_article"),
-    _columns.dispositif.label("body"),
-    _columns.expose_sommaire.label("explanation"),
-    _columns.sort.label("outcome"),
-    _columns.date_depot.label("submitted_at"),
-    _columns.auteur_libelle.label("author"),
-    _columns.texte_ref.label("text_reference"),
-    _columns.dossier_id.label("dossier_uid"),
-    _columns.parlementaire_id.label("parliamentarian_uid"),
-    _columns.groupe_ref.label("group_reference"),
-    _columns.auteur_ref.label("author_reference"),
-    _columns.alinea.label("paragraph"),
-    _columns.alinea_numero.label("paragraph_number"),
-    _columns.numero_ordre.label("order_number"),
-    _columns.amendement_parent_id.label("parent_amendement_uid"),
-    _columns.seance_discussion_ref.label("sitting_reference"),
-    _columns.id_discussion_commune.label("joint_discussion_id"),
-    _columns.id_discussion_identique.label("identical_discussion_id"),
-)
+COLUMNS = f"""
+    a.uid, a.numero AS number, {dossier_ref("d")} AS dossier, {texte_ref("t")} AS texte,
+    {article_ref("ar", "t")} AS article, a.article_vise AS targeted_article,
+    a.alinea_numero AS paragraph_number, parent.uid AS parent_uid,
+    {organe_ref("oe")} AS examining_organe, {personne_ref("au")} AS author,
+    {organe_ref("ao")} AS author_organe, {groupe_ref("gpo", "gp")} AS groupe,
+    a.statut AS status, a.denouement AS outcome, a.motif_denouement AS outcome_reason,
+    a.date_depot AS submitted_on, a.date_denouement AS outcome_at,
+    a.dispositif AS body, a.expose_sommaire AS explanation
+"""
+FROM = """amendements a
+    JOIN textes t ON t.id = a.texte_id
+    JOIN dossiers d ON d.id = a.dossier_id
+    LEFT JOIN articles ar ON ar.id = a.article_id
+    LEFT JOIN amendements parent ON parent.id = a.parent_id
+    LEFT JOIN organes oe ON oe.id = a.organe_examen_id
+    LEFT JOIN personnes au ON au.id = a.auteur_id
+    LEFT JOIN organes ao ON ao.id = a.auteur_organe_id
+    LEFT JOIN groupes_politiques gp ON gp.organe_id = a.groupe_id
+    LEFT JOIN organes gpo ON gpo.id = a.groupe_id"""
 
 
-_articles = TextesArticles.__table__.c
-# Pas de clé vers l'article : « ART. 14 » ou « Article 14 » visent le numéro « 14 » du texte.
-# Les amendements « APRÈS ART. 5 » créent un article et ne visent donc aucun article existant.
-_targeted_number = func.upper(
-    func.regexp_replace(_columns.article_vise, r"^\s*(ART\.|ARTICLE)\s+", "", "i")
-)
-
-
-async def list_amendements(
-    session: AsyncSession,
+def list_amendements(
+    db: DuckDBPyConnection,
     *,
     dossier_uid: str,
-    text_reference: str,
+    texte_uid: str,
     limit: int,
     offset: int,
     article_uid: str | None = None,
 ) -> list[Amendement]:
-    """Liste les amendements d'un texte d'un dossier, éventuellement restreints à un article."""
-    statement = _projection.where(
-        _columns.dossier_id == dossier_uid, _columns.texte_ref == text_reference
-    )
+    """Amendements d'un texte d'un dossier, éventuellement restreints à un article."""
+    where = "d.uid = $dossier_uid AND t.uid = $texte_uid"
+    params = {"dossier_uid": dossier_uid, "texte_uid": texte_uid, "limit": limit, "offset": offset}
     if article_uid is not None:
-        article = select(_articles.texte_ref, _articles.numero).where(_articles.id == article_uid)
-        statement = statement.where(tuple_(_columns.texte_ref, _targeted_number).in_(article))
-    statement = statement.order_by(_columns.id).limit(limit).offset(offset)
-    result = await session.execute(statement)
-    return [Amendement.model_validate(row) for row in result.mappings().all()]
+        where += f" AND {article_public_uid('ar', 't')} = $article_uid"
+        params["article_uid"] = article_uid
+    rows = fetch_all(
+        db,
+        f"SELECT {COLUMNS} FROM {FROM} WHERE {where} "
+        "ORDER BY a.numero_ordre NULLS LAST, a.id LIMIT $limit OFFSET $offset",
+        params,
+    )
+    return [Amendement.model_validate(row) for row in rows]
 
 
-async def get_amendement(session: AsyncSession, uid: str) -> Amendement | None:
-    result = await session.execute(_projection.where(_columns.id == uid))
-    row = result.mappings().one_or_none()
+def get_amendement(db: DuckDBPyConnection, uid: str) -> Amendement | None:
+    row = fetch_one(db, f"SELECT {COLUMNS} FROM {FROM} WHERE a.uid = $uid", {"uid": uid})
     return Amendement.model_validate(row) if row is not None else None

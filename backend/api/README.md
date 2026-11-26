@@ -5,9 +5,9 @@ Guide pas à pas (installation, `.env`, lancement, tests) : [LOCAL_DEV.md](../..
 ## Démarrage (depuis la racine du dépôt)
 
 - Installer : `uv sync`.
-- Définir `API_PASSWORD` et `DATABASE_URL` dans l'environnement ou le `.env` local non suivi.
-  `DATABASE_URL` accepte `postgresql://...` ou `postgresql+asyncpg://...`, sans variables non
-  résolues ; utiliser un rôle SQL en lecture seule.
+- Définir `API_PASSWORD` et `DATA_PATH` dans l'environnement ou le `.env` local non suivi.
+  `DATA_PATH` : base DuckDB au modèle V3 (`backend/source_data/DATA_MODEL_V3_DUCKDB.sql`),
+  chemin local ou `s3://bucket/clair.duckdb` (variables `S3_*` pour un bucket privé).
 - Pour la recherche, définir `MEILI_URL` et `MEILI_API_KEY` (valeurs locales dans
   `.env.example`). En local la clé maître suffit ; ailleurs, utiliser une clé de recherche seule.
 - Démarrer : `uv run uvicorn backend.api.app.main:app --reload`.
@@ -44,19 +44,18 @@ make microcks-import
   `make COMPOSE="docker compose" docker-up` (même option pour les autres commandes Docker).
 - `make dev` démarre l'API hors Docker ; ne pas l'utiliser en même temps que `docker-up`
   sur le même port. `make test` lance pytest, sans pré-commit ni services partagés.
-- `make check-connections` vérifie, en lecture seule, l'accès à Postgres (`SELECT 1`) et à
+- `make check-connections` vérifie, en lecture seule, l'accès aux données (dossiers) et à
   Meilisearch (`/health`, puis `/version` pour valider la clé) configurés dans `.env`.
 - `make health`, `make docker-logs`, `make docker-check` et `make docker-down` permettent
   de vérifier la vivacité, suivre les logs, valider Compose sans afficher les secrets et arrêter
   les conteneurs sans supprimer les volumes. `make help` liste les commandes.
-- L'API utilise la DB de `DATABASE_URL` dans le `.env` racine. Postgres local et Keycloak
-  restent optionnels, sous les profils Compose `local-db` et `sso` ; ils ne sont pas démarrés
-  par défaut et le Postgres local ne contient pas le dump partagé.
+- L'API lit `DATA_PATH` du `.env` racine. Dans Docker, `backend/source_data/` est monté en
+  lecture seule au même chemin relatif. Keycloak reste optionnel (profil Compose `sso`).
 - Le service `meilisearch` (v1.15.2, port `127.0.0.1:7700`, volume `meili_data`) démarre avec
   `docker-up` ; l'API le joint sur `http://meilisearch:7700`. Il démarre vide : la recherche
   répond `503` tant que les index et l'embedder ne sont pas créés.
 
-### Essayer des mocks sans accéder à Postgres
+### Essayer des mocks sans accéder aux données
 
 ```sh
 make microcks-up
@@ -78,7 +77,7 @@ et les sept collections : aucune donnée réelle, aucun secret, aucune connexion
 Les collections simulées sont volontairement vides. `make openapi` permet de produire le
 fichier seul ; `build/` est ignoré par Git.
 
-### Exemples réels pour neuf dossiers
+### Exemples réels pour quelques dossiers
 
 ```sh
 make microcks-samples   # lit la DB de .env en lecture seule, écrit build/microcks/
@@ -94,14 +93,13 @@ Requêtes mockées (toute autre combinaison répond `400` dans Microcks) :
 
 | Route | Exemples |
 | --- | --- |
-| `/dossiers/{dossier_uid}` | les 9 dossiers |
+| `/dossiers/{uid}` | les dossiers de `DOSSIER_UIDS` |
 | `/textes`, `/articles` | `?dossier_uid=…` (20 premiers) et `&limit=100&offset=0, 100…` |
-| `/articles/{uid}` | tous les articles de ces dossiers |
-| `/amendements` | `?dossier_uid=…&text_reference=…`, éventuellement `&article_uid=…`, mêmes pages |
-| `/amendements/{uid}` | les amendements des textes ayant des articles |
+| `/textes/{uid}`, `/articles/{uid}` | tous les textes et articles de ces dossiers |
+| `/amendements` | `?dossier_uid=…&texte_uid=…`, éventuellement `&article_uid=…`, mêmes pages |
+| `/amendements/{uid}` | tous les amendements de ces textes |
 
-Les amendements d'un dossier portant sur un texte absent de `textes_articles` ne sont pas
-exportés (aucun `text_reference` ne les atteint). Seuls `limit` absent (20) ou `limit=100`
+Seuls `limit` absent (20) ou `limit=100`
 avec un `offset` multiple de 100 sont mockés.
 
 Limites Microcks contournées : chaque fichier importé est analysé par SnakeYAML (3 145 728
@@ -134,74 +132,51 @@ Référence : <https://microcks.io/documentation/references/artifacts/openapi-co
 Toutes les routes `/api/v0` exigent `Authorization: Bearer <mot-de-passe>`.
 
 Le secret partagé est comparé en temps constant, sans fournir d'identité individuelle.
-`/health` est public et mesure seulement la vivacité, pas la disponibilité de Postgres.
+`/health` est public et mesure seulement la vivacité, pas la disponibilité des données.
 Utiliser un secret aléatoire, HTTPS hors développement et masquer Authorization dans les logs.
 Ne jamais placer de secret dans une URL, un exemple réel ou un fichier suivi.
 Le SSO et les autorisations individuelles restent prévus pour v1
 
-`create_app(Settings(...))` permet d'isoler la configuration. Le lifespan crée le moteur sans
-connexion à l'import et le ferme même après un démarrage partiellement échoué. La fermeture
-est protégée de l'annulation par une portée AnyIO (socle d'Asyncer). Les sessions
-sont ouvertes et fermées par requête ; aucune route n'écrit dans les sources.
-Sans `DATABASE_URL`, les routes qui exigent la DB répondent `503` ; `/health` reste disponible.
-
-Les connexions sont créées directement par `asyncpg` via `democracy_watch.db.connect_async`.
-SQLAlchemy conserve la gestion du pool et l'exécution des projections des adaptateurs, sans
-recevoir les identifiants dans son URL de moteur. Le helper est aussi réutilisable hors API :
-`await connect_async()` utilise `DATABASE_URL` ou les variables `PG*` de l'environnement ;
-l'appelant doit fermer la connexion avec `await connection.close()`. Il ne charge pas `.env`.
-
-Le pool est borné à `DATABASE_POOL_SIZE` connexions (5 par défaut, sans débordement).
-`DATABASE_POOL_TIMEOUT` borne l'attente du pool (10 secondes par défaut) ; `DATABASE_TIMEOUT`
-borne connexion, commande et requête SQL (10 secondes). Les transactions sont en lecture seule.
-Prévoir au maximum `workers × réplicas × DATABASE_POOL_SIZE` connexions et un rôle SQL restreint.
-Les appels SQLAlchemy sont directement attendus ; aucun appel direct aux primitives asyncio.
-Pour de futurs traitements synchrones bloquants, utiliser `asyncer.asyncify`, pas le thread
-événementiel. Inutile d'envelopper des opérations déjà asynchrones.
+`create_app(Settings(...))` permet d'isoler la configuration. Le lifespan ouvre la base
+(`core/database.py`) dans un thread : connexion DuckDB en mémoire, secret S3 éventuel, puis
+`ATTACH … (READ_ONLY)` de `DATA_PATH` et verrouillage de la configuration. Chaque requête
+reçoit son propre curseur (`Db`), placé dans la base attachée et fermé après la réponse ; les
+routes sont synchrones et tournent dans le pool de threads de FastAPI. Une erreur d'E/S
+(fichier ou S3 indisponible) donne `503`. Sans `DATA_PATH`, les routes de données répondent
+`503` ; `/health` reste disponible.
 
 ## Ressources disponibles
 
 Toutes les routes ci-dessous sont des `GET`, préfixées par `/api/v0` et authentifiées.
 Chaque collection accepte `limit` et `offset` ; chaque détail absent répond `404`.
 
-| Collection | Détail | Principales informations exposées |
-| --- | --- | --- |
-| `/amendements` | `/amendements/{uid}` | Numéro, chambre, législature, article visé, alinéa, dispositif, exposé, sort, dépôt, auteur, groupe, références, amendement parent, séance et discussions commune/identique |
-| `/dossiers` | `/dossiers/{dossier_uid}` | Titre, législature, état, procédure, dépôt/adoption, liens AN/Sénat/Légifrance, loi (numéro, titre, date JO), sujet, mise à jour |
-| `/textes` | — | Une ligne par article du dossier : référence du texte, numéro, libellé, contenu, position, chambre, législature, dossier et source |
-| `/articles` | `/articles/{uid}` | Référence du texte, numéro, libellé, contenu, position, chambre, législature, dossier et source |
-| `/parlementaires` | `/parlementaires/{uid}` | Nom, prénom, slug, chambre, activité, groupe, circonscription, photo et site |
-| `/groupes_politiques` | `/groupes_politiques/{uid}` | Noms, slug, chambre, activité, couleur, position politique, législature et effectif actif |
-| `/declarations_hatvp` | `/declarations_hatvp/{uid}` | Parlementaire, type de document, dates, statut et lien du dossier ; pas de XML brut |
+Deux hiérarchies, du haut vers le bas : **dossier → texte → article → amendement** et
+**organe → groupe politique → personne** (les types d'organes sont un référentiel à part).
+Une liste se filtre par le niveau juste au-dessus (facultatif) ; les niveaux plus hauts sont
+obligatoires (`422` s'ils manquent). Un filtre sans correspondance donne une collection vide.
 
-`uid` désigne toujours la **clé primaire de la base**, pas un slug. Les relations `*_uid`
-utilisent ces mêmes identifiants. Les amendements et dossiers exposent en plus `source_uid`
-pour leur identifiant externe CLAIR, distinct de la clé primaire : utiliser `uid` dans l'URL.
-Les champs nullable restent explicitement présents avec `null` ; les dates sont sérialisées
-au format ISO 8601. Les schémas détaillés sont visibles dans `/docs` et `/openapi.json`.
+| Liste | Obligatoires | Facultatifs | Détail |
+| --- | --- | --- | --- |
+| `/dossiers` | — | — | `/dossiers/{uid}` |
+| `/textes` | — | `dossier_uid` | `/textes/{uid}` |
+| `/articles` | `dossier_uid` | `texte_uid` | `/articles/{uid}` |
+| `/amendements` | `dossier_uid`, `texte_uid` | `article_uid` | `/amendements/{uid}` |
+| `/organes/types` | — | — | — |
+| `/organes` | — | `type` | `/organes/{uid}` |
+| `/groupes_politiques` | — | `organe_uid`, `current` | `/groupes_politiques/{uid}` |
+| `/personnes` | `organe_uid` | `groupe_uid`, `current` | `/personnes/{uid}` |
 
-### Filtres hiérarchiques
-
-Hiérarchie : dossier → texte → article → amendement. Chaque collection se filtre par les
-identifiants des niveaux supérieurs ; un paramètre obligatoire absent donne `422`.
-
-| Collection | Obligatoires | Optionnels |
-| --- | --- | --- |
-| `/dossiers` | — | `limit`, `offset` |
-| `/textes` | `dossier_uid` | `text_reference`, `limit`, `offset` |
-| `/articles` | `dossier_uid` | `text_reference`, `limit`, `offset` |
-| `/amendements` | `dossier_uid`, `text_reference` | `article_uid`, `limit`, `offset` |
-
-`text_reference` est la référence CLAIR du texte (`texte_ref`, ex. `PRJLANR5L17B2247`).
-Le mapping fourni décrit `textes_articles`, pas une table autonome de textes : `/textes`
-renvoie donc une ligne par article, sans regroupement ni titre inventé. Un filtre sans
-correspondance donne une collection vide avec `200`.
-
-Aucune clé ne relie un amendement à un article : `article_uid` retrouve l'article puis garde
-les amendements du même texte dont `article_vise`, sans préfixe `ART.`/`Article` et en
-majuscules, égale le `numero` de l'article (`ART. 14` → `14`, `ART. PREMIER` → `PREMIER`).
-Les amendements `APRÈS ART. …`/`AVANT ART. …` créent un article et ne sont donc rattachés
-à aucun article existant. `textes_articles` ne contient pas de texte du Sénat.
+- `uid` est l'identifiant source (`DLR…`, `PRJL…`, `AMAN…`, `PO…`), jamais l'id interne : le
+  pipeline renumérote les id à chaque reconstruction. Personne : son slug. Article (sans
+  identifiant source) : `<uid du texte>-<ordre_place>`.
+- Chaque objet porte une référence courte de ses parents (`DossierRef`, `TexteRef`,
+  `ArticleRef`, `OrganeRef`, `GroupePolitiqueRef`, `PersonneRef`). `GroupePolitique` étend
+  `Organe` (sous-type, comme dans le modèle).
+- Groupes et personnes d'un organe : `current=true` (défaut) ne garde que les mandats en
+  cours ; `current=false`, les mandats dont les périodes dans l'organe et le groupe se
+  chevauchent.
+- Les champs nullable restent présents avec `null` ; dates ISO 8601. Schémas détaillés :
+  `/docs` et `/openapi.json`.
 
 ## Recherche
 
@@ -239,34 +214,30 @@ et `expose` (amendements), `contenu` (articles), `titre` et `loi_titre` (dossier
 
 ## Accès aux sources et modèles
 
-Flux : routeur → adaptateur de la fonctionnalité → session Postgres en lecture seule.
-Les adaptateurs utilisent les modèles générés de `backend/schemas/database_mapping.py`
-pour construire des projections SQL paramétrées, sans chargement implicite des relations ORM.
-Le mapping a été déplacé sans modifier ses définitions. Docker et le script de génération
-référencent le nouveau chemin ; aucun import applicatif ne dépend du répertoire `scripts`.
-Les adaptateurs traduisent les noms CLAIR en champs publics ; les routeurs ne manipulent pas
-les noms de colonnes source. Aucun JSON source, XML HATVP, date de naissance ou email n'est
-exposé automatiquement.
+Flux : routeur → adaptateur de la fonctionnalité → curseur DuckDB en lecture seule.
+Chaque adaptateur écrit son SQL paramétré (`$nom`) et traduit les colonnes du modèle V3 en
+champs publics ; les routeurs ne manipulent aucun nom de colonne. Les références vers un autre
+niveau sont des `STRUCT` construits par l'adaptateur propriétaire de la table (`ref()`),
+désérialisés directement par Pydantic. Les libellés viennent des macros du modèle
+(`libelle_procedure`, `libelle_type_organe`, `famille_du_type`). Aucune date de naissance,
+coordonnée ni donnée d'import n'est exposée.
 
 ## Conventions de réponse et de pagination
 
 - JSON, noms `snake_case`. Un objet simple est retourné directement, sans enveloppe `data`.
 - Une collection suit toujours `{items, limit, offset, has_more}` ; pas de total implicite.
 - `limit=20`, entre 1 et 100 ; `offset=0`, entre 0 et 10000. Paramètres invalides : `422`.
-- Ordre stable : clé primaire pour les objets ; textes par référence, position puis
-  identifiant ; les articles sont
-  ordonnés par référence puis position et identifiant (position/identifiant si filtrés).
+- Ordre stable : dossiers du plus récent au plus ancien ; textes dans l'ordre de la navette ;
+  articles dans l'ordre du document ; amendements par numéro d'ordre ; personnes par nom.
 - Lire `limit + 1` lignes puis retirer la ligne de contrôle pour calculer `has_more`.
 - Pour avancer : `offset + limit` tant que `has_more` est vrai, dans la borne autorisée.
   Une pagination profonde nécessitera des filtres ou un curseur, pas une hausse sans limite.
 - L'ordre est déterministe, mais la pagination offset ne fige pas les données entre requêtes.
-- Article public : `{uid, text_reference, number, label, content, position, chamber,
-  legislative_term, dossier_uid, source_url}`. Les dates techniques restent internes.
+- Les colonnes d'entrepôt (`created_at`, `import_id`, `source_hash`) restent internes.
 
 `app/schemas.py` ne contient que la pagination partagée ; les réponses métier sont définies
-par fonctionnalité (`articles/schemas.py`, `dossiers/schemas.py`, etc.). Les modèles SQLAlchemy générés décrivent le stockage,
-pas le contrat HTTP : ne pas créer un schéma API pour chaque table ni les exposer directement.
-Ne pas modifier les modèles générés pour satisfaire une réponse HTTP.
+par fonctionnalité (`articles/schemas.py`, `dossiers/schemas.py`, etc.). Le modèle V3 décrit
+le stockage, pas le contrat HTTP : ne pas créer un schéma API pour chaque table.
 
 ## Conventions d'erreur et évolution
 
@@ -291,9 +262,10 @@ interface générique supplémentaire tant qu'il n'y a pas de logique qui le jus
 
 ## Tests et mocks
 
-Les mocks restent sous `tests/`, pas dans les adaptateurs applicatifs. Le test d'articles
-traverse le vrai routeur et le vrai adaptateur avec une session simulée : SQL paramétré,
-ordre, mapping, pagination, validation, authentification et pannes DB sont vérifiés sans
-contacter Postgres, Meilisearch ou Keycloak. La recherche remplace le client Meilisearch par un
-`httpx.MockTransport` qui vérifie la requête `/multi-search` envoyée. Une fabrique d'application et un lifespan complet
-isolent chaque test ; ne jamais charger le `.env` réel pour les tests.
+Les mocks restent sous `tests/`, pas dans les adaptateurs applicatifs. Les tests de données
+(`test_legislatif.py`, `test_acteurs.py`) traversent les vrais routeurs et adaptateurs sur une
+base DuckDB en mémoire : le vrai `DATA_MODEL_V3_DUCKDB.sql` (contraintes comprises) rempli
+par `tests/seed.sql`, données synthétiques branchées par `monkeypatch`. Aucun test ne lit la
+vraie base, Meilisearch ou Keycloak. La recherche remplace le client Meilisearch par un
+`httpx.MockTransport` qui vérifie la requête `/multi-search` envoyée. Une fabrique
+d'application et un lifespan complet isolent chaque test ; ne jamais charger le `.env` réel.

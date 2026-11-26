@@ -1,17 +1,34 @@
+from pathlib import Path
 from secrets import token_urlsafe
-from unittest.mock import AsyncMock, Mock
 
+import duckdb
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.app.core.config import Settings
+from backend.api.app.core.database import CATALOG
 from backend.api.app.main import create_app
+
+ROOT = Path(__file__).resolve().parents[3]
+DATA_MODEL = ROOT / "backend/source_data/DATA_MODEL_V3_DUCKDB.sql"
+SEED = Path(__file__).with_name("seed.sql")
+
+
+@pytest.fixture(scope="session")
+def seeded_database():
+    """Base en mémoire au modèle V3 réel, remplie de données synthétiques."""
+    connection = duckdb.connect()
+    connection.execute(f"ATTACH ':memory:' AS {CATALOG}")
+    connection.execute(f"USE {CATALOG}")
+    connection.execute(DATA_MODEL.read_text())
+    connection.execute(SEED.read_text())
+    yield connection
+    connection.close()
 
 
 @pytest.fixture
 async def application():
-    config = Settings(_env_file=None, DATABASE_URL=None, API_PASSWORD=token_urlsafe(32))
+    config = Settings(_env_file=None, DATA_PATH=None, API_PASSWORD=token_urlsafe(32))
     app = create_app(config)
     async with app.router.lifespan_context(app):
         yield app
@@ -29,15 +46,7 @@ async def client(application):
 
 
 @pytest.fixture
-async def db_session(application, monkeypatch):
-    session = AsyncMock(spec=AsyncSession)
-    session.execute.return_value = Mock()
-    session.execute.return_value.mappings.return_value.all.return_value = []
-    session.execute.return_value.mappings.return_value.one_or_none.return_value = None
-    context = AsyncMock()
-    context.__aenter__.return_value = session
-    with monkeypatch.context() as patch:
-        patch.setattr(application.state, "session_factory", Mock(return_value=context))
-        yield session
-        if context.__aenter__.await_count:
-            assert context.__aexit__.await_count == context.__aenter__.await_count
+def database(application, seeded_database, monkeypatch):
+    """Branche la base synthétique à l'application, à la place de DATA_PATH."""
+    monkeypatch.setattr(application.state, "database", seeded_database)
+    return seeded_database

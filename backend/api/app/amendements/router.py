@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from ..core.database import DbSession
+from ..core.database import Db
 from ..schemas import Page, PaginationQuery
 from . import adapter
 from .schemas import Amendement
@@ -8,18 +8,23 @@ from .schemas import Amendement
 router = APIRouter(prefix="/amendements", tags=["Amendements"])
 
 
-@router.get("", response_model=Page[Amendement])
-async def list_amendements(
+@router.get(
+    "",
+    summary="Lister les amendements d'un texte",
+    description="`dossier_uid` et `texte_uid` obligatoires, `article_uid` facultatif. "
+    "Collection vide si le texte n'appartient pas au dossier.",
+)
+def list_amendements(
     dossier_uid: str,
-    text_reference: str,
-    session: DbSession,
+    texte_uid: str,
+    db: Db,
     pagination: PaginationQuery,
     article_uid: str | None = None,
 ) -> Page[Amendement]:
-    items = await adapter.list_amendements(
-        session,
+    items = adapter.list_amendements(
+        db,
         dossier_uid=dossier_uid,
-        text_reference=text_reference,
+        texte_uid=texte_uid,
         article_uid=article_uid,
         limit=pagination.limit + 1,
         offset=pagination.offset,
@@ -27,9 +32,9 @@ async def list_amendements(
     return Page[Amendement].from_items(items, pagination)
 
 
-@router.get("/{uid}", response_model=Amendement)
-async def get_amendement(uid: str, session: DbSession) -> Amendement:
-    item = await adapter.get_amendement(session, uid)
+@router.get("/{uid}", summary="Consulter un amendement")
+def get_amendement(uid: str, db: Db) -> Amendement:
+    item = adapter.get_amendement(db, uid)
     if item is None:
         raise HTTPException(404, "Amendement introuvable")
     return item

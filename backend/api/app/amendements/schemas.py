@@ -1,29 +1,34 @@
-from datetime import datetime
+"""Amendements : bas de la hiérarchie législative, rattachés à leur article, texte et dossier."""
+
+from datetime import date, datetime
 
 from pydantic import BaseModel
+
+from ..articles.schemas import ArticleRef
+from ..dossiers.schemas import DossierRef
+from ..groupes_politiques.schemas import GroupePolitiqueRef
+from ..organes.schemas import OrganeRef
+from ..personnes.schemas import PersonneRef
+from ..textes.schemas import TexteRef
 
 
 class Amendement(BaseModel):
     uid: str
-    source_uid: str
     number: str
-    chamber: str
-    legislative_term: int
-    targeted_article: str | None
-    body: str | None
-    explanation: str | None
-    outcome: str | None
-    submitted_at: datetime | None
-    author: str | None
-    text_reference: str | None
-    dossier_uid: str | None
-    parliamentarian_uid: str | None
-    group_reference: str | None
-    author_reference: str | None
-    paragraph: str | None
+    dossier: DossierRef
+    texte: TexteRef
+    article: ArticleRef | None  # NULL si l'emplacement visé n'a pas été résolu
+    targeted_article: str | None  # libellé source, ex. « APRÈS ART. 2 »
     paragraph_number: int | None
-    order_number: int | None
-    parent_amendement_uid: str | None
-    sitting_reference: str | None
-    joint_discussion_id: str | None
-    identical_discussion_id: str | None
+    parent_uid: str | None  # sous-amendement : l'amendement visé
+    examining_organe: OrganeRef | None  # commission ou séance
+    author: PersonneRef | None
+    author_organe: OrganeRef | None  # auteur institutionnel : Gouvernement, commission
+    groupe: GroupePolitiqueRef | None  # groupe de l'auteur au dépôt
+    status: str
+    outcome: str | None
+    outcome_reason: str | None
+    submitted_on: date | None
+    outcome_at: datetime | None
+    body: str | None  # dispositif
+    explanation: str | None  # exposé sommaire

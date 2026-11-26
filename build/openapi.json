@@ -442,7 +442,8 @@
         "tags": [
           "Dossiers"
         ],
-        "summary": "List Dossiers",
+        "summary": "Lister les dossiers législatifs",
+        "description": "Sommet de la hiérarchie législative. Du dépôt le plus récent au plus ancien.",
         "operationId": "list_dossiers_api_v0_dossiers_get",
         "security": [
           {
@@ -750,13 +751,13 @@
         }
       }
     },
-    "/api/v0/dossiers/{dossier_uid}": {
+    "/api/v0/dossiers/{uid}": {
       "get": {
         "tags": [
           "Dossiers"
         ],
-        "summary": "Get Dossier",
-        "operationId": "get_dossier_api_v0_dossiers__dossier_uid__get",
+        "summary": "Consulter un dossier législatif",
+        "operationId": "get_dossier_api_v0_dossiers__uid__get",
         "security": [
           {
             "HTTPBearer": []
@@ -764,12 +765,12 @@
         ],
         "parameters": [
           {
-            "name": "dossier_uid",
+            "name": "uid",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Dossier Uid"
+              "title": "Uid"
             }
           }
         ],
@@ -1032,24 +1033,15 @@
         "tags": [
           "Textes"
         ],
-        "summary": "Lister les articles des textes d'un dossier",
-        "description": "Une ligne par article. Ordre stable par référence, position puis identifiant. Collection vide si le dossier ou la référence est absent.",
-        "operationId": "list_texts_api_v0_textes_get",
+        "summary": "Lister les textes",
+        "description": "`dossier_uid` facultatif. Ordre de la navette dans chaque dossier.",
+        "operationId": "list_textes_api_v0_textes_get",
         "security": [
           {
             "HTTPBearer": []
           }
         ],
         "parameters": [
-          {
-            "name": "dossier_uid",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Dossier Uid"
-            }
-          },
           {
             "name": "limit",
             "in": "query",
@@ -1085,7 +1077,7 @@
             }
           },
           {
-            "name": "text_reference",
+            "name": "dossier_uid",
             "in": "query",
             "required": false,
             "schema": {
@@ -1097,7 +1089,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Text Reference"
+              "title": "Dossier Uid"
             }
           }
         ],
@@ -1107,7 +1099,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Text_"
+                  "$ref": "#/components/schemas/Page_Texte_"
                 },
                 "examples": {
                   "default": {
@@ -1366,12 +1358,906 @@
         }
       }
     },
+    "/api/v0/textes/{uid}": {
+      "get": {
+        "tags": [
+          "Textes"
+        ],
+        "summary": "Consulter un texte",
+        "operationId": "get_texte_api_v0_textes__uid__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Uid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Texte"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/articles": {
+      "get": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "Lister les articles d'un dossier",
+        "description": "`dossier_uid` obligatoire, `texte_uid` facultatif. Ordre de la navette, puis du document. Collection vide si le texte n'appartient pas au dossier.",
+        "operationId": "list_articles_api_v0_articles_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dossier_uid",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dossier Uid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            },
+            "examples": {
+              "default": {
+                "value": 20
+              }
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            },
+            "examples": {
+              "default": {
+                "value": 0
+              }
+            }
+          },
+          {
+            "name": "texte_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Texte Uid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Article_"
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Exemple synthétique sans données réelles",
+                    "value": {
+                      "items": [],
+                      "limit": 20,
+                      "offset": 0,
+                      "has_more": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/articles/{uid}": {
+      "get": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "Consulter un article",
+        "operationId": "get_article_api_v0_articles__uid__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Uid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Article"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "default": "about:blank",
+                      "title": "Type",
+                      "type": "string"
+                    },
+                    "title": {
+                      "title": "Title",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "title": "Detail",
+                      "type": "string"
+                    },
+                    "instance": {
+                      "title": "Instance",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/amendements": {
       "get": {
         "tags": [
           "Amendements"
         ],
-        "summary": "List Amendements",
+        "summary": "Lister les amendements d'un texte",
+        "description": "`dossier_uid` et `texte_uid` obligatoires, `article_uid` facultatif. Collection vide si le texte n'appartient pas au dossier.",
         "operationId": "list_amendements_api_v0_amendements_get",
         "security": [
           {
@@ -1389,12 +2275,12 @@
             }
           },
           {
-            "name": "text_reference",
+            "name": "texte_uid",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Text Reference"
+              "title": "Texte Uid"
             }
           },
           {
@@ -1718,7 +2604,7 @@
         "tags": [
           "Amendements"
         ],
-        "summary": "Get Amendement",
+        "summary": "Consulter un amendement",
         "operationId": "get_amendement_api_v0_amendements__uid__get",
         "security": [
           {
@@ -1990,28 +2876,290 @@
         }
       }
     },
-    "/api/v0/articles": {
+    "/api/v0/organes/types": {
       "get": {
         "tags": [
-          "Articles"
+          "Organes"
         ],
-        "summary": "List Articles",
-        "operationId": "list_articles_api_v0_articles_get",
+        "summary": "Lister les types d'organes",
+        "operationId": "list_types_api_v0_organes_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TypeOrgane"
+                  },
+                  "type": "array",
+                  "title": "Response List Types Api V0 Organes Types Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "title": "Type",
+                      "default": "about:blank"
+                    },
+                    "title": {
+                      "type": "string",
+                      "title": "Title"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "title": "Status"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "title": "Instance"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "status",
+                    "detail",
+                    "instance"
+                  ],
+                  "title": "Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v0/organes": {
+      "get": {
+        "tags": [
+          "Organes"
+        ],
+        "summary": "Lister les organes",
+        "description": "Sommet de la hiérarchie des acteurs. Filtre facultatif par type (code de `/organes/types`, ex. `COMPER`).",
+        "operationId": "list_organes_api_v0_organes_get",
         "security": [
           {
             "HTTPBearer": []
           }
         ],
         "parameters": [
-          {
-            "name": "dossier_uid",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Dossier Uid"
-            }
-          },
           {
             "name": "limit",
             "in": "query",
@@ -2047,7 +3195,7 @@
             }
           },
           {
-            "name": "text_reference",
+            "name": "type",
             "in": "query",
             "required": false,
             "schema": {
@@ -2059,7 +3207,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Text Reference"
+              "title": "Type"
             }
           }
         ],
@@ -2069,7 +3217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Article_"
+                  "$ref": "#/components/schemas/Page_Organe_"
                 },
                 "examples": {
                   "default": {
@@ -2328,13 +3476,13 @@
         }
       }
     },
-    "/api/v0/articles/{uid}": {
+    "/api/v0/organes/{uid}": {
       "get": {
         "tags": [
-          "Articles"
+          "Organes"
         ],
-        "summary": "Get Article",
-        "operationId": "get_article_api_v0_articles__uid__get",
+        "summary": "Consulter un organe",
+        "operationId": "get_organe_api_v0_organes__uid__get",
         "security": [
           {
             "HTTPBearer": []
@@ -2357,597 +3505,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Article"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Content",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "Not Implemented",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/parlementaires": {
-      "get": {
-        "tags": [
-          "Parlementaires"
-        ],
-        "summary": "Lister les parlementaires",
-        "operationId": "list_parliamentarians_api_v0_parlementaires_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            },
-            "examples": {
-              "default": {
-                "value": 20
-              }
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 10000,
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            },
-            "examples": {
-              "default": {
-                "value": 0
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page_Parliamentarian_"
-                },
-                "examples": {
-                  "default": {
-                    "summary": "Exemple synthétique sans données réelles",
-                    "value": {
-                      "items": [],
-                      "limit": 20,
-                      "offset": 0,
-                      "has_more": false
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Content",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "Not Implemented",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "properties": {
-                    "type": {
-                      "default": "about:blank",
-                      "title": "Type",
-                      "type": "string"
-                    },
-                    "title": {
-                      "title": "Title",
-                      "type": "string"
-                    },
-                    "status": {
-                      "title": "Status",
-                      "type": "integer"
-                    },
-                    "detail": {
-                      "title": "Detail",
-                      "type": "string"
-                    },
-                    "instance": {
-                      "title": "Instance",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "title",
-                    "status",
-                    "detail",
-                    "instance"
-                  ],
-                  "title": "Problem",
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/parlementaires/{uid}": {
-      "get": {
-        "tags": [
-          "Parlementaires"
-        ],
-        "summary": "Consulter un parlementaire",
-        "operationId": "get_parliamentarian_api_v0_parlementaires__uid__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "uid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Uid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Parliamentarian"
+                  "$ref": "#/components/schemas/Organe"
                 }
               }
             }
@@ -3201,7 +3759,8 @@
           "Groupes politiques"
         ],
         "summary": "Lister les groupes politiques",
-        "operationId": "list_political_groups_api_v0_groupes_politiques_get",
+        "description": "Avec `organe_uid` : groupes dont au moins un membre siège dans cet organe (ex. l'Assemblée d'une législature, une commission). `current` : mandats en cours (par défaut) ou mandats dont les périodes se chevauchent.",
+        "operationId": "list_groupes_api_v0_groupes_politiques_get",
         "security": [
           {
             "HTTPBearer": []
@@ -3241,6 +3800,32 @@
                 "value": 0
               }
             }
+          },
+          {
+            "name": "organe_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organe Uid"
+            }
+          },
+          {
+            "name": "current",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Current"
+            }
           }
         ],
         "responses": {
@@ -3249,7 +3834,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_PoliticalGroup_"
+                  "$ref": "#/components/schemas/Page_GroupePolitique_"
                 },
                 "examples": {
                   "default": {
@@ -3514,7 +4099,7 @@
           "Groupes politiques"
         ],
         "summary": "Consulter un groupe politique",
-        "operationId": "get_political_group_api_v0_groupes_politiques__uid__get",
+        "operationId": "get_groupe_api_v0_groupes_politiques__uid__get",
         "security": [
           {
             "HTTPBearer": []
@@ -3537,7 +4122,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PoliticalGroup"
+                  "$ref": "#/components/schemas/GroupePolitique"
                 }
               }
             }
@@ -3785,19 +4370,29 @@
         }
       }
     },
-    "/api/v0/declarations_hatvp": {
+    "/api/v0/personnes": {
       "get": {
         "tags": [
-          "Déclarations HATVP"
+          "Personnes"
         ],
-        "summary": "Lister les déclarations HATVP",
-        "operationId": "list_hatvp_declarations_api_v0_declarations_hatvp_get",
+        "summary": "Lister les membres d'un organe",
+        "description": "`organe_uid` obligatoire (ex. l'Assemblée d'une législature, une commission) ; `groupe_uid` facultatif restreint aux membres de ce groupe. `current` : mandats en cours (par défaut) ou mandats dont les périodes se chevauchent.",
+        "operationId": "list_personnes_api_v0_personnes_get",
         "security": [
           {
             "HTTPBearer": []
           }
         ],
         "parameters": [
+          {
+            "name": "organe_uid",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organe Uid"
+            }
+          },
           {
             "name": "limit",
             "in": "query",
@@ -3831,6 +4426,32 @@
                 "value": 0
               }
             }
+          },
+          {
+            "name": "groupe_uid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Groupe Uid"
+            }
+          },
+          {
+            "name": "current",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Current"
+            }
           }
         ],
         "responses": {
@@ -3839,7 +4460,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_HatvpDeclaration_"
+                  "$ref": "#/components/schemas/Page_Personne_"
                 },
                 "examples": {
                   "default": {
@@ -4098,13 +4719,14 @@
         }
       }
     },
-    "/api/v0/declarations_hatvp/{uid}": {
+    "/api/v0/personnes/{uid}": {
       "get": {
         "tags": [
-          "Déclarations HATVP"
+          "Personnes"
         ],
-        "summary": "Consulter une déclaration HATVP",
-        "operationId": "get_hatvp_declaration_api_v0_declarations_hatvp__uid__get",
+        "summary": "Consulter une personne",
+        "description": "`uid` : slug de la personne.",
+        "operationId": "get_personne_api_v0_personnes__uid__get",
         "security": [
           {
             "HTTPBearer": []
@@ -4127,7 +4749,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HatvpDeclaration"
+                  "$ref": "#/components/schemas/Personne"
                 }
               }
             }
@@ -4384,21 +5006,25 @@
             "type": "string",
             "title": "Uid"
           },
-          "source_uid": {
-            "type": "string",
-            "title": "Source Uid"
-          },
           "number": {
             "type": "string",
             "title": "Number"
           },
-          "chamber": {
-            "type": "string",
-            "title": "Chamber"
+          "dossier": {
+            "$ref": "#/components/schemas/DossierRef"
           },
-          "legislative_term": {
-            "type": "integer",
-            "title": "Legislative Term"
+          "texte": {
+            "$ref": "#/components/schemas/TexteRef"
+          },
+          "article": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArticleRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "targeted_article": {
             "anyOf": [
@@ -4410,6 +5036,118 @@
               }
             ],
             "title": "Targeted Article"
+          },
+          "paragraph_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Number"
+          },
+          "parent_uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Uid"
+          },
+          "examining_organe": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganeRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonneRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author_organe": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganeRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "groupe": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupePolitiqueRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "outcome_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Reason"
+          },
+          "submitted_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted On"
+          },
+          "outcome_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome At"
           },
           "body": {
             "anyOf": [
@@ -4432,199 +5170,29 @@
               }
             ],
             "title": "Explanation"
-          },
-          "outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Outcome"
-          },
-          "submitted_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submitted At"
-          },
-          "author": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Author"
-          },
-          "text_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text Reference"
-          },
-          "dossier_uid": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Dossier Uid"
-          },
-          "parliamentarian_uid": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parliamentarian Uid"
-          },
-          "group_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Group Reference"
-          },
-          "author_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Author Reference"
-          },
-          "paragraph": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Paragraph"
-          },
-          "paragraph_number": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Paragraph Number"
-          },
-          "order_number": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Order Number"
-          },
-          "parent_amendement_uid": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Amendement Uid"
-          },
-          "sitting_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sitting Reference"
-          },
-          "joint_discussion_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Joint Discussion Id"
-          },
-          "identical_discussion_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Identical Discussion Id"
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "source_uid",
           "number",
-          "chamber",
-          "legislative_term",
+          "dossier",
+          "texte",
+          "article",
           "targeted_article",
-          "body",
-          "explanation",
-          "outcome",
-          "submitted_at",
-          "author",
-          "text_reference",
-          "dossier_uid",
-          "parliamentarian_uid",
-          "group_reference",
-          "author_reference",
-          "paragraph",
           "paragraph_number",
-          "order_number",
-          "parent_amendement_uid",
-          "sitting_reference",
-          "joint_discussion_id",
-          "identical_discussion_id"
+          "parent_uid",
+          "examining_organe",
+          "author",
+          "author_organe",
+          "groupe",
+          "status",
+          "outcome",
+          "outcome_reason",
+          "submitted_on",
+          "outcome_at",
+          "body",
+          "explanation"
         ],
         "title": "Amendement"
       },
@@ -4634,35 +5202,40 @@
             "type": "string",
             "title": "Uid"
           },
-          "text_reference": {
-            "type": "string",
-            "title": "Text Reference"
-          },
           "number": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Number"
           },
           "label": {
             "type": "string",
             "title": "Label"
           },
-          "content": {
-            "type": "string",
-            "title": "Content"
+          "texte": {
+            "$ref": "#/components/schemas/TexteRef"
+          },
+          "dossier": {
+            "$ref": "#/components/schemas/DossierRef"
           },
           "position": {
             "type": "integer",
             "title": "Position"
           },
-          "chamber": {
-            "type": "string",
-            "title": "Chamber"
+          "is_placeholder": {
+            "type": "boolean",
+            "title": "Is Placeholder"
           },
-          "legislative_term": {
-            "type": "integer",
-            "title": "Legislative Term"
+          "is_deleted": {
+            "type": "boolean",
+            "title": "Is Deleted"
           },
-          "dossier_uid": {
+          "content": {
             "anyOf": [
               {
                 "type": "string"
@@ -4671,34 +5244,52 @@
                 "type": "null"
               }
             ],
-            "title": "Dossier Uid"
-          },
-          "source_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Url"
+            "title": "Content"
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "text_reference",
           "number",
           "label",
-          "content",
+          "texte",
+          "dossier",
           "position",
-          "chamber",
-          "legislative_term",
-          "dossier_uid",
-          "source_url"
+          "is_placeholder",
+          "is_deleted",
+          "content"
         ],
         "title": "Article"
+      },
+      "ArticleRef": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "number",
+          "label"
+        ],
+        "title": "ArticleRef"
       },
       "Dossier": {
         "properties": {
@@ -4706,19 +5297,11 @@
             "type": "string",
             "title": "Uid"
           },
-          "source_uid": {
-            "type": "string",
-            "title": "Source Uid"
-          },
           "title": {
             "type": "string",
             "title": "Title"
           },
-          "legislative_term": {
-            "type": "integer",
-            "title": "Legislative Term"
-          },
-          "status": {
+          "short_title": {
             "anyOf": [
               {
                 "type": "string"
@@ -4727,7 +5310,7 @@
                 "type": "null"
               }
             ],
-            "title": "Status"
+            "title": "Short Title"
           },
           "procedure": {
             "anyOf": [
@@ -4740,31 +5323,7 @@
             ],
             "title": "Procedure"
           },
-          "submitted_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submitted At"
-          },
-          "adopted_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Adopted At"
-          },
-          "assembly_url": {
+          "procedure_label": {
             "anyOf": [
               {
                 "type": "string"
@@ -4773,9 +5332,13 @@
                 "type": "null"
               }
             ],
-            "title": "Assembly Url"
+            "title": "Procedure Label"
           },
-          "senate_url": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "outcome": {
             "anyOf": [
               {
                 "type": "string"
@@ -4784,7 +5347,296 @@
                 "type": "null"
               }
             ],
-            "title": "Senate Url"
+            "title": "Outcome"
+          },
+          "submitted_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted On"
+          },
+          "outcome_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome On"
+          },
+          "loi": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Loi"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "title",
+          "short_title",
+          "procedure",
+          "procedure_label",
+          "status",
+          "outcome",
+          "submitted_on",
+          "outcome_on",
+          "loi"
+        ],
+        "title": "Dossier"
+      },
+      "DossierRef": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "short_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "title",
+          "short_title"
+        ],
+        "title": "DossierRef"
+      },
+      "GroupePolitique": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Name"
+          },
+          "type_label": {
+            "type": "string",
+            "title": "Type Label"
+          },
+          "family": {
+            "type": "string",
+            "title": "Family"
+          },
+          "chamber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chamber"
+          },
+          "parent_uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Uid"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "political_position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Political Position"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "type",
+          "name",
+          "short_name",
+          "type_label",
+          "family",
+          "chamber",
+          "parent_uid",
+          "start_date",
+          "end_date",
+          "color",
+          "logo_url",
+          "political_position"
+        ],
+        "title": "GroupePolitique"
+      },
+      "GroupePolitiqueRef": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "name",
+          "short_name",
+          "color"
+        ],
+        "title": "GroupePolitiqueRef"
+      },
+      "Loi": {
+        "properties": {
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
           },
           "legifrance_url": {
             "anyOf": [
@@ -4796,118 +5648,33 @@
               }
             ],
             "title": "Legifrance Url"
-          },
-          "law_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Law Number"
-          },
-          "law_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Law Title"
-          },
-          "law_published_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Law Published At"
-          },
-          "subject_uid": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Subject Uid"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
           }
         },
         "type": "object",
         "required": [
-          "uid",
-          "source_uid",
+          "number",
           "title",
-          "legislative_term",
-          "status",
-          "procedure",
-          "submitted_at",
-          "adopted_at",
-          "assembly_url",
-          "senate_url",
-          "legifrance_url",
-          "law_number",
-          "law_title",
-          "law_published_at",
-          "subject_uid",
-          "updated_at"
+          "published_on",
+          "legifrance_url"
         ],
-        "title": "Dossier"
+        "title": "Loi",
+        "description": "Loi issue d'un dossier promulgué."
       },
-      "HatvpDeclaration": {
+      "Organe": {
         "properties": {
           "uid": {
             "type": "string",
             "title": "Uid"
           },
-          "parliamentarian_uid": {
+          "type": {
             "type": "string",
-            "title": "Parliamentarian Uid"
+            "title": "Type"
           },
-          "document_type": {
+          "name": {
             "type": "string",
-            "title": "Document Type"
+            "title": "Name"
           },
-          "submitted_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submitted At"
-          },
-          "published_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Published At"
-          },
-          "status": {
+          "short_name": {
             "anyOf": [
               {
                 "type": "string"
@@ -4916,9 +5683,17 @@
                 "type": "null"
               }
             ],
-            "title": "Status"
+            "title": "Short Name"
           },
-          "dossier_url": {
+          "type_label": {
+            "type": "string",
+            "title": "Type Label"
+          },
+          "family": {
+            "type": "string",
+            "title": "Family"
+          },
+          "chamber": {
             "anyOf": [
               {
                 "type": "string"
@@ -4927,16 +5702,93 @@
                 "type": "null"
               }
             ],
-            "title": "Dossier Url"
+            "title": "Chamber"
+          },
+          "parent_uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Uid"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "parliamentarian_uid",
-          "document_type"
+          "type",
+          "name",
+          "short_name",
+          "type_label",
+          "family",
+          "chamber",
+          "parent_uid",
+          "start_date",
+          "end_date"
         ],
-        "title": "HatvpDeclaration"
+        "title": "Organe"
+      },
+      "OrganeRef": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "type",
+          "name",
+          "short_name"
+        ],
+        "title": "OrganeRef"
       },
       "Page_Amendement_": {
         "properties": {
@@ -5031,11 +5883,11 @@
         ],
         "title": "Page[Dossier]"
       },
-      "Page_HatvpDeclaration_": {
+      "Page_GroupePolitique_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/HatvpDeclaration"
+              "$ref": "#/components/schemas/GroupePolitique"
             },
             "type": "array",
             "title": "Items"
@@ -5060,13 +5912,13 @@
           "offset",
           "has_more"
         ],
-        "title": "Page[HatvpDeclaration]"
+        "title": "Page[GroupePolitique]"
       },
-      "Page_Parliamentarian_": {
+      "Page_Organe_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/Parliamentarian"
+              "$ref": "#/components/schemas/Organe"
             },
             "type": "array",
             "title": "Items"
@@ -5091,13 +5943,13 @@
           "offset",
           "has_more"
         ],
-        "title": "Page[Parliamentarian]"
+        "title": "Page[Organe]"
       },
-      "Page_PoliticalGroup_": {
+      "Page_Personne_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/PoliticalGroup"
+              "$ref": "#/components/schemas/Personne"
             },
             "type": "array",
             "title": "Items"
@@ -5122,13 +5974,13 @@
           "offset",
           "has_more"
         ],
-        "title": "Page[PoliticalGroup]"
+        "title": "Page[Personne]"
       },
-      "Page_Text_": {
+      "Page_Texte_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/Text"
+              "$ref": "#/components/schemas/Texte"
             },
             "type": "array",
             "title": "Items"
@@ -5153,17 +6005,13 @@
           "offset",
           "has_more"
         ],
-        "title": "Page[Text]"
+        "title": "Page[Texte]"
       },
-      "Parliamentarian": {
+      "Personne": {
         "properties": {
           "uid": {
             "type": "string",
             "title": "Uid"
-          },
-          "slug": {
-            "type": "string",
-            "title": "Slug"
           },
           "first_name": {
             "type": "string",
@@ -5173,15 +6021,7 @@
             "type": "string",
             "title": "Last Name"
           },
-          "chamber": {
-            "type": "string",
-            "title": "Chamber"
-          },
-          "active": {
-            "type": "boolean",
-            "title": "Active"
-          },
-          "group_uid": {
+          "civility": {
             "anyOf": [
               {
                 "type": "string"
@@ -5190,9 +6030,9 @@
                 "type": "null"
               }
             ],
-            "title": "Group Uid"
+            "title": "Civility"
           },
-          "constituency_uid": {
+          "profession": {
             "anyOf": [
               {
                 "type": "string"
@@ -5201,7 +6041,7 @@
                 "type": "null"
               }
             ],
-            "title": "Constituency Uid"
+            "title": "Profession"
           },
           "photo_url": {
             "anyOf": [
@@ -5214,127 +6054,51 @@
             ],
             "title": "Photo Url"
           },
-          "website": {
+          "groupe": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/GroupePolitiqueRef"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Website"
+            ]
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "slug",
           "first_name",
           "last_name",
-          "chamber",
-          "active"
+          "civility",
+          "profession",
+          "photo_url",
+          "groupe"
         ],
-        "title": "Parliamentarian"
+        "title": "Personne"
       },
-      "PoliticalGroup": {
+      "PersonneRef": {
         "properties": {
           "uid": {
             "type": "string",
             "title": "Uid"
           },
-          "slug": {
+          "first_name": {
             "type": "string",
-            "title": "Slug"
+            "title": "First Name"
           },
-          "name": {
+          "last_name": {
             "type": "string",
-            "title": "Name"
-          },
-          "chamber": {
-            "type": "string",
-            "title": "Chamber"
-          },
-          "active": {
-            "type": "boolean",
-            "title": "Active"
-          },
-          "full_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Full Name"
-          },
-          "short_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Short Name"
-          },
-          "color": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Color"
-          },
-          "political_position": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Political Position"
-          },
-          "legislative_term": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Legislative Term"
-          },
-          "active_member_count": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Active Member Count"
+            "title": "Last Name"
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "slug",
-          "name",
-          "chamber",
-          "active"
+          "first_name",
+          "last_name"
         ],
-        "title": "PoliticalGroup"
+        "title": "PersonneRef"
       },
       "SearchGroup": {
         "properties": {
@@ -5410,41 +6174,43 @@
         ],
         "title": "SearchResults"
       },
-      "Text": {
+      "Texte": {
         "properties": {
           "uid": {
             "type": "string",
             "title": "Uid"
           },
-          "text_reference": {
+          "nature": {
             "type": "string",
-            "title": "Text Reference"
+            "title": "Nature"
           },
           "number": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Number"
           },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "position": {
-            "type": "integer",
-            "title": "Position"
+          "dossier": {
+            "$ref": "#/components/schemas/DossierRef"
           },
           "chamber": {
             "type": "string",
             "title": "Chamber"
           },
-          "legislative_term": {
+          "term": {
             "type": "integer",
-            "title": "Legislative Term"
+            "title": "Term"
           },
-          "dossier_uid": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "title": {
             "anyOf": [
               {
                 "type": "string"
@@ -5453,34 +6219,100 @@
                 "type": "null"
               }
             ],
-            "title": "Dossier Uid"
+            "title": "Title"
           },
-          "source_url": {
+          "submitted_on": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "date"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Source Url"
+            "title": "Submitted On"
           }
         },
         "type": "object",
         "required": [
           "uid",
-          "text_reference",
+          "nature",
           "number",
-          "label",
-          "content",
-          "position",
+          "dossier",
           "chamber",
-          "legislative_term",
-          "dossier_uid",
-          "source_url"
+          "term",
+          "position",
+          "title",
+          "submitted_on"
         ],
-        "title": "Text"
+        "title": "Texte"
+      },
+      "TexteRef": {
+        "properties": {
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "nature": {
+            "type": "string",
+            "title": "Nature"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uid",
+          "nature",
+          "number"
+        ],
+        "title": "TexteRef"
+      },
+      "TypeOrgane": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "family": {
+            "type": "string",
+            "title": "Family"
+          },
+          "chamber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chamber"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "family",
+          "chamber"
+        ],
+        "title": "TypeOrgane",
+        "description": "Référentiel à part, hors hiérarchie : sert de filtre aux organes."
       }
     },
     "securitySchemes": {

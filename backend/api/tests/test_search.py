@@ -152,7 +152,7 @@ async def test_search_without_meili(client):
 async def test_meili_client_lifecycle():
     config = Settings(
         _env_file=None,
-        DATABASE_URL=None,
+        DATA_PATH=None,
         API_PASSWORD=None,
         MEILI_URL="http://meili.test",
         MEILI_API_KEY="cle-locale",  # pragma: allowlist secret
