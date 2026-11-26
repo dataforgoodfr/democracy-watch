@@ -269,7 +269,7 @@ expose_motifs AS (
 -- 5. ASSEMBLAGE & NORMALISATION MÉTIER
 -- -----------------------------------------------------------------------------
 
--- Jointure explicite de toutes les dimensions et métriques au grain `dossiers.uid`
+-- Jointure explicite et normalisation des dimensions et métriques au grain `dossiers.uid`
 dossiers_enrichis AS (
     SELECT
         d.uid,
@@ -304,18 +304,28 @@ dossiers_enrichis AS (
             ELSE d.procedure_libelle
         END AS procedure,
         d.titre,
-        d.titre_chemin,
+        CASE
+            WHEN d.titre_chemin IS NOT NULL AND d.legislature IS NOT NULL
+                THEN 'https://www.assemblee-nationale.fr/dyn/' || d.legislature || '/dossiers/' || d.titre_chemin
+            ELSE NULL
+        END AS dossier_url,
         d.fusion_cause,
         d.fusion_absorbant_ref,
+        -- Date de dépôt : premier dépôt d'initiative, sinon premier acte, sinon `date_dernier_acte`
+        COALESCE(agg.date_depot_initiative, agg.date_premier_acte, d.date_dernier_acte) AS date_depot,
         d.date_dernier_acte,
         d.date_prochain_acte,
+        agg.date_promulgation,
         ec.max_top_idx,
         ec.etape.code AS etape_code,
-        ec.etape.libelle AS raw_etape_libelle,
-        agg.first_depot_texte_ref,
-        agg.date_depot_initiative,
-        agg.date_premier_acte,
-        agg.date_promulgation,
+        -- Désambiguïsation du libellé d'étape par chambre (`AN*` vs `SN*`)
+        CASE
+            WHEN ec.etape.code ILIKE 'AN%' -- AN* : étapes Assemblée nationale (AN1, AN2, ANLUNI, ANNLEC, ANLDEF, AN20, AN21)
+                THEN 'Assemblée nationale — ' || COALESCE(ec.etape.libelle, ec.etape.code)
+            WHEN ec.etape.code ILIKE 'SN%' -- SN* : étapes Sénat (SN1, SN2, SNNLEC)
+                THEN 'Sénat — ' || COALESCE(ec.etape.libelle, ec.etape.code)
+            ELSE COALESCE(ec.etape.libelle, ec.etape.code)
+        END AS etape_libelle,
         agg.has_promulgation,
         agg.has_retrait,
         agg.has_motion_adoptee,
@@ -326,7 +336,7 @@ dossiers_enrichis AS (
         agg.derniere_decision.libelle AS derniere_decision_libelle,
         agg.nb_rejets_1ere_lecture,
         agg.nb_adoptions_cmp,
-        agg.commission_fond_uid,
+        agg.commission_fond_uid AS commission_saisie_au_fond_uid,
         org.libelle AS commission_saisie_au_fond_libelle,
         em.expose_des_motifs
     FROM source_dossiers d
@@ -336,25 +346,15 @@ dossiers_enrichis AS (
     LEFT JOIN expose_motifs em ON em.dossier_uid = d.uid
 ),
 
--- Calcul des colonnes métier normalisées (`statut`, `denouement`, `etape_libelle`)
-final AS (
+-- Calcul de l'issue législative (`denouement`, `statut`, `derniere_decision`)
+dossiers_statuts AS (
     SELECT
-        uid,
-        legislature,
-        procedure,
-        procedure_code,
-        procedure_libelle,
-        titre,
-        CASE
-            WHEN titre_chemin IS NOT NULL AND legislature IS NOT NULL
-                THEN 'https://www.assemblee-nationale.fr/dyn/' || legislature || '/dossiers/' || titre_chemin
-            ELSE NULL
-        END AS dossier_url,
+        *,
 
-        -- Statut normalisé par priorité décroissante (basé sur les libellés et règles de navette) :
+        -- Dénouement normalisé par priorité décroissante (NULL tant que le dossier est `en_cours`) :
         --   1. `promulgué` : acte de promulgation présent (`Promulgation_Type`)
-        --   2. `absorbé`   : dossier fusionné dans un dossier absorbant
-        --   3. `retiré`    : initiative retirée par son auteur
+        --   2. `fusionné`  : dossier fusionné dans un dossier absorbant (`fusion_absorbant_ref IS NOT NULL`)
+        --   3. `retiré`    : initiative retirée par son auteur (`RetraitInitiative_Type`)
         --   4. `adopté`    :
         --        - motion de censure adoptée (`procedure_code = '13'` : Engagement de la responsabilité gouvernementale)
         --        - résolution (`procedure_code IN ('8', '22')` [Résolution / Résolution Article 34-1], jamais promulguée)
@@ -371,10 +371,11 @@ final AS (
         --        - texte considéré comme rejeté en application de l'article 49, alinéa 3
         --        - proposition de loi (PPL) rejetée en 1re lecture de la 1re assemblée saisie (`max_top_idx = 1`)
         --        - projet de loi (PJL) rejeté en 1re lecture par les deux assemblées (`max_top_idx = 2`)
-        --   6. `en_cours`  : tous les autres cas
+        --   6. `caduc`     : domaine réservé (fin de législature / dissolution ; non déclenché sur la 17e législature active)
+        --   7. `NULL`      : tous les autres cas (dossier encore `en_cours`)
         CASE
             WHEN COALESCE(has_promulgation, FALSE) THEN 'promulgué'
-            WHEN fusion_absorbant_ref IS NOT NULL THEN 'absorbé'
+            WHEN fusion_absorbant_ref IS NOT NULL THEN 'fusionné'
             WHEN COALESCE(has_retrait, FALSE) THEN 'retiré'
             WHEN procedure_code = '13' -- code '13' : Engagement de la responsabilité gouvernementale (motion de censure)
              AND COALESCE(has_motion_adoptee, FALSE) THEN 'adopté'
@@ -435,10 +436,16 @@ final AS (
              AND max_top_idx = 2
              AND COALESCE(nb_rejets_1ere_lecture, 0) = 2
                 THEN 'rejeté'
-            ELSE 'en_cours'
+            ELSE NULL
+        END AS denouement,
+
+        -- Statut de cycle de vie binaire dérivé de `denouement` (`en_cours` si `denouement IS NULL`, `close` sinon)
+        CASE
+            WHEN denouement IS NULL THEN 'en_cours'
+            ELSE 'close'
         END AS statut,
 
-        -- Libellé lisible du dénouement ou de la dernière décision enregistrée
+        -- Libellé lisible de la dernière décision parlementaire ou du motif d'aboutissement enregistré
         CASE
             WHEN COALESCE(has_promulgation, FALSE) THEN
                 CASE
@@ -461,26 +468,7 @@ final AS (
             WHEN derniere_decision_libelle IS NOT NULL AND derniere_decision_top_idx = max_top_idx
                 THEN derniere_decision_libelle
             ELSE NULL
-        END AS denouement,
-
-        -- Date de dépôt : premier dépôt d'initiative, sinon premier acte, sinon `date_dernier_acte`
-        COALESCE(date_depot_initiative, date_premier_acte, date_dernier_acte) AS date_depot,
-        date_dernier_acte,
-        date_prochain_acte,
-        date_promulgation,
-        commission_fond_uid AS commission_saisie_au_fond_uid,
-        commission_saisie_au_fond_libelle,
-        etape_code,
-
-        -- Désambiguïsation du libellé d'étape par chambre (`AN*` vs `SN*`)
-        CASE
-            WHEN etape_code ILIKE 'AN%' -- AN* : étapes Assemblée nationale (AN1, AN2, ANLUNI, ANNLEC, ANLDEF, AN20, AN21)
-                THEN 'Assemblée nationale — ' || COALESCE(raw_etape_libelle, etape_code)
-            WHEN etape_code ILIKE 'SN%' -- SN* : étapes Sénat (SN1, SN2, SNNLEC)
-                THEN 'Sénat — ' || COALESCE(raw_etape_libelle, etape_code)
-            ELSE COALESCE(raw_etape_libelle, etape_code)
-        END AS etape_libelle,
-        expose_des_motifs
+        END AS derniere_decision
     FROM dossiers_enrichis
 )
 
@@ -494,6 +482,7 @@ SELECT
     dossier_url,
     statut,
     denouement,
+    derniere_decision,
     date_depot,
     date_dernier_acte,
     date_prochain_acte,
@@ -503,7 +492,7 @@ SELECT
     etape_code,
     etape_libelle,
     expose_des_motifs
-FROM final
+FROM dossiers_statuts
 ORDER BY uid;
 
 -- -----------------------------------------------------------------------------
@@ -535,10 +524,13 @@ COMMENT ON COLUMN dossiers.dossier_url IS
     'Source : assemblee.dossiers.data ($.titreDossier.titreChemin) et assemblee.dossiers.legislature. Signification : URL du dossier sur le site de l''Assemblée nationale (NULL si titreChemin absent). Transformation : construction de https://www.assemblee-nationale.fr/dyn/<legislature>/dossiers/<titreChemin> lorsque $.titreDossier.titreChemin IS NOT NULL.';
 
 COMMENT ON COLUMN dossiers.statut IS
-    'Source : assemblee.dossiers.data (arbre $.actesLegislatifs : xsiType, statutConclusion.libelle, decision.libelle ; $.procedureParlementaire.code ; et $.fusionDossier.dossierAbsorbantRef). Signification : statut normalisé du dossier (promulgué, absorbé, retiré, adopté, rejeté, en_cours). Transformation : CASE par priorité décroissante (Promulgation_Type -> promulgué, fusion_absorbant_ref IS NOT NULL -> absorbé, RetraitInitiative_Type -> retiré, motions de censure procedure_code = ''13'', décisions CC sur résolutions et lois non promulguées, résolutions 8/22 adoptées ou rejetées, lois définitivement adoptées en attente de promulgation via adopté sans modification / ANLDEF / CMP 2 chambres, texte considéré comme rejeté art. 49.3, PPL rejetée en 1re lecture de 1re assemblée ou PJL rejeté en 1re lecture des 2 assemblées -> rejeté, sinon en_cours).';
+    'Source : dérivé de dossiers.denouement. Signification : état d''avancement binaire du dossier (en_cours ou close). Transformation : ''en_cours'' lorsque denouement IS NULL, ''close'' dès qu''un dénouement terminal est établi.';
 
 COMMENT ON COLUMN dossiers.denouement IS
-    'Source : assemblee.dossiers.data ($.actesLegislatifs : Promulgation_Type/codeLoi, RetraitInitiative_Type, ConclusionEtapeCC_Type, DecisionMotionCensure_Type, Decision_Type ; $.procedureParlementaire.code ; et $.fusionDossier). Signification : libellé lisible du dénouement ou de la dernière décision enregistrée (NULL si aucun). Transformation : CASE hiérarchique construisant le libellé (Loi promulguée avec ou sans codeLoi, motif/référence de fusion, retrait, conclusion du Conseil constitutionnel, décision de motion restreinte à procedure_code = ''13'', ou dernière Decision_Type ordonnée par (top_idx, date_acte, sort_path) uniquement si derniere_decision_top_idx = max_top_idx).';
+    'Source : assemblee.dossiers.data (arbre $.actesLegislatifs : xsiType, statutConclusion.libelle, decision.libelle ; $.procedureParlementaire.code ; et $.fusionDossier.dossierAbsorbantRef). Signification : issue normalisée du dossier lorsqu''il est clos (promulgué, fusionné, retiré, adopté, rejeté, caduc ; NULL tant que le dossier est en_cours). La valeur caduc fait partie du domaine cible (fin de législature / dissolution) mais reste à 0 sur la 17e législature active. Transformation : CASE par priorité décroissante (Promulgation_Type -> promulgué, fusion_absorbant_ref IS NOT NULL -> fusionné, RetraitInitiative_Type -> retiré, motions de censure procedure_code = ''13'', décisions CC sur résolutions et lois non promulguées, résolutions 8/22 adoptées ou rejetées, lois définitivement adoptées en attente de promulgation via adopté sans modification / ANLDEF / CMP 2 chambres, texte considéré comme rejeté art. 49.3, PPL rejetée en 1re lecture de 1re assemblée ou PJL rejeté en 1re lecture des 2 assemblées -> rejeté, sinon NULL).';
+
+COMMENT ON COLUMN dossiers.derniere_decision IS
+    'Source : assemblee.dossiers.data ($.actesLegislatifs : Promulgation_Type/codeLoi, RetraitInitiative_Type, ConclusionEtapeCC_Type, DecisionMotionCensure_Type, Decision_Type ; $.procedureParlementaire.code ; et $.fusionDossier). Signification : libellé lisible de la dernière décision parlementaire ou du motif d''aboutissement enregistré (ex. Loi n° ... promulguée, modifié, adoptée sans modification ; NULL si aucune décision sur l''étape en cours). Transformation : CASE hiérarchique construisant le libellé (Loi promulguée avec ou sans codeLoi, motif/référence de fusion, retrait, conclusion du Conseil constitutionnel, décision de motion restreinte à procedure_code = ''13'', ou dernière Decision_Type ordonnée par (top_idx, date_acte, sort_path) uniquement si derniere_decision_top_idx = max_top_idx).';
 
 COMMENT ON COLUMN dossiers.date_depot IS
     'Source : assemblee.dossiers.data ($.actesLegislatifs[*].dateActe) et assemblee.dossiers.date_dernier_acte. Signification : date de dépôt initial du dossier. Transformation : LEFT(dateActe, 10) casté en DATE (évite les décalages de fuseau horaire), puis COALESCE(MIN sur DepotInitiative_Type, MIN sur tous les actes, date_dernier_acte).';

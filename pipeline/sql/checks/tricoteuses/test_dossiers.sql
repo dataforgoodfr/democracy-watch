@@ -80,66 +80,84 @@ WHERE (procedure_libelle ILIKE 'Projet de %' AND procedure != 'Projet de loi')
    OR (procedure_libelle ILIKE 'Rapport d''information%' AND procedure != 'Rapport d''information')
 LIMIT 1;
 
--- 5. Domaine fermé de `statut` et cohérence avec `date_promulgation` / `denouement` / `etape_code`
---    Vérifie d'abord que `statut` appartient à l'énumération attendue.
+-- 5. Domaines fermés de `statut` / `denouement` et cohérence avec `derniere_decision` / `date_promulgation` / `etape_code`
+--    Vérifie que `statut` appartient au domaine binaire (`en_cours`, `close`).
 SELECT error('FAIL [dossiers.statut_domain]: statut invalide "' || statut || '" pour ' || uid)
 FROM dossiers
-WHERE statut NOT IN ('promulgué', 'absorbé', 'retiré', 'adopté', 'rejeté', 'en_cours')
+WHERE statut NOT IN ('en_cours', 'close')
 LIMIT 1;
 
---    Cohérence bidirectionnelle de `promulgué` : impose `date_promulgation`, étape `PROM` et libellé de loi promulguée, et interdit `date_promulgation` hors `promulgué`.
+--    Vérifie que `denouement` appartient à l'énumération normalisée (ou est NULL).
+SELECT error('FAIL [dossiers.denouement_domain]: denouement invalide "' || denouement || '" pour ' || uid)
+FROM dossiers
+WHERE denouement IS NOT NULL
+  AND denouement NOT IN ('promulgué', 'adopté', 'rejeté', 'caduc', 'fusionné', 'retiré')
+LIMIT 1;
+
+--    Vérifie l'équivalence stricte `statut = 'en_cours'` <=> `denouement IS NULL` (et `statut = 'close'` <=> `denouement IS NOT NULL`).
+SELECT error(
+    'FAIL [dossiers.statut_denouement_coherence]: incohérence statut="' || statut
+    || '" / denouement="' || COALESCE(denouement, 'NULL') || '" sur ' || uid
+)
+FROM dossiers
+WHERE (statut = 'en_cours' AND denouement IS NOT NULL)
+   OR (statut = 'close' AND denouement IS NULL)
+LIMIT 1;
+
+--    Cohérence bidirectionnelle de `promulgué` : impose `statut = 'close'`, `date_promulgation`, étape `PROM` et libellé de loi promulguée dans `derniere_decision`, et interdit `date_promulgation` hors `promulgué`.
 SELECT error('FAIL [dossiers.promulgue_coherence]: incohérence promulgation sur ' || uid)
 FROM dossiers
 WHERE (
-        statut = 'promulgué'
+        denouement = 'promulgué'
         AND (
-            date_promulgation IS NULL
+            statut != 'close'
+            OR date_promulgation IS NULL
             OR etape_code != 'PROM'
-            OR denouement IS NULL
-            OR (denouement NOT LIKE 'Loi n° % promulguée' AND denouement != 'Loi promulguée')
+            OR derniere_decision IS NULL
+            OR (derniere_decision NOT LIKE 'Loi n° % promulguée' AND derniere_decision != 'Loi promulguée')
         )
       )
    OR (
-        statut != 'promulgué'
+        denouement IS DISTINCT FROM 'promulgué'
         AND date_promulgation IS NOT NULL
       )
 LIMIT 1;
 
---    Cohérence du `denouement` pour les dossiers `retiré` (« Initiative retirée ») et `absorbé` (référence `(DLR...)`).
-SELECT error('FAIL [dossiers.retire_absorbe_coherence]: incohérence denouement pour ' || uid)
+--    Cohérence de `derniere_decision` pour les dossiers `retiré` (« Initiative retirée ») et `fusionné` (référence `(DLR...)`).
+SELECT error('FAIL [dossiers.retire_fusionne_coherence]: incohérence derniere_decision pour ' || uid)
 FROM dossiers
-WHERE (statut = 'retiré' AND COALESCE(denouement, '') != 'Initiative retirée')
-   OR (statut = 'absorbé' AND COALESCE(denouement, '') NOT LIKE '%(DLR%)')
+WHERE (denouement = 'retiré' AND COALESCE(derniere_decision, '') != 'Initiative retirée')
+   OR (denouement = 'fusionné' AND COALESCE(derniere_decision, '') NOT LIKE '%(DLR%)')
 LIMIT 1;
 
---    Tout dossier clôturé (`statut != 'en_cours'`) doit porter un `denouement` explicite.
-SELECT error('FAIL [dossiers.terminal_denouement]: statut "' || statut || '" sans denouement sur ' || uid)
+--    Tout dossier clôturé (`statut = 'close'`) doit porter une `derniere_decision` explicite.
+SELECT error('FAIL [dossiers.terminal_derniere_decision]: statut close (' || COALESCE(denouement, 'NULL') || ') sans derniere_decision sur ' || uid)
 FROM dossiers
-WHERE statut != 'en_cours'
-  AND denouement IS NULL
+WHERE statut = 'close'
+  AND derniere_decision IS NULL
 LIMIT 1;
 
 --    Cohérence des motions de censure (`procedure_code = '13'`) et isolation vis-à-vis des autres procédures.
-SELECT error('FAIL [dossiers.motion_coherence]: incohérence motion sur ' || uid || ' (code=' || procedure_code || ', statut=' || statut || ')')
+SELECT error('FAIL [dossiers.motion_coherence]: incohérence motion sur ' || uid || ' (code=' || procedure_code || ', denouement=' || COALESCE(denouement, 'NULL') || ')')
 FROM dossiers
-WHERE (procedure_code != '13' AND COALESCE(denouement, '') ILIKE 'motion %')
-   OR (procedure_code = '13' AND statut = 'adopté' AND COALESCE(denouement, '') != 'Motion adoptée')
-   OR (procedure_code = '13' AND statut = 'rejeté' AND COALESCE(denouement, '') NOT ILIKE 'motion rejetée')
+WHERE (procedure_code != '13' AND COALESCE(derniere_decision, '') ILIKE 'motion %')
+   OR (procedure_code = '13' AND denouement = 'adopté' AND COALESCE(derniere_decision, '') != 'Motion adoptée')
+   OR (procedure_code = '13' AND denouement = 'rejeté' AND COALESCE(derniere_decision, '') NOT ILIKE 'motion rejetée')
 LIMIT 1;
 
---    Cohérence du statut des dossiers à l'étape Conseil constitutionnel (`CC`) hors cas prioritaires (`promulgué`/`absorbé`/`retiré`).
-SELECT error('FAIL [dossiers.cc_coherence]: incohérence statut/denouement CC sur ' || uid || ' (' || statut || ')')
+--    Cohérence du dénouement des dossiers à l'étape Conseil constitutionnel (`CC`) hors cas prioritaires (`promulgué`/`fusionné`/`retiré`).
+SELECT error('FAIL [dossiers.cc_coherence]: incohérence statut/denouement CC sur ' || uid || ' (' || statut || '/' || COALESCE(denouement, 'NULL') || ')')
 FROM dossiers
 WHERE etape_code = 'CC'
-  AND statut NOT IN ('promulgué', 'absorbé', 'retiré')
+  AND COALESCE(denouement, '') NOT IN ('promulgué', 'fusionné', 'retiré')
   AND (
-      (COALESCE(denouement, '') ILIKE 'Conseil constitutionnel : non conforme%' AND statut != 'rejeté')
+      (COALESCE(derniere_decision, '') ILIKE 'Conseil constitutionnel : non conforme%' AND (statut != 'close' OR denouement IS DISTINCT FROM 'rejeté'))
       OR (
           (
-              COALESCE(denouement, '') ILIKE 'Conseil constitutionnel : conforme%'
-              OR COALESCE(denouement, '') ILIKE 'Conseil constitutionnel : partiellement conforme%'
+              COALESCE(derniere_decision, '') ILIKE 'Conseil constitutionnel : conforme%'
+              OR COALESCE(derniere_decision, '') ILIKE 'Conseil constitutionnel : partiellement conforme%'
           )
-          AND statut != 'adopté'
+          AND (statut != 'close' OR denouement IS DISTINCT FROM 'adopté')
       )
   )
 LIMIT 1;
@@ -249,8 +267,8 @@ FROM (
 ) t
 WHERE d_items != s_items;
 
--- 11. Non-régression : aucun dossier `en_cours` (hors étape `CC`) ne doit porter un `denouement`
---     issu d'une `Decision_Type` d'une étape antérieure (`top_idx < max_top_idx`).
+-- 11. Non-régression : aucun dossier `en_cours` (hors étape `CC`) ne doit porter une `derniere_decision`
+--     issue d'une `Decision_Type` d'une étape antérieure (`top_idx < max_top_idx`).
 --     Garantit qu'une décision d'une lecture précédente ne persiste pas après passage à une nouvelle étape législative.
 WITH RECURSIVE actes AS (
     SELECT
@@ -294,27 +312,27 @@ stats AS (
     GROUP BY dossier_uid
 )
 SELECT error(
-    'FAIL [dossiers.stale_denouement]: ' || d.uid || ' en_cours (' || d.etape_code
-    || ') a un denouement issu d''une étape antérieure (' || COALESCE(s.derniere_decision_top_idx::VARCHAR, 'NULL')
+    'FAIL [dossiers.stale_derniere_decision]: ' || d.uid || ' en_cours (' || d.etape_code
+    || ') a une derniere_decision issue d''une étape antérieure (' || COALESCE(s.derniere_decision_top_idx::VARCHAR, 'NULL')
     || ' < ' || s.max_top_idx || ')'
 )
 FROM dossiers d
 JOIN stats s ON s.dossier_uid = d.uid
 WHERE d.statut = 'en_cours'
   AND d.etape_code != 'CC'
-  AND d.denouement IS NOT NULL
+  AND d.derniere_decision IS NOT NULL
   AND (
       s.derniere_decision_top_idx IS NULL
       OR s.derniere_decision_top_idx < s.max_top_idx
   )
 LIMIT 1;
 
--- 12. Non-régression : toute résolution ayant déjà une décision terminale (`denouement`) ne doit plus être `en_cours`
-SELECT error('FAIL [dossiers.resolution_en_cours_denouement]: résolution en_cours avec denouement non NULL sur ' || uid)
+-- 12. Non-régression : toute résolution ayant déjà une décision sur son étape finale (`derniere_decision`) ne doit plus être `en_cours`
+SELECT error('FAIL [dossiers.resolution_en_cours_decision]: résolution en_cours avec derniere_decision non NULL sur ' || uid)
 FROM dossiers
 WHERE procedure_code IN ('8', '22')
   AND statut = 'en_cours'
-  AND denouement IS NOT NULL
+  AND derniere_decision IS NOT NULL
 LIMIT 1;
 
 SELECT 'PASS: test_dossiers.sql (' || COUNT(*) || ' dossiers vérifiés)' AS result
