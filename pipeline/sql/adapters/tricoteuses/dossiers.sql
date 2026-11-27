@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Table : `dossiers` (SQL DuckDB)
 -- =============================================================================
--- Périmètre : 17e législature, Assemblée nationale (`legislature = 17`).
+-- Périmètre : 17e législature, Assemblée nationale (`legislature = 17`),
+--             uniquement les projets de loi et propositions de loi.
 -- Grain : 1 ligne par dossier législatif (`assemblee.dossiers.uid`).
 -- Sources :
 --   - `assemblee.dossiers`              : métadonnées + arbre JSON `actesLegislatifs`
@@ -16,7 +17,7 @@ WITH RECURSIVE
 -- 1. SOURCES
 -- -----------------------------------------------------------------------------
 
--- Dossiers sources (17e législature) : extraction des champs JSON scalaires
+-- Dossiers sources (17e législature, projets et propositions de loi) : extraction des champs JSON scalaires
 -- Grain : 1 ligne par dossier (uid)
 source_dossiers AS (
     SELECT
@@ -33,6 +34,11 @@ source_dossiers AS (
         json_extract_string(data, '$.fusionDossier.dossierAbsorbantRef') AS fusion_absorbant_ref
     FROM assemblee.dossiers
     WHERE legislature = 17
+      AND (
+          json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet de %'
+          OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Proposition de loi%'
+          OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet ou proposition de loi%'
+      )
 ),
 
 -- Organes parlementaires (commissions permanentes, groupes, etc.)
@@ -494,6 +500,7 @@ SELECT
     expose_des_motifs,
     'canutes' AS source
 FROM dossiers_statuts
+WHERE procedure IN ('Projet de loi', 'Proposition de loi')
 ORDER BY uid;
 
 -- -----------------------------------------------------------------------------
@@ -501,7 +508,7 @@ ORDER BY uid;
 -- -----------------------------------------------------------------------------
 
 COMMENT ON TABLE dossiers IS
-    'Périmètre : 17e législature, Assemblée nationale (legislature = 17). Grain : 1 ligne par dossier législatif (assemblee.dossiers.uid), enrichi par l''aplatissement récursif de actesLegislatifs, les libellés de assemblee.organes et les exposés des motifs de tisseuse.assemblee_text_search. Ordonné par uid.';
+    'Périmètre : 17e législature, Assemblée nationale (legislature = 17), uniquement les projets de loi et propositions de loi. Grain : 1 ligne par dossier législatif (assemblee.dossiers.uid), enrichi par l''aplatissement récursif de actesLegislatifs, les libellés de assemblee.organes et les exposés des motifs de tisseuse.assemblee_text_search. Ordonné par uid.';
 
 COMMENT ON COLUMN dossiers.uid IS
     'Source : assemblee.dossiers.uid. Signification : identifiant unique du dossier législatif. Transformation : aucune.';
@@ -510,7 +517,7 @@ COMMENT ON COLUMN dossiers.legislature IS
     'Source : assemblee.dossiers.legislature. Signification : numéro de législature du dossier (filtré à 17). Transformation : filtre WHERE legislature = 17.';
 
 COMMENT ON COLUMN dossiers.procedure IS
-    'Source : assemblee.dossiers.data ($.procedureParlementaire.libelle) et $.texteAssocieRef du 1er acte DepotInitiative_Type dans actesLegislatifs. Signification : type de procédure normalisé (Projet de loi, Proposition de loi, Résolution, Rapport d''information, ou libellé brut). Transformation : CASE sur procedure_libelle ; les procédures mixtes (Projet ou proposition de loi%) sont départagées par le préfixe du 1er document déposé (PRJL% vs PION%).';
+    'Source : assemblee.dossiers.data ($.procedureParlementaire.libelle) et $.texteAssocieRef du 1er acte DepotInitiative_Type dans actesLegislatifs. Signification : type de procédure normalisé (Projet de loi ou Proposition de loi uniquement, suite au filtrage du périmètre). Transformation : CASE sur procedure_libelle ; les procédures mixtes (Projet ou proposition de loi%) sont départagées par le préfixe du 1er document déposé (PRJL% vs PION%), puis filtrage sur procedure IN (''Projet de loi'', ''Proposition de loi'').';
 
 COMMENT ON COLUMN dossiers.procedure_code IS
     'Source : assemblee.dossiers.data ($.procedureParlementaire.code). Signification : code brut de la procédure parlementaire. Transformation : extraction JSON.';

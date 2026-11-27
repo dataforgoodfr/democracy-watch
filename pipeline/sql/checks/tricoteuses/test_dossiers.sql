@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Tests SQL CI (DuckDB) pour la table `dossiers`
 -- =============================================================================
--- Périmètre  : 17e législature, Assemblée nationale (`legislature = 17`).
+-- Périmètre  : 17e législature, Assemblée nationale (`legislature = 17`),
+--              uniquement les projets de loi et propositions de loi.
 --              Invariants génériques compatibles avec une base mise à jour
 --              quotidiennement (états évolutifs).
 --              Les spot-checks figés sur l'extrait de référence sont isolés dans
@@ -11,17 +12,26 @@
 --              et la dernière requête renvoie un résumé `PASS` si tout réussit.
 -- =============================================================================
 
--- 1. Grain unique (`uid`) et parité de volumétrie avec `assemblee.dossiers` (L17)
---    Vérifie l'absence de doublons sur `uid`, que la table n'est pas vide et que son volume correspond exactement à la source L17.
+-- 1. Grain unique (`uid`) et parité de volumétrie avec `assemblee.dossiers` (L17, PJL/PPL uniquement)
+--    Vérifie l'absence de doublons sur `uid`, que la table n'est pas vide et que son volume correspond exactement à la source L17 filtrée.
 SELECT error(
     'FAIL [dossiers.grain]: COUNT(*)=' || cnt || ' vs DISTINCT uid=' || dist_cnt
-    || ' vs assemblee.dossiers(L17)=' || src_cnt
+    || ' vs assemblee.dossiers(L17, PJL/PPL)=' || src_cnt
 )
 FROM (
     SELECT
         COUNT(*) AS cnt,
         COUNT(DISTINCT uid) AS dist_cnt,
-        (SELECT COUNT(*) FROM assemblee.dossiers WHERE legislature = 17) AS src_cnt
+        (
+            SELECT COUNT(*)
+            FROM assemblee.dossiers
+            WHERE legislature = 17
+              AND (
+                  json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet de %'
+                  OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Proposition de loi%'
+                  OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet ou proposition de loi%'
+              )
+        ) AS src_cnt
     FROM dossiers
 ) t
 WHERE cnt != dist_cnt OR cnt != src_cnt OR cnt = 0;
@@ -33,6 +43,17 @@ FROM (
     SELECT COUNT(*) AS n_bad
     FROM dossiers
     WHERE legislature IS DISTINCT FROM 17
+) t
+WHERE n_bad > 0;
+
+-- 1c. Périmètre : uniquement projets de loi et propositions de loi
+--     Vérifie qu'aucun dossier d'un autre type de procédure n'a été ingéré.
+SELECT error('FAIL [dossiers.scope_procedure]: ' || n_bad || ' dossier(s) hors projets/propositions de loi')
+FROM (
+    SELECT COUNT(*) AS n_bad
+    FROM dossiers
+    WHERE procedure NOT IN ('Projet de loi', 'Proposition de loi')
+       OR procedure IS NULL
 ) t
 WHERE n_bad > 0;
 
@@ -216,6 +237,11 @@ FROM (
             SELECT COUNT(*)
             FROM assemblee.dossiers
             WHERE legislature = 17
+              AND (
+                  json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet de %'
+                  OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Proposition de loi%'
+                  OR json_extract_string(data, '$.procedureParlementaire.libelle') ILIKE 'Projet ou proposition de loi%'
+              )
               AND json_extract_string(data, '$.titreDossier.titreChemin') IS NOT NULL
         ) AS src_cnt
 ) t
@@ -258,6 +284,11 @@ FROM (
             FROM tisseuse.assemblee_text_search s
             INNER JOIN assemblee.dossiers d ON d.uid = s.dossier_uid
             WHERE d.legislature = 17
+              AND (
+                  json_extract_string(d.data, '$.procedureParlementaire.libelle') ILIKE 'Projet de %'
+                  OR json_extract_string(d.data, '$.procedureParlementaire.libelle') ILIKE 'Proposition de loi%'
+                  OR json_extract_string(d.data, '$.procedureParlementaire.libelle') ILIKE 'Projet ou proposition de loi%'
+              )
               AND s.legislature = 17
               AND s.item_kind = 'expose_des_motifs'
               AND s.document_uid IS NOT NULL

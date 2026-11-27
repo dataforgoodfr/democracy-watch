@@ -51,38 +51,19 @@ FROM (
 ) t
 WHERE cnt != 1 OR match_cnt != 1;
 
---    Motion de censure adoptée : vérifie `statut = 'close'`, `denouement = 'adopté'`, `derniere_decision = 'Motion adoptée'` et `etape_code = 'AN21'`.
-SELECT error('FAIL [dossiers.spot_check.DLR5L17N50975]: motion de censure adoptée')
-FROM (
-    SELECT
-        COUNT(*) AS cnt,
-        COUNT(*) FILTER (
-            WHERE statut = 'close'
-              AND denouement = 'adopté'
-              AND derniere_decision = 'Motion adoptée'
-              AND etape_code = 'AN21'
-        ) AS match_cnt
-    FROM dossiers
-    WHERE uid = 'DLR5L17N50975'
-) t
-WHERE cnt != 1 OR match_cnt != 1;
-
---    Résolution retirée : vérifie `statut = 'close'`, `denouement = 'retiré'`, `derniere_decision = 'Initiative retirée'` et `etape_code = 'ANLUNI'`.
-SELECT error('FAIL [dossiers.spot_check.DLR5L17N50337]: résolution retirée')
-FROM (
-    SELECT
-        COUNT(*) AS cnt,
-        COUNT(*) FILTER (
-            WHERE procedure = 'Résolution'
-              AND statut = 'close'
-              AND denouement = 'retiré'
-              AND derniere_decision = 'Initiative retirée'
-              AND etape_code = 'ANLUNI'
-        ) AS match_cnt
-    FROM dossiers
-    WHERE uid = 'DLR5L17N50337'
-) t
-WHERE cnt != 1 OR match_cnt != 1;
+--    Exclusion des dossiers hors périmètre (motions de censure et résolutions)
+SELECT error('FAIL [dossiers.spot_check.hors_perimetre]: dossier hors projets/propositions de loi présent dans dossiers')
+FROM dossiers
+WHERE uid IN (
+    'DLR5L17N50975', -- motion de censure adoptée
+    'DLR5L17N50337', -- résolution retirée
+    'DLR5L17N50275', -- résolution adoptée
+    'DLR5L17N50335', -- résolution européenne (art. 151-7)
+    'DLR5L17N51481', -- résolution (Règlement AN / CC)
+    'DLR5L17N54841', -- résolution rejetée en séance
+    'DLR5L17N51541'  -- résolution rejetée en commission
+)
+LIMIT 1;
 
 --    Dossier fusionné (absorbé) : vérifie `statut = 'close'`, `denouement = 'fusionné'` et le lien vers le dossier absorbant dans `derniere_decision`.
 SELECT error('FAIL [dossiers.spot_check.DLR5L17N54566]: dossier fusionné')
@@ -131,18 +112,6 @@ FROM (
 WHERE cnt != 1 OR match_cnt != 1;
 
 -- 2. Spot-checks pour les dénouements `adopté` / `rejeté` étendus et la navette en cours
---    Résolutions adoptées : séance (ANLUNI), art. 151-7 (européenne), et conforme CC (Règlement)
-SELECT error('FAIL [dossiers.spot_check.resolutions_adoptees]: résolution adoptée attendue')
-FROM (
-    SELECT
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50275' AND statut = 'close' AND denouement = 'adopté' AND derniere_decision = 'adoptée') AS c1,
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50335' AND statut = 'close' AND denouement = 'adopté' AND etape_code = 'ANLUNI') AS c2,
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N51481' AND statut = 'close' AND denouement = 'adopté' AND etape_code = 'CC') AS c3
-    FROM dossiers
-    WHERE uid IN ('DLR5L17N50275', 'DLR5L17N50335', 'DLR5L17N51481')
-) t
-WHERE c1 != 1 OR c2 != 1 OR c3 != 1;
-
 --    Lois définitivement votées en attente de promulgation (adoptée sans modification / CMP 2 chambres)
 --    Vérifie aussi que la dernière décision de la CMP reflète le vote des chambres et non `Accord`.
 SELECT error('FAIL [dossiers.spot_check.lois_adoptees]: loi définitivement adoptée attendue en statut close / denouement adopté avec derniere_decision CMP exacte')
@@ -162,18 +131,16 @@ FROM (
 ) t
 WHERE c1 != 1 OR c2 != 1;
 
---    Rejets définitifs : résolutions (séance / commission), PPL en 1re lecture, PJL rejeté AN1 + SN1
+--    Rejets définitifs : PPL en 1re lecture, PJL rejeté AN1 + SN1
 SELECT error('FAIL [dossiers.spot_check.rejets]: dossier définitivement rejeté attendu en statut close / denouement rejeté')
 FROM (
     SELECT
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N54841' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Résolution') AS c1,
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N51541' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Résolution') AS c2,
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50453' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Proposition de loi') AS c3,
-        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50172' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Projet de loi') AS c4
+        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50453' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Proposition de loi') AS c1,
+        COUNT(*) FILTER (WHERE uid = 'DLR5L17N50172' AND statut = 'close' AND denouement = 'rejeté' AND procedure = 'Projet de loi') AS c2
     FROM dossiers
-    WHERE uid IN ('DLR5L17N54841', 'DLR5L17N51541', 'DLR5L17N50453', 'DLR5L17N50172')
+    WHERE uid IN ('DLR5L17N50453', 'DLR5L17N50172')
 ) t
-WHERE c1 != 1 OR c2 != 1 OR c3 != 1 OR c4 != 1;
+WHERE c1 != 1 OR c2 != 1;
 
 --    Navette : rejet en 2e chambre (SN1 -> AN2) et CMP votée par 1 seule chambre restent `en_cours` (`denouement IS NULL`)
 --    (le vote de CMP déjà intervenu doit apparaître en `derniere_decision`, pas `Accord`).
