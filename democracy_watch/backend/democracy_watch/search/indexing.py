@@ -3,6 +3,7 @@ from enum import Enum
 
 import meilisearch
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -18,6 +19,29 @@ class MeilisearchApiKeySelection(Enum):
 
 
 task = TaskSelection.INDEX
+
+
+class DossierData(BaseModel):
+    uid: str
+    procedure: str
+    status: str
+    titre: str
+    date_creation: str
+    date_update: str
+    date_depot: str
+    date_denouement: str
+
+
+class ArticleData(BaseModel):
+    pass
+
+
+class AmendementsData(BaseModel):
+    texte: str
+    dispositif: str
+    expose_sommaire: str
+    date_creation: str
+    auteur: str
 
 
 class MeilisearchManager:
