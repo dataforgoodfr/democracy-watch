@@ -209,7 +209,8 @@ SELECT
     type_document,
     numero,
     rang_dans_dossier,
-    date_depot
+    date_depot,
+    'canutes' AS source
 FROM final
 ORDER BY dossier_uid, rang_dans_dossier;
 
