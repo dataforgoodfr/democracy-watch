@@ -491,7 +491,8 @@ SELECT
     commission_saisie_au_fond_libelle,
     etape_code,
     etape_libelle,
-    expose_des_motifs
+    expose_des_motifs,
+    'canutes' AS source
 FROM dossiers_statuts
 ORDER BY uid;
 
@@ -558,3 +559,6 @@ COMMENT ON COLUMN dossiers.etape_libelle IS
 
 COMMENT ON COLUMN dossiers.expose_des_motifs IS
     'Source : tisseuse.assemblee_text_search (item_kind = ''expose_des_motifs'', legislature = 17, dossier_uid IS NOT NULL). Signification : historique chronologique des exposés des motifs du dossier au format tableau JSON. Transformation : agrégation par dossier_uid via to_json(LIST({...})) ordonnée par document_date NULLS LAST, document_uid, numéro de section extrait de item_id (SPLIT_PART(item_id, ''-'', -1)::INTEGER), puis item_id.';
+
+COMMENT ON COLUMN dossiers.source IS
+    'Source : constante définie dans la requête. Signification : identifiant de la source de données (''canutes''). Transformation : aucune.';
