@@ -36,5 +36,10 @@ export default defineNuxtConfig({
     public: {
       api: { url: 'http://localhost:8000' }
     }
+  },
+  typescript: {
+    tsConfig: {
+      include: ['../tests/**/*.ts']
+    }
   }
 })
