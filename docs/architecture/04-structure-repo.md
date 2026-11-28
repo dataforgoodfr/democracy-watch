@@ -4,27 +4,27 @@
 
 ```text
 democracy-watch/
-├── explo/                       # exploratoire
+├── pyproject.toml               # unique projet uv, extras par brique (pipeline, backend, explo)
+├── uv.lock
+├── explo/                       # exploratoire (extra `explo`)
 │   ├── data_controls/            # contrôle et qualité des données
 │   ├── search/                  # Benchmarks meilisearch
 │   ├── projection/              # Epic 3
 │   └── autres/                  # analyses futures
 ├── docs/
-│   ├── architecture/ 
+│   ├── architecture/
 │   └── autres/                  # documentations futures
-├── pipeline/                    # ingestion, lancée par GitHub Actions
-│   ├── pyproject.toml
+├── pipeline/                    # ingestion, lancée par GitHub Actions (extra `pipeline`)
 │   ├── run.sh                   # enchaîne les étapes SQL
 │   ├── sql/
 │   │   ├── adapters/            # clair/, tricoteuses/ : seuls à connaître les schémas sources
 │   │   ├── model/               # modèle interne + contraintes
 │   │   └── checks/              # contrôles qualité
-│   ├── commit/                  # commit 
-│   │   ├── ducklake/            # DuckLake : s3 et publication dernière version  
+│   ├── commit/                  # commit
+│   │   ├── ducklake/            # DuckLake : s3 et publication dernière version
 │   │   └── search/              # client et indexation Meilisearch
 │   └── tests/
-├── backend/                     # projet uv autonome
-│   ├── pyproject.toml
+├── backend/                     # API (extra `backend`)
 │   ├── api/                     # FastAPI : main.py, routes/, schemas/  ← #61
 │   ├── utils/                   # db.py, log.py (existants, déplacés depuis la racine)
 │   ├── tests/
