@@ -4,40 +4,48 @@
 
 ```text
 democracy-watch/
-├── Makefile                     # raccourcis pour tester des briques en local
-├── scripts/                     # installation des dépendances, lancement des Docker en local…
+├── explo/                       # exploratoire
+│   ├── data_controls/            # contrôle et qualité des données
+│   ├── search/                  # Benchmarks meilisearch
+│   ├── projection/              # Epic 3
+│   └── autres/                  # analyses futures
+├── docs/
+│   ├── architecture/ 
+│   └── autres/                  # documentations futures
+├── pipeline/                    # ingestion, lancée par GitHub Actions
+│   ├── pyproject.toml
+│   ├── run.sh                   # enchaîne les étapes SQL
+│   ├── sql/
+│   │   ├── adapters/            # clair/, tricoteuses/ : seuls à connaître les schémas sources
+│   │   ├── model/               # modèle interne + contraintes
+│   │   └── checks/              # contrôles qualité
+│   ├── commit/                  # commit 
+│   │   ├── ducklake/            # DuckLake : s3 et publication dernière version  
+│   │   └── search/              # client et indexation Meilisearch
+│   └── tests/
 ├── backend/                     # projet uv autonome
 │   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── democracy_watch/         # package Python
-│   │   ├── api/                 # FastAPI : main.py, routes/, schemas/  ← #61
-│   │   ├── search/              # client et indexation Meilisearch
-│   │   ├── utils/               # db.py, log.py (existants, déplacés depuis la racine)
-│   │   └── lake.py              # connexion DuckDB → DuckLake (lecture)
+│   ├── api/                     # FastAPI : main.py, routes/, schemas/  ← #61
+│   ├── utils/                   # db.py, log.py (existants, déplacés depuis la racine)
 │   ├── tests/
+│   │   ├── api/
+│   │   └── utils/
 │   └── Dockerfile               # image backend
-├── pipeline/                    # ingestion, lancée par GitHub Actions
-│   ├── run.sh                   # enchaîne les étapes SQL
-│   └── sql/
-│       ├── adapters/            # clair/, tricoteuses/ : seuls à connaître les schémas sources
-│       ├── model/               # modèle interne + contraintes
-│       ├── checks/              # contrôles qualité
-│       └── publish/             # commit DuckLake
 ├── frontend/                    # Nuxt 4
 │   ├── app/                     # pages/, components/, composables/
+│   ├── public/
+│   ├── tests/
 │   ├── nuxt.config.ts
 │   ├── package.json
 │   └── Dockerfile               # image frontend
-├── explo/                       # exploratoire, hors déploiement : projection et grammaires,
-│                                #   comparaison des sources, bench de search, classification…
-├── docs/
-│   └── architecture/            # ces schémas
-├── docker-compose.yml           # dev local : front + back + Postgres + Meili + MinIO (pour imiter S3)
 └── .github/workflows/
     ├── ci-backend.yml           # ruff, ty, pytest (sur les PR touchant backend/ ou pipeline/)
     ├── ci-frontend.yml          # vue-tsc, oxlint, vitest (sur les PR touchant frontend/)
     ├── images.yml               # sur main : build + push des 2 images
     └── pipeline.yml             # cron : exécute pipeline/run.sh
+├── scripts/                     # installation des dépendances, lancement des Docker en local…
+├── Makefile                     # raccourcis pour tester des briques en local
+├── docker-compose.yml           # dev local : front + back + Postgres + Meili (pour imiter S3)
 ```
 
 ## Pourquoi ce découpage

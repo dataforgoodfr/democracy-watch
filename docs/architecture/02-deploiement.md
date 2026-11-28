@@ -25,14 +25,20 @@ flowchart TB
         BACK --> MEILI
     end
 
-    subgraph EXT["Hors cluster"]
-        S3[("S3 D4G<br/>Parquet")]
-        GHA["GitHub Actions<br/>CI + pipeline (cron)"]
-        GHCR[("Registre d'images<br/>ghcr.io")]
+    subgraph S_EXT["Sources externes"]
         HUB[("Docker Hub<br/>images officielles")]
         CLAIR[("CLAIR")]
         TRI[("Tricoteuses")]
     end
+
+    subgraph EXT["Hors cluster"]
+        S3[("S3 D4G<br/>Parquet")]
+        GHA["GitHub Actions<br/>CI + pipeline (cron)"]
+        GHCR[("Registre d'images<br/>ghcr.io")]
+    end
+
+
+
 
     USER --> ING
     BACK -- "lecture RO" --> S3
@@ -43,7 +49,7 @@ flowchart TB
     HUB -. "pull" .-> MEILI
     CLAIR --> GHA
     TRI --> GHA
-    GHA -- "écrit RW" --> S3
     GHA -- "écrit catalogue" --> PG
+    GHA -- "écrit RW" --> S3
     GHA -- "indexe" --> MEILI
 ```
