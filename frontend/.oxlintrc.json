@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vue", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "regex": "^\\.{1,2}/",
+            "message": "Import relatif interdit : utiliser un alias (@/, ~/, #shared/...)."
+          }
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": [
+    ".nuxt",
+    ".output",
+    "node_modules",
+    "dist",
+    "coverage",
+    ".claude",
+    ".cursor",
+    ".codex",
+    ".opencode",
+    ".agents",
+    ".apm-local",
+    ".impeccable"
+  ]
+}

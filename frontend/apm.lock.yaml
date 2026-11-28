@@ -1,0 +1,31 @@
+lockfile_version: '2'
+apm_version: 0.38.1
+manifest_targets:
+- claude
+- codex
+- copilot
+- cursor
+- opencode
+dependencies: []
+deployments: []
+mcp_servers:
+- figma
+- nuxt
+- nuxt-ui
+mcp_configs:
+  figma:
+    name: figma
+    transport: http
+    registry: false
+    url: https://mcp.figma.com/mcp
+  nuxt:
+    name: nuxt
+    transport: http
+    registry: false
+    url: https://nuxt.com/mcp
+  nuxt-ui:
+    name: nuxt-ui
+    transport: http
+    registry: false
+    url: https://ui.nuxt.com/mcp
+mcp_target_servers: {}
