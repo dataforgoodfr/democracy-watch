@@ -158,6 +158,40 @@
   }
 }
 
+@theme inline {
+  /* Fonds */
+  --color-dw-fond-action: var(--dw-fond-action);
+  --color-dw-fond-marque: var(--dw-fond-marque);
+  --color-dw-fond-marque-accent: var(--dw-fond-marque-accent);
+  --color-dw-fond-selection: var(--dw-fond-selection);
+  --color-dw-fond-neutre: var(--dw-fond-neutre);
+  --color-dw-fond-page: var(--dw-fond-page);
+  --color-dw-fond-surface: var(--dw-fond-surface);
+
+  /* Textes */
+  --color-dw-texte-action: var(--dw-texte-action);
+  --color-dw-texte-inverse: var(--dw-texte-inverse);
+  --color-dw-texte-accent: var(--dw-texte-accent);
+  --color-dw-texte-titre: var(--dw-texte-titre);
+  --color-dw-texte-defaut: var(--dw-texte-defaut);
+  --color-dw-texte-mention: var(--dw-texte-mention);
+
+  /* Bordures */
+  --color-dw-bordure-action: var(--dw-bordure-action);
+  --color-dw-bordure-defaut: var(--dw-bordure-defaut);
+  --color-dw-bordure-forte: var(--dw-bordure-forte);
+
+  /* Statuts */
+  --color-dw-statut-erreur: var(--dw-statut-erreur);
+  --color-dw-statut-erreur-fond: var(--dw-statut-erreur-fond);
+  --color-dw-statut-succes: var(--dw-statut-succes);
+  --color-dw-statut-succes-fond: var(--dw-statut-succes-fond);
+  --color-dw-statut-avertissement: var(--dw-statut-avertissement);
+  --color-dw-statut-avertissement-fond: var(--dw-statut-avertissement-fond);
+  --color-dw-statut-info: var(--dw-statut-info);
+  --color-dw-statut-info-fond: var(--dw-statut-info-fond);
+}
+
 @utility dw-text-chapo {
   font-size: 1.25rem;
   line-height: 2rem;
@@ -303,6 +337,12 @@
   .dw-tag[aria-pressed='true'] {
     background-color: var(--dw-fond-action);
     color: var(--color-dw-blanc);
+  }
+  .dw-tag--sm {
+    min-height: 24px;
+    padding: 0 var(--spacing-dw-2v);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
   }
 
   .dw-nav-link {
