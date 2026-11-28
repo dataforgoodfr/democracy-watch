@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Tests SQL CI (DuckDB) pour la table `textes`
 -- =============================================================================
--- Périmètre  : 17e législature, Assemblée nationale (`assemblee.dossiers.legislature = 17`).
+-- Périmètre  : 17e législature, dossiers initiés à l'Assemblée nationale
+--              (`assemblee.dossiers.legislature = 17` et 1er acte `AN%`).
 --              Invariants génériques compatibles avec une base mise à jour
 --              quotidiennement (états évolutifs).
 --              Les spot-checks figés sur l'extrait de référence sont isolés dans
@@ -11,11 +12,11 @@
 --              et la dernière requête renvoie un résumé `PASS` si tout réussit.
 -- =============================================================================
 
--- 1. Grain unique (`uid`) et parité exacte avec `assemblee.documents` ⋈ `assemblee.dossiers` (L17)
---    Vérifie l'absence de doublons sur `uid`, que la table n'est pas vide et que chaque document rattaché à un dossier L17 est présent.
+-- 1. Grain unique (`uid`) et parité exacte avec `assemblee.documents` ⋈ `assemblee.dossiers` (L17, initiés AN)
+--    Vérifie l'absence de doublons sur `uid`, que la table n'est pas vide et que chaque document rattaché à un dossier L17 initié à l'AN est présent.
 SELECT error(
     'FAIL [textes.grain]: COUNT(*)=' || cnt || ' vs DISTINCT uid=' || dist_cnt
-    || ' vs documents_in_dossiers(L17)=' || expected_cnt
+    || ' vs documents_in_dossiers(L17_AN)=' || expected_cnt
 )
 FROM (
     SELECT
@@ -27,18 +28,20 @@ FROM (
             INNER JOIN assemblee.dossiers dos
                 ON dos.uid = json_extract_string(doc.data, '$.dossierRef')
             WHERE dos.legislature = 17
+              AND json_extract_string(dos.data, '$.actesLegislatifs[0].codeActe') ILIKE 'AN%'
         ) AS expected_cnt
     FROM textes
 ) t
 WHERE cnt != dist_cnt OR cnt != expected_cnt OR cnt = 0;
 
--- 2. Intégrité référentielle et périmètre L17 de `dossier_uid` vers `assemblee.dossiers`
---    Vérifie qu'aucun texte ne référence un dossier inexistant ou hors 17e législature.
-SELECT error('FAIL [textes.fk_dossier]: dossier_uid orphelin ou hors L17 "' || t.dossier_uid || '" pour ' || t.uid)
+-- 2. Intégrité référentielle et périmètre (L17, initiés AN) de `dossier_uid` vers `assemblee.dossiers`
+--    Vérifie qu'aucun texte ne référence un dossier inexistant, hors 17e législature ou initié au Sénat.
+SELECT error('FAIL [textes.fk_dossier]: dossier_uid orphelin, hors L17 ou initié hors AN "' || t.dossier_uid || '" pour ' || t.uid)
 FROM textes t
 LEFT JOIN assemblee.dossiers d
     ON d.uid = t.dossier_uid
    AND d.legislature = 17
+   AND json_extract_string(d.data, '$.actesLegislatifs[0].codeActe') ILIKE 'AN%'
 WHERE d.uid IS NULL
 LIMIT 1;
 

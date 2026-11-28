@@ -1,9 +1,8 @@
 -- =============================================================================
 -- Table : `textes` (SQL DuckDB)
 -- =============================================================================
--- Périmètre : 17e législature, Assemblée nationale (`assemblee.dossiers.legislature = 17`).
--- Grain : 1 ligne par document parlementaire (`assemblee.documents.uid`)
---         rattaché à un dossier de la 17e législature présent dans `assemblee.dossiers`.
+-- Périmètre : 17e législature, dossiers initiés à l'Assemblée nationale.
+-- Grain : 1 ligne par document (`assemblee.documents.uid`) rattaché à un dossier de ce périmètre.
 -- Sources :
 --   - `assemblee.documents` : métadonnées documentaires (type, dépôt, notice, dates)
 --   - `assemblee.dossiers`  : périmètre des dossiers (17e législature / L17) + arbre `actesLegislatifs`
@@ -17,8 +16,9 @@ WITH RECURSIVE
 -- 1. SOURCES
 -- -----------------------------------------------------------------------------
 
--- Dossiers sources (17e législature) : utilisés à la fois comme filtre
--- d'intégrité référentielle et comme source de l'arbre `actesLegislatifs`
+-- Dossiers sources (17e législature, initiés à l'Assemblée nationale).
+-- Filtre sur le 1er acte (`AN%`) pour écarter les dossiers initiés au Sénat (`SN1`)
+-- tout en conservant les textes de navette des dossiers initiés à l'AN.
 -- Grain : 1 ligne par dossier (uid)
 source_dossiers AS (
     SELECT
@@ -26,6 +26,7 @@ source_dossiers AS (
         data
     FROM assemblee.dossiers
     WHERE legislature = 17
+      AND json_extract_string(data, '$.actesLegislatifs[0].codeActe') ILIKE 'AN%'
 ),
 
 -- Documents sources : extraction des champs JSON utiles.
@@ -126,9 +127,8 @@ doc_premiere_position AS (
 -- 4. ENRICHISSEMENT ET CALCUL DU RÔLE / RANG DANS LE DOSSIER
 -- -----------------------------------------------------------------------------
 
--- L'INNER JOIN sur `source_dossiers` garantit le périmètre de la 17e législature (L17) et l'intégrité
--- référentielle de `dossier_uid` : dans l'extrait L17, ~1 703 documents pointent
--- vers d'anciens dossiers des 8e à 16e législatures (L8-L16) absents de `assemblee.dossiers` et sont exclus ici.
+-- L'INNER JOIN sur `source_dossiers` garantit le périmètre et l'intégrité référentielle
+-- de `dossier_uid` (exclut les documents orphelins ou rattachés à un dossier hors périmètre).
 documents_enrichis AS (
     SELECT
         doc.uid,
@@ -219,13 +219,13 @@ ORDER BY dossier_uid, rang_dans_dossier;
 -- -----------------------------------------------------------------------------
 
 COMMENT ON TABLE textes IS
-    'Périmètre : 17e législature, Assemblée nationale (assemblee.dossiers.legislature = 17). Grain : 1 ligne par document parlementaire (assemblee.documents.uid) rattaché à un dossier L17 présent dans assemblee.dossiers (INNER JOIN excluant les documents orphelins ou hors L17). Ordonné par (dossier_uid, rang_dans_dossier).';
+    'Périmètre : 17e législature, dossiers initiés à l''Assemblée nationale (legislature = 17 et 1er acte AN%). Grain : 1 ligne par document (assemblee.documents.uid) rattaché à un dossier de ce périmètre. Ordonné par (dossier_uid, rang_dans_dossier).';
 
 COMMENT ON COLUMN textes.uid IS
     'Source : assemblee.documents.uid. Signification : identifiant unique du document parlementaire. Transformation : aucune.';
 
 COMMENT ON COLUMN textes.dossier_uid IS
-    'Source : assemblee.documents.data ($.dossierRef), filtré par INNER JOIN sur assemblee.dossiers.uid (WHERE legislature = 17). Signification : identifiant du dossier législatif parent (17e législature). Transformation : extraction JSON et filtrage de périmètre et d''intégrité référentielle.';
+    'Source : assemblee.documents.data ($.dossierRef), filtré par INNER JOIN sur assemblee.dossiers (legislature = 17, 1er acte AN%). Signification : identifiant du dossier législatif parent. Transformation : extraction JSON et filtrage de périmètre.';
 
 COMMENT ON COLUMN textes.nature IS
     'Source : assemblee.documents.uid et data ($.classification.type.code, $.classification.famille.depot.code, $.classification.type.libelle). Signification : rôle parlementaire normalisé du document dans le dossier. Transformation : CASE priorisant les marqueurs de uid (%BTC%, %BTA%, %TAP%), puis le couple (type_code, depot_code) pour PION/PRJL/PNRE (INITDEP/INITNAV), puis le mapping de type_code, sinon repli sur type_document.';

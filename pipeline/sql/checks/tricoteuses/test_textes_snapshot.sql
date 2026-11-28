@@ -12,15 +12,15 @@
 -- =============================================================================
 
 -- 1. Cohérence du tri procédural : `Texte déposé` (B) précède `Texte de commission` (BTC)
---    qui précède `Texte adopté` (BTA) au sein d'un dossier de 1re lecture simple (`DLR5L17N50168`).
-SELECT error('FAIL [textes.stage_order]: ordre B -> BTC -> BTA non respecté sur DLR5L17N50168')
+--    qui précède `Texte adopté` (BTA) au sein d'un dossier de 1re lecture simple (`DLR5L17N51979`).
+SELECT error('FAIL [textes.stage_order]: ordre B -> BTC -> BTA non respecté sur DLR5L17N51979')
 FROM (
     SELECT
-        MAX(CASE WHEN uid = 'PIONSNR5S419B0720' THEN rang_dans_dossier END) AS r_b,
-        MAX(CASE WHEN uid = 'PIONSNR5S459BTC0041' THEN rang_dans_dossier END) AS r_btc,
-        MAX(CASE WHEN uid = 'PIONSNR5S459BTA0012' THEN rang_dans_dossier END) AS r_bta
+        MAX(CASE WHEN uid = 'PIONANR5L17B1342' THEN rang_dans_dossier END) AS r_b,
+        MAX(CASE WHEN uid = 'PIONANR5L17BTC1473' THEN rang_dans_dossier END) AS r_btc,
+        MAX(CASE WHEN uid = 'PIONANR5L17BTA0135' THEN rang_dans_dossier END) AS r_bta
     FROM textes
-    WHERE dossier_uid = 'DLR5L17N50168'
+    WHERE dossier_uid = 'DLR5L17N51979'
 ) t
 WHERE NOT COALESCE(r_b < r_btc AND r_btc < r_bta, FALSE);
 
@@ -56,34 +56,34 @@ FROM (
 ) t
 WHERE NOT COALESCE(r_an_bta = 18 AND r_an_tap = 19 AND r_sn_bta = 20, FALSE);
 
---    Vérifie qu'un texte adopté classifié `RAPP` par l'OpenData AN est bien normalisé en `Texte adopté`.
-SELECT error('FAIL [textes.spot_check.RAPPSNR5S459BTA0108]: BTA classé Rapport absent ou non normalisé en Texte adopté')
+--    Vérifie qu'un texte adopté classifié `RION` (Résolution) par l'OpenData AN est bien normalisé en `Texte adopté`.
+SELECT error('FAIL [textes.spot_check.RIONANR5L17BTA0067]: BTA classé Résolution absent ou non normalisé en Texte adopté')
 FROM (
     SELECT
         COUNT(*) AS cnt,
         COUNT(*) FILTER (
             WHERE nature = 'Texte adopté'
-              AND type_document = 'Rapport'
-              AND dossier_uid = 'DLR5L17N50169'
+              AND type_document = 'Résolution'
+              AND dossier_uid = 'DLR5L17N50452'
         ) AS ok_cnt
     FROM textes
-    WHERE uid = 'RAPPSNR5S459BTA0108'
+    WHERE uid = 'RIONANR5L17BTA0067'
 ) t
 WHERE cnt != 1 OR ok_cnt != 1;
 
 --    Vérifie la classification `Texte en navette` (`INITNAV`) pour une proposition de loi transmise entre chambres.
-SELECT error('FAIL [textes.spot_check.PIONANR5L17B0482]: texte en navette absent ou mal classifié')
+SELECT error('FAIL [textes.spot_check.PIONANR5L17B1249]: texte en navette absent ou mal classifié')
 FROM (
     SELECT
         COUNT(*) AS cnt,
         COUNT(*) FILTER (
-            WHERE dossier_uid = 'DLR5L17N50168'
+            WHERE dossier_uid = 'DLR5L17N50715'
               AND nature = 'Texte en navette'
               AND type_document = 'Proposition de loi'
-              AND numero = '482'
+              AND numero = '1249'
         ) AS ok_cnt
     FROM textes
-    WHERE uid = 'PIONANR5L17B0482'
+    WHERE uid = 'PIONANR5L17B1249'
 ) t
 WHERE cnt != 1 OR ok_cnt != 1;
 
